@@ -1,0 +1,26 @@
+# stranger2: darkriscv unsigned-immediate mux (stranger #2, fresh design).
+# Fresh design: darklife/darkriscv (small RV32I 3-stage RISC-V CPU -- a
+# different CPU design, never touched by this framework: NOT picorv32,
+# NOT serv, NOT simpleuart/picosoc). BSD 3-Clause licensed
+# (Marcelo Samsoniuk 2018, see LICENSE at the pinned tree root).
+# Pinned to a post-fix commit of a REAL upstream fix: 3dae843a5740ed
+# ("Bugfix: removing unsigned immediates", 2026-01-06, GabPGomes),
+# which corrected U2REGX XMCC ? UIMM -> XMCC ? SIMM in
+# rtl/darkriscv.v (immediate-group ALU ops used the zero-extended
+# immediate; SLTIU against a negative immediate then compared with
+# 4095 instead of 4294967295). Project pin is post-fix HEAD
+# 955511961f139c54d3385063cd9bf40f4dddadd8 (2026-10-11), where the
+# fixed line is verbatim; anchor = fixed line, bug = pre-fix line.
+# TB boots the real core with lui/addi/sltiu/sw and judges the D-bus
+# store (see sim/tb/darkriscv-sltiu_tb.sv).
+project: "darkriscv"
+files: ["rtl/darkriscv.v"]
+top: "tb_darkriscv_sltiu"
+tb: "darkriscv-sltiu_tb.sv"
+anchor: "wire        [31:0] U2REGX = XMCC ? SIMM : U2REG;"
+bug: "wire        [31:0] U2REGX = XMCC ? UIMM : U2REG;"
+gate: "sltiu immediate unsigned sign extend alu"
+budget_s: 600
+vflags: ["-Irtl", "-Wno-PINMISSING", "-Wno-WIDTHTRUNC", "-Wno-WIDTHEXPAND", "-Wno-CASEX", "-Wno-CASEINCOMPLETE", "-Wno-REALCVT"]
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"

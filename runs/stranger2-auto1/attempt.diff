@@ -1,0 +1,8 @@
+diff --git a/rtl/darkriscv.v b/rtl/darkriscv.v
+--- a/rtl/darkriscv.v
++++ b/rtl/darkriscv.v
+@@ -530,3 +530,3 @@
+     wire signed [31:0] S2REGX = XMCC ? SIMM : S2REG;
+-    wire        [31:0] U2REGX = XMCC ? UIMM : U2REG;
++    wire        [31:0] U2REGX = XMCC ? SIMM : U2REG;
+ 

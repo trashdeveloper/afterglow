@@ -1,0 +1,51 @@
+# Afterglow stranger-2 set (Task stranger #2): 1 REAL upstream RTL bug
+# in a SECOND small RISC-V CPU design (darkriscv, not picorv32, not
+# serv, not simpleuart/picosoc).
+#
+# The entry is a genuine open-source fix commit from
+# darklife/darkriscv, verified 2026-10-27 against a full local clone
+# (see shas below): the fixed line is still present verbatim in the
+# pinned tree (targets.pin darkriscv
+# 955511961f139c54d3385063cd9bf40f4dddadd8).
+#
+# QUARANTINE: ground_truth_fix below is evidence for the judge only.
+# It is NEVER fed to the agent loop -- the loop sees the RED trace
+# alone (same rule as eval/cases.yaml: no fix leaks into prompts).
+# Live runs MUST use --run-id stranger2-* so
+# eval/stranger2_score.py can attribute bundles to this entry by
+# run-id prefix.
+#
+# RUNNABLE CASE (no proxy limitation): sim/targets/stranger2.yaml
+# injects the literal pre-fix line into the pinned post-fix tree and
+# the hand-written TB (sim/tb/darkriscv-sltiu_tb.sv) boots the real
+# core through lui/addi/sltiu/sw, judging the D-bus store. RED and
+# pristine-PASS were both proven 2026-10-27 (see the Task report):
+# RED tohost FAIL 0xdead, checksum
+# f4c01ef9454981bd93e52388b13a48719e5eea9443874bce9897c0eb347af824,
+# CYCLES=13; pristine tohost PASS, CYCLES=13.
+#
+# BASELINES: manual_baseline_hours are WORKFORCE ESTIMATES (not
+# measurements). The rationale says what the hours cover; the loop's
+# time-to-green (from run bundles) is compared against them by
+# eval/stranger2_score.py.
+
+- id: stranger2
+  repo: "https://github.com/darklife/darkriscv.git"
+  commit: "3dae843a5740eddc82b7d555fcd6ac1bf4decd66"
+  pin_commit: "955511961f139c54d3385063cd9bf40f4dddadd8"
+  upstream_author: "GabPGomes"
+  upstream_date: "2026-01-06"
+  upstream_subject: "Bugfix: removing unsigned immediates"
+  file: "rtl/darkriscv.v"
+  bug_desc: "Unsigned-immediate mux in the RM group: U2REGX carried the zero-extended immediate (UIMM) instead of the sign-extended one (SIMM), so SLTIU against a negative immediate compared against 4095 instead of 4294967295."
+  ground_truth_fix: |
+    diff --git a/rtl/darkriscv.v b/rtl/darkriscv.v (3dae843, 1 line)
+    - wire        [31:0] U2REGX = XMCC ? UIMM : U2REG;
+    + wire        [31:0] U2REGX = XMCC ? SIMM : U2REG;
+    Pinned-tree anchor verified: rtl/darkriscv.v:531 carries the SIMM fix at pin 955511961f13.
+  manual_baseline_hours: "4"
+  baseline_rationale: "Immediate-mux bug: reproduce SLTIU sign failure under sim, trace U2REGX vs S2REGX through the RM-group mux, gate the one-line fix, re-sim the full boot program."
+  baseline_source: "workforce estimate 2026-10-27 (not measured)"
+  local_spec: "sim/targets/stranger2.yaml"
+  proxy_rationale: "No proxy: the case injects the literal pre-fix line and the TB executes the discriminating instruction sequence on the real core."
+  quarantine: "ground_truth_fix never enters loop prompts; loop sees RED trace only"

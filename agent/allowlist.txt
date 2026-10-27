@@ -6,3 +6,4 @@ timer.py
 uart.py
 serv_alu.v
 serv_csr.v
+darkriscv.v

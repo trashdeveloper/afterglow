@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: stranger2\nFailing-trace sha256 (first 16 hex): 22ed831f715c0fc3\nVerbatim diagnosis from the debug agent:\nSLTIU test expects x3=1 for unsigned compare 5000 < 0xFFFFFFFF (-1 sign-extended) but DUT stored datao=0x00000000 instead of 0x00000001. Zero-extended UIMM turns 0xFFF into 4095, so 5000<4095 evaluates false. Root cause is line 531 where U2REGX selects UIMM instead of sign-extended SIMM bits for the I-type unsigned operand.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 22ed831f715c0fc3 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "5347f2a392712a09319b6698b33d67b41d7c664729ecfe5b17504ce7c65f7221",
+  "trace_sha256": "22ed831f715c0fc36944f9d5d6634331f398bf3e80c2e5fc2bb5025d157ff0ff",
+  "diagnosis_sha256": "d5715290b0ac65ee936852f7d6754b74fb9398ea7d11be8ac2916ae76b95b173",
+  "case": "stranger2",
+  "attempt": 1
+}

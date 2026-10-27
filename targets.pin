@@ -1,3 +1,4 @@
 # Afterglow frozen RTL pins. Format: "<name> <url> <sha>" per line.
 picorv32 https://github.com/YosysHQ/picorv32.git ef203c2b0a3fb793280f5114941416c425c5b461
 serv https://github.com/olofk/serv.git 727bb40a8784c50b081abdcfd784a5bc7c34e40e
+darkriscv https://github.com/darklife/darkriscv.git 955511961f139c54d3385063cd9bf40f4dddadd8
