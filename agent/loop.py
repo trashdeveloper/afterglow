@@ -105,6 +105,24 @@ MAX_TRANSPORT_FAILURES = 3
 # Attempt-diversity accounting (wave-2): at most one duplicate-direction
 # re-ask per run (extra model ask, no resim burned).
 MAX_DUPLICATE_REASKS = 1
+# Escalating attempt ladder 3->5: attempts 1-3 behave EXACTLY as before;
+# attempts 4-5 unlock ONLY when attempts 1-3 all produced completed
+# model responses that all went RED with observable behavioral signal,
+# in three distinct directions, with zero transport failures (flakes
+# never count) and accumulated est cost under cap. Rationale: with
+# diversity + failure-feedback + flake accounting in place, ladder
+# attempts carry strictly more signal (full prior-attempts block +
+# STRATEGY-CHANGE directive) than attempts 1-3 ever had.
+LADDER_MAX_ATTEMPTS = 5
+LADDER_COST_CAP_USD = 0.50
+# Honest worst-case per-attempt proxy when no cost signal exists yet:
+# full TEXT_MAX_TOKENS output + full prompt-cap input + one image
+# (2500*0.002 + 8000*0.008 + 0.03 = ~$0.10).
+LADDER_PROXY_USD_PER_ATTEMPT = 0.10
+STRATEGY_CHANGE_DIRECTIVE = (
+    "STRATEGY-CHANGE: two/three distinct directions failed; propose a "
+    "qualitatively different repair class \u2014 e.g. if prior patches edited "
+    "combinational logic, consider sequential/reset/enable logic, and vice versa.")
 
 # Full-auto-by-default loop mode: every run attempts PATCH->RESIM->VERIFY
 # (mode "live", exit 0/1) unless --triage / --stop-before-patch selects
@@ -1584,6 +1602,95 @@ def is_duplicate_direction(diff_text: str, priors) -> bool:
     return False
 
 
+def ladder_text_usd(usage, model=None) -> float:
+    """Estimated USD for one completed Text call (pure; ledger math).
+
+    Mirrors afterglow_core.cost pricing (input/output per-1k-token
+    rates for the deciding model). Empty/foreign usage estimates to
+    zero -- the caller falls back to the per-attempt proxy then.
+    """
+    rates = cost_ledger.PRICING.get(
+        model or TEXT_MODEL,
+        cost_ledger.PRICING[cost_ledger.TEXT_MODEL_DEFAULT])
+
+    def _n(key: str) -> int:
+        try:
+            value = int((usage or {}).get(key, 0))
+        except (TypeError, ValueError):
+            return 0
+        return max(value, 0)
+
+    return round(_n("prompt_tokens") / 1000
+                 * float(rates.get("input_usd_per_1k", 0.0))
+                 + _n("completion_tokens") / 1000
+                 * float(rates.get("output_usd_per_1k", 0.0)), 6)
+
+
+def ladder_cost_ok(run_dir: str, tracked_usd: float,
+                   attempts_consumed: int) -> tuple:
+    """Ladder cost gate: accumulated est must be under the cap.
+
+    The explicit cost ledger (run_dir/cost.json) wins when present;
+    else the in-loop tracked accumulation when it carries signal;
+    else an honest worst-case per-attempt proxy. Returns
+    (ok, est_usd, source) with source in ledger/tracked/proxy.
+    """
+    try:
+        with open(os.path.join(str(run_dir), "cost.json"),
+                  encoding="utf-8") as fh:
+            est = float((json.load(fh) or {}).get("est_usd", 0.0))
+        return est < LADDER_COST_CAP_USD, est, "ledger"
+    except (OSError, ValueError, TypeError, AttributeError):
+        pass
+    try:
+        tracked = float(tracked_usd or 0.0)
+    except (TypeError, ValueError):
+        tracked = 0.0
+    if tracked > 0:
+        return tracked < LADDER_COST_CAP_USD, tracked, "tracked"
+    proxy = float(attempts_consumed) * LADDER_PROXY_USD_PER_ATTEMPT
+    return proxy < LADDER_COST_CAP_USD, proxy, "proxy"
+
+
+def ladder_eligible(prior_attempts, attempts_consumed: int,
+                    transport_failures: int) -> tuple:
+    """Pure ladder unlock predicate (no I/O).
+
+    True ONLY when attempts 1-3 all produced completed model responses
+    that all went RED with observable behavioral signal, in three
+    distinct directions, with zero transport failures: consumed==3,
+    no flakes, every prior row a RED resim (guard-rejected and
+    unparseable rows carry no resim signal), every checksum changed
+    (a checksum-unchanged resim is a no-op/stale-build, not signal),
+    and three distinct direction keys (so the STRATEGY-CHANGE claim
+    of distinct failed directions is true). Returns (ok, reason);
+    the reason is recorded verbatim in meta["ladder_reason"].
+    """
+    if attempts_consumed != MAX_ATTEMPTS:
+        return False, "base-budget-not-exhausted"
+    if transport_failures:
+        return False, ("transport-failures-present "
+                        "(flakes never unlock the ladder)")
+    priors = list(prior_attempts or [])
+    if len(priors) != MAX_ATTEMPTS:
+        return False, "prior-attempts-lack-3-completed"
+    for entry in priors:
+        if not str(entry.get("resim", "")).startswith("RED"):
+            return False, ("prior-attempts-lack-3-RED "
+                           "(guard-rejected/unparseable rows carry "
+                           "no resim signal)")
+    for entry in priors:
+        if entry.get("checksum_changed") != "yes":
+            return False, ("prior-attempts-lack-behavioral-signal "
+                           "(a checksum-unchanged resim is a "
+                           "no-op/stale-build, not signal)")
+    directions = [_prior_direction(entry) for entry in priors]
+    if len(set(directions)) != MAX_ATTEMPTS:
+        return False, ("prior-attempts-lack-diversity "
+                        "(STRATEGY-CHANGE claims distinct directions)")
+    return True, "unlocked-3-signal-RED"
+
+
 def _bundle_case(runs_dir: str, run_id: str) -> str:
     """Case id recorded in a prior bundle's meta.json ("" when unknown)."""
     try:
@@ -1791,6 +1898,11 @@ def main(argv=None) -> int:
         # Resim-integrity default: set True (attempt + meta) only when a
         # resim returns identical checksum + unchanged tohost.
         "no_behavioral_effect": False,
+        # Ladder 3->5 accounting: logged in EVERY meta (init defaults
+        # cover all pre-loop exits; the gate updates them once the
+        # base budget is exhausted).
+        "ladder_used": False,
+        "ladder_reason": "not-evaluated (base budget not yet exhausted)",
         "goals": getattr(args, "goals", GOALS_FIX),
         "opt_status": OPT_STATUS_SKIPPED,
     }
@@ -2108,7 +2220,9 @@ def main(argv=None) -> int:
                  "top1_is_true": counts.get("top1_is_true", ""),
                  "trace_sha256": trace_sha})
 
-    # ---- DIAGNOSE -> EXPLAIN -> PATCH -> RESIM (<=2 retries, then
+    # ---- DIAGNOSE -> EXPLAIN -> PATCH -> RESIM (<=2 retries = 3 base
+    # attempts, then the ladder gate: at most 2 extra attempts unlock
+    # ONLY on 3 signal-bearing REDs with zero flakes and est under cap;
     # DEGRADE in live mode only when no patch was ever applied: a
     # pre-patch failure stops triage-style instead of RED).
     # Pre-COLLECT failures above stay RED: with no diagnosis there is
@@ -2142,6 +2256,13 @@ def main(argv=None) -> int:
     transport_failures = 0
     transport_waits_all: list = []
     duplicate_reasks = 0
+    # Ladder 3->5 state: decided once when the base budget is exhausted;
+    # tracked_spend_usd accumulates real per-call est so the cost gate
+    # judges accumulated spend, not just the latest snapshot.
+    ladder_used = False
+    ladder_reason = "not-evaluated (base budget not yet exhausted)"
+    ladder_decided = False
+    tracked_spend_usd = 0.0
     meta["attempts_consumed"] = 0
     meta["transport_retries"] = []
     meta["transport_failures"] = 0
@@ -2153,6 +2274,7 @@ def main(argv=None) -> int:
         proof snapshot written to text_request.json.
         """
         nonlocal transport_failures
+        nonlocal ladder_reason
         transport_failures += 1
         transport_waits_all.extend(
             list(getattr(exc, "transport_waits", None) or []))
@@ -2185,13 +2307,75 @@ def main(argv=None) -> int:
                 "(no heuristic fallback)"
                 % (transport_failures, attempts_consumed, exc))
             print("FATAL: %s" % meta["error"], file=sys.stderr)
+            # The ladder never unlocks on flakes: record the reason so
+            # every triage-on-flakes meta carries the ladder verdict too.
+            ladder_reason = ("transport-failures-present "
+                             "(%d transport failures; flakes never unlock "
+                             "the ladder)" % transport_failures)
+            meta["ladder_used"] = False
+            meta["ladder_reason"] = ladder_reason
             # The shared bundle tail below writes the remaining
             # placeholders, then the live run DEGRADEs to triage.
             return True
         return False
 
     attempt = 0
-    while attempts_consumed < MAX_ATTEMPTS:
+    attempt_limit = MAX_ATTEMPTS
+    while True:
+        if attempts_consumed >= attempt_limit:
+            if (attempts_consumed == MAX_ATTEMPTS
+                    and attempt_limit == MAX_ATTEMPTS
+                    and not ladder_decided):
+                # Base budget exhausted: evaluate the ladder gate ONCE.
+                # Attempts 1-3 already ran EXACTLY as before; this block
+                # only decides whether attempts 4-5 unlock (at most two
+                # extra diagnose->patch->resim rounds with strictly more
+                # signal). A blocked ladder breaks here, preserving the
+                # historic stop-at-3 behavior byte-for-byte.
+                ladder_decided = True
+                ok, why = ladder_eligible(prior_attempts,
+                                          attempts_consumed,
+                                          transport_failures)
+                if ok:
+                    cok, est, src = ladder_cost_ok(
+                        run_dir, tracked_spend_usd, attempts_consumed)
+                    if cok:
+                        attempt_limit = LADDER_MAX_ATTEMPTS
+                        ladder_used = True
+                        ladder_reason = (
+                            "unlocked-3-signal-RED "
+                            "(est $%.4f via %s < cap $%.2f)"
+                            % (est, src, LADDER_COST_CAP_USD))
+                    else:
+                        ladder_reason = (
+                            "ladder_cost_cap (est $%.4f via %s "
+                            ">= cap $%.2f)" % (est, src,
+                                               LADDER_COST_CAP_USD))
+                else:
+                    ladder_reason = why
+                meta["ladder_used"] = ladder_used
+                meta["ladder_reason"] = ladder_reason
+                print("[LADDER] %s (ladder_used=%s)"
+                      % (ladder_reason, ladder_used), flush=True)
+                if attempt_limit == MAX_ATTEMPTS:
+                    break
+            else:
+                break
+        elif (ladder_used and attempt_limit == LADDER_MAX_ATTEMPTS
+                and attempts_consumed == LADDER_MAX_ATTEMPTS - 1):
+            # Before the final ladder attempt: re-check the cost cap on
+            # the accumulated spend; over cap stops with ladder_cost_cap.
+            cok, est, src = ladder_cost_ok(
+                run_dir, tracked_spend_usd, attempts_consumed)
+            if not cok:
+                ladder_reason = (
+                    "ladder_cost_cap (est $%.4f via %s >= cap $%.2f; "
+                    "stopping before attempt %d)"
+                    % (est, src, LADDER_COST_CAP_USD,
+                       attempts_consumed + 1))
+                meta["ladder_reason"] = ladder_reason
+                print("[LADDER] %s" % ladder_reason, flush=True)
+                break
         # Transport retries never advance the display counter: attempt N
         # is retried as attempt N until a completed response consumes it.
         attempt = attempts_consumed
@@ -2234,7 +2418,7 @@ def main(argv=None) -> int:
             note = ("\n\nRETRY NOTE (attempt %d of %d): the previous patch "
                     "failed: %s. Diagnose again from the SAME trace and "
                     "propose a corrected unified diff."
-                    % (attempt + 1, MAX_ATTEMPTS, prev[:600]))
+                    % (attempt + 1, attempt_limit, prev[:600]))
         attempt_prompt = full_prompt + note
         fb_block = format_prior_attempts_block(prior_attempts)
         if fb_block:
@@ -2247,6 +2431,13 @@ def main(argv=None) -> int:
             # No-op/stale-build signal from the previous resim: separate
             # context block (prompt templates untouched, hashes stable).
             attempt_prompt += "\n\nLOOP FEEDBACK: " + loop_feedback
+        if attempt + 1 > MAX_ATTEMPTS:
+            # Ladder attempts carry strictly more signal than attempts
+            # 1-3 ever had: the full prior-attempts block above plus an
+            # explicit directive to change repair class (context block
+            # only -- prompt templates untouched, hashes stable -- and
+            # logged verbatim in text_request.json below).
+            attempt_prompt += "\n\n" + STRATEGY_CHANGE_DIRECTIVE
         # DIAGNOSE (live only; transport flakes retry with backoff)
         try:
             call, transport_waits = call_text_with_backoff(attempt_prompt)
@@ -2256,6 +2447,8 @@ def main(argv=None) -> int:
             if note_transport_failure(exc):
                 break
             continue
+        tracked_spend_usd += ladder_text_usd(call.get("usage"),
+                                             call.get("model"))
         try:
             # Truncation salvage (v3-21 lesson): a max_tokens cut that
             # still yields a complete diagnosis+diff is repaired WITHOUT
@@ -2319,6 +2512,8 @@ def main(argv=None) -> int:
                 if note_transport_failure(exc):
                     break
                 continue
+            tracked_spend_usd += ladder_text_usd(call.get("usage"),
+                                                 call.get("model"))
             transport_waits_all.extend(list(transport_waits or []))
             meta["transport_retries"] = list(transport_waits_all)
             try:
@@ -2366,6 +2561,9 @@ def main(argv=None) -> int:
             img_info = visual.generate(
                 img_prompt, os.path.join(run_dir, "explain.png"))
             meta["explain"] = "ok"
+            tracked_spend_usd += float(cost_ledger.PRICING.get(
+                img_info.get("model", visual.IMAGE_MODEL), {}).get(
+                "usd_per_image", 0.0) or 0.0)
             meta["image_latency_ms"] = img_info["latency_ms"]
             meta["image_request_id"] = img_info["request_id"]
             meta["image_bytes"] = img_info["bytes"]
@@ -2452,6 +2650,10 @@ def main(argv=None) -> int:
                         "patch_source_try": "model-verbatim",
                         "summary": summary,
                         **duplicate_info}
+        if attempt + 1 > MAX_ATTEMPTS:
+            # Ladder-attempt marker (attempts 1-3 entries stay untouched).
+            last_attempt["ladder"] = True
+            last_attempt["strategy_change"] = True
         if not outcome["applied"]:
             # trust evidence: keep the rejected verbatim diff
             with open(os.path.join(run_dir, "rejected_model.diff"), "w",
@@ -2587,6 +2789,9 @@ def main(argv=None) -> int:
                             "source": "verdict_after.json"}})
         if getattr(after_verdict, "pass"):
             green = True
+            if not ladder_used:
+                ladder_reason = "green-within-base (ladder not needed)"
+                meta["ladder_reason"] = ladder_reason
             break
         last_attempt["summary"] += (
             "; RESIM still RED (tohost=%s)" % verdict_after.get("tohost"))
