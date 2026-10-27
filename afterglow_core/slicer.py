@@ -329,3 +329,53 @@ def backward_slice(tree: str, seed: str,
               "unparsed": unparsed, "lines": len(out),
               "files": files_touched}
     return out[:max_lines], report
+
+
+FALLBACK_HALF = 30
+
+
+def fallback_window(tree: str, rel: str, seed: str, half: int = FALLBACK_HALF,
+                     max_lines: int = MAX_CONE_LINES) -> Tuple[List[str], Dict]:
+    """Last-resort window around the first seed hit in one file.
+
+    Used only when the static driver-cone slice is EMPTY (cone_lines 0):
+    fall back to ``seed`` +/- ``half`` lines so the model still gets
+    grounded file:line context instead of an empty CONE_SLICE. Whole-word
+    match first, then plain substring. Returns (lines, report); the report
+    carries ``source: "fallback-window"`` and ``center`` (1-based line of
+    the hit, None when the seed is absent from the file).
+    """
+    report = {"seed": seed, "resolved": 0, "sought": 1, "unparsed": 0,
+              "lines": 0, "files": [], "source": "fallback-window",
+              "center": None}
+    try:
+        lines = _read_lines(tree, rel)
+    except OSError:
+        return [], report
+    center = None
+    try:
+        whole = re.compile(r"\b%s\b" % re.escape(seed), re.IGNORECASE)
+    except re.error:
+        whole = None
+    for i, ln in enumerate(lines):
+        if whole is not None and whole.search(ln):
+            center = i + 1
+            break
+    if center is None:
+        lowered = (seed or "").lower()
+        if lowered:
+            for i, ln in enumerate(lines):
+                if lowered in ln.lower():
+                    center = i + 1
+                    break
+    if center is None:
+        return [], report
+    start = max(0, center - 1 - half)
+    window = lines[start:center - 1 + half + 1]
+    out = ["%s:%d: %s" % (rel, start + i + 1, text.strip())
+           for i, text in enumerate(window)]
+    out = out[:max_lines]
+    report["lines"] = len(out)
+    report["files"] = [rel]
+    report["center"] = center
+    return out, report

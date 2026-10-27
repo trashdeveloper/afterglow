@@ -83,12 +83,14 @@ def _cone_section(cone_lines: List[str], report: Dict) -> str:
     body_lines = list(cone_lines or [])
     body = "\n".join(body_lines) if body_lines else "(empty cone)"
     header = ("### CONE_SLICE [seed: %s | files: %d | lines: %d | "
-              "coverage: %s/%s resolved | unparsed: %s | tokens: %d]"
+              "coverage: %s/%s resolved | unparsed: %s | source: %s | "
+              "tokens: %d]"
               % (report.get("seed", "?"),
                  len(report.get("files", [])),
                  len(body_lines),
                  report.get("resolved", 0), report.get("sought", 0),
-                 report.get("unparsed", 0), approx_tokens(body)))
+                 report.get("unparsed", 0),
+                 report.get("cone_source", "static"), approx_tokens(body)))
     return header + "\n" + body
 
 

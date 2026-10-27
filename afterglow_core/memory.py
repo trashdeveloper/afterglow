@@ -83,19 +83,28 @@ def _is_green_diagnosed(runs_dir: str, name: str) -> bool:
     return meta.get("status") == "green" and bool(meta.get("diagnosed"))
 
 
-def recall_similar(query_signals, runs_dir: str, k: int = 3
-                   ) -> List[Tuple[str, float, Dict]]:
+def recall_similar(query_signals, runs_dir: str, k: int = 3,
+                   exclude=()) -> List[Tuple[str, float, Dict]]:
     """Rank bundles by Jaccard(query, bundle signals), desc. Read-only.
 
-    Bundles without a valid fingerprint.json are skipped. Returns at
-    most k [(run_id, score, record)] tuples. Ties break by run_id.
+    Bundles without a valid fingerprint.json are skipped. ``exclude``
+    names run-ids that must never be returned (a run must not recall
+    itself, e.g. a rerun reusing its run-id): a single id string or an
+    iterable of ids. Returns at most k [(run_id, score, record)] tuples.
+    Ties break by run_id.
     """
+    if isinstance(exclude, str):
+        excluded = {exclude}
+    else:
+        excluded = set(exclude or ())
     try:
         names = sorted(os.listdir(runs_dir))
     except OSError:
         return []
     scored = []
     for name in names:
+        if name in excluded:
+            continue
         rec = load_fingerprint(os.path.join(runs_dir, name))
         if rec is None:
             continue

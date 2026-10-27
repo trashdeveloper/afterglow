@@ -403,6 +403,110 @@ def extract_model_json(content: str) -> dict:
     return obj
 
 
+def _salvage_candidates(body: str) -> list:
+    """Propose repaired strings for a truncated JSON body, best first.
+
+    (1) every balanced-brace close position, largest first (extract the
+    largest {...} substring); (2) the truncation repair: close an open
+    string (dropping one dangling escape backslash so the closer is not
+    itself escaped), then close every still-open bracket/brace.
+    json.loads is the real judge downstream -- this only proposes.
+    """
+    stack: list = []
+    balanced_ends: list = []
+    in_str = False
+    esc = False
+    for i, ch in enumerate(body):
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == "\\":
+                esc = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch == "{" or ch == "[":
+            stack.append(ch)
+        elif ch == "}" or ch == "]":
+            if stack and ((ch == "}" and stack[-1] == "{")
+                          or (ch == "]" and stack[-1] == "[")):
+                stack.pop()
+                if ch == "}" and not [o for o in stack if o == "{"]:
+                    balanced_ends.append(i + 1)
+    cands = [body[:e] for e in sorted(set(balanced_ends), reverse=True)]
+    tail = body
+    still_open = list(stack)
+    if in_str:
+        trailing_bs = len(tail) - len(tail.rstrip("\\"))
+        if trailing_bs % 2 == 1:
+            tail = tail[:-1]  # dangling escape: drop so " closes
+        tail += '"'
+    closer = {"{": "}", "[": "]"}
+    tail += "".join(closer[o] for o in reversed(still_open))
+    if tail not in cands:
+        cands.append(tail)
+    return cands
+
+
+def salvage_model_json(content: str) -> dict:
+    """Repair a TRUNCATED model JSON output (max_tokens cut). Never invents.
+
+    Strict extract_model_json fails two truncation shapes: (a) no closing
+    brace at all (cut inside a string, e.g. v3-21 attempt-2); (b) braces
+    present but json.loads dies on the cut tail. Salvage tries the
+    largest balanced {...} substring first, then the truncation repair
+    (close open string + open brackets/braces). The first candidate that
+    parses AND validates (non-empty diagnosis + non-empty patch_diff --
+    the same gate as strict) wins. Anything else raises LoopError: a
+    diagnosis-only repair is unusable (no diff to apply), and inventing
+    one would violate the live-decider rule, so that retry is correctly
+    burned.
+    """
+    if content is None or not str(content).strip():
+        raise LoopError("salvage failed: empty model output, "
+                        "nothing to repair")
+    text = str(content).strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```[a-zA-Z]*\s*", "", text)
+        text = re.sub(r"\s*```$", "", text)
+    try:
+        return extract_model_json(content)
+    except LoopError as exc:
+        strict_reason = str(exc)
+    start = text.find("{")
+    if start < 0:
+        raise LoopError("salvage failed: no JSON object to repair "
+                        "(strict: %s)" % strict_reason)
+    for cand in _salvage_candidates(text[start:]):
+        try:
+            obj = json.loads(cand)
+        except ValueError:
+            continue
+        if (isinstance(obj, dict)
+                and str(obj.get("diagnosis", "")).strip()
+                and str(obj.get("patch_diff", "")).strip()):
+            return obj
+    raise LoopError("salvage failed: surviving bytes yield no complete "
+                    "diagnosis+diff (strict: %s)" % strict_reason)
+
+
+def parse_model_output(content: str) -> tuple:
+    """Strict parse, else truncation salvage. Returns (obj, salvaged).
+
+    salvaged False: strict JSON, nothing repaired. True: a truncation
+    repair yielded a complete diagnosis+diff, usable WITHOUT burning a
+    retry. Raises LoopError only when both fail (garbage, or cut before
+    patch_diff was emitted -- salvage never invents a diff, so that
+    retry is correctly burned).
+    """
+    try:
+        return extract_model_json(content), False
+    except LoopError:
+        return salvage_model_json(content), True
+
+
 # --------------------------------------------------------------------------
 # PATCH helpers: repair paths, guard, patch -p1 dry-run/apply
 # --------------------------------------------------------------------------
@@ -629,6 +733,164 @@ def resim_after(tree: str, case: dict, seed: int, boot_path: str,
     with open(verdict_path, "w", encoding="utf-8") as fh:
         fh.write(json.dumps(verdict, indent=2) + "\n")
     return verdict
+
+
+# --------------------------------------------------------------------------
+# RESIM integrity (mutbigN-v3-21): hash inputs -> build -> rehash, plus a
+# no-op-patch detector. Attempt-1 of mutbigN-v3-21 applied cleanly
+# (guard_ok=True applied=True) yet RESIM returned an IDENTICAL checksum
+# before/after -- behaviorally impossible for that edit, pointing at a
+# stale build / wrong tree / cached objects, which the old loop recorded
+# as an ordinary RED with no hash evidence and no retry signal.
+# --------------------------------------------------------------------------
+
+NO_BEHAVIORAL_EFFECT_MSG = (
+    "PATCH HAD NO BEHAVIORAL EFFECT — suspect no-op edit or stale build")
+
+
+def detect_no_behavioral_effect(verdict_before: dict | None,
+                                verdict_after: dict | None) -> bool:
+    """Pure predicate: identical checksum AND unchanged tohost => null resim.
+
+    A checksum that is missing/empty on either side never flags (broken
+    sim verdicts must not read as "no effect"). Either side not a dict
+    is also False. Same-checksum alone does NOT prove staleness -- a
+    behaviorally-null edit for this oracle reads identically -- so the
+    caller records this as *suspect* (flag + retry feedback), never as
+    proof, and never as green.
+    """
+    if not isinstance(verdict_before, dict):
+        return False
+    if not isinstance(verdict_after, dict):
+        return False
+    before_sum = verdict_before.get("checksum")
+    after_sum = verdict_after.get("checksum")
+    if not before_sum or not after_sum:
+        return False
+    if before_sum != after_sum:
+        return False
+    return verdict_before.get("tohost") == verdict_after.get("tohost")
+
+
+def snapshot_file_hashes(tree: str, rels: list) -> dict:
+    """Content-hash the named tree-relative files. Missing files are
+    skipped (never crash the loop on provenance)."""
+    out: dict = {}
+    for rel in rels or []:
+        path = os.path.join(str(tree), str(rel))
+        if os.path.isfile(path):
+            out[str(rel)] = sha256_file(path)
+    return out
+
+
+def stash_patched_sources(tree: str, rels: list, run_dir: str) -> dict:
+    """Copy the patched tree file(s) into the run bundle BEFORE resim as
+    patched_source.<ext> (patched_source.<n>.<ext> when several share an
+    extension) AND return their content hashes.
+
+    The bundle copy pins what the build was supposed to compile; the
+    returned hashes are the pre-build baseline for the post-VERIFY
+    re-hash. Missing files are skipped, never fatal.
+    """
+    hashes: dict = {}
+    used: set = set()
+    for rel in rels or []:
+        src = os.path.join(str(tree), str(rel))
+        if not os.path.isfile(src):
+            continue
+        hashes[str(rel)] = sha256_file(src)
+        _root, ext = os.path.splitext(os.path.basename(str(rel)))
+        dest_name = "patched_source" + ext
+        n = 1
+        while dest_name in used:
+            n += 1
+            dest_name = "patched_source.%d%s" % (n, ext)
+        used.add(dest_name)
+        shutil.copyfile(src, os.path.join(run_dir, dest_name))
+    return hashes
+
+
+def hashes_match(pre: dict, post: dict) -> tuple:
+    """Pure comparison of two {rel: sha256} snapshots.
+
+    Returns (match: bool, detail: str). Missing-vs-present counts as a
+    mismatch (the tree drifted under the build either way).
+    """
+    if pre == post:
+        return True, "all %d file(s) unchanged" % len(pre)
+    changed = sorted(
+        {r for r in set(pre) | set(post) if pre.get(r) != post.get(r)})
+    return False, "tree drifted under build: %s" % (changed,)
+
+
+def build_loop_feedback(attempt_no: int, verdict_before: dict,
+                        verdict_after: dict) -> str:
+    """Retry-context sentence for a behaviorally-null resim.
+
+    Threaded into the NEXT attempt's prompt as a separate LOOP FEEDBACK
+    block (logged verbatim in text_request.json under "loop_feedback"),
+    NOT baked into any prompt template -- so prompt files and their
+    versioned hashes are untouched (no v3->v4 bump for this).
+    """
+    return (
+        "%s (attempt %d: checksum %s == %s, tohost %s unchanged). "
+        "Diagnose again from the SAME trace and propose a corrected "
+        "unified diff against the CURRENT tree state."
+        % (NO_BEHAVIORAL_EFFECT_MSG, int(attempt_no),
+           verdict_before.get("checksum"), verdict_after.get("checksum"),
+           verdict_after.get("tohost")))
+
+
+def resim_with_integrity(tree: str, case: dict, seed: int, boot_path: str,
+                         verdict_path: str, run_dir: str | None = None,
+                         verdict_before: dict | None = None,
+                         resim_fn=None) -> tuple:
+    """Snapshot -> resim -> re-hash, with at most ONE clean rebuild.
+
+    - BEFORE the build: stash the patched file(s) into the run bundle
+      (when run_dir is given) and record pre-build content hashes.
+    - AFTER VERIFY: re-hash the tree files. On mismatch mark
+      integrity["stale-tree-suspect"]=True, drop the incremental
+      obj_afterglow_<case> dir, and resim EXACTLY once more (clean
+      rebuild retry); the second verdict stands, whatever it says.
+    - When verdict_before is given, set
+      integrity["no_behavioral_effect"] via detect_no_behavioral_effect.
+
+    resim_fn (default: resim_after, resolved at call time so tests can
+    mock loop.resim_after) must take
+    (tree, case, seed, boot_path, verdict_path) and return a verdict
+    dict. Returns (verdict, integrity). Raises only when resim_fn does.
+    """
+    if resim_fn is None:
+        resim_fn = resim_after  # call-time lookup: honors mock.patch
+    rels = list(case.get("files", []))
+    if run_dir is not None:
+        pre = stash_patched_sources(tree, rels, run_dir)
+    else:
+        pre = snapshot_file_hashes(tree, rels)
+    verdict = resim_fn(tree, case, seed, boot_path, verdict_path)
+    post = snapshot_file_hashes(tree, rels)
+    match, detail = hashes_match(pre, post)
+    integrity: dict = {"pre_hashes": dict(pre), "post_hashes": dict(post),
+                       "integrity_detail": detail,
+                       "stale-tree-suspect": False, "clean_rebuilds": 0,
+                       "no_behavioral_effect": False}
+    if not match:
+        integrity["stale-tree-suspect"] = True
+        mdir = os.path.join(str(tree),
+                            "obj_afterglow_%s" % case.get("name"))
+        shutil.rmtree(mdir, ignore_errors=True)
+        integrity["clean_rebuilds"] = 1
+        verdict = resim_fn(tree, case, seed, boot_path, verdict_path)
+        post2 = snapshot_file_hashes(tree, rels)
+        integrity["post_hashes"] = dict(post2)
+        integrity["integrity_detail"] = (
+            "%s; clean rebuild forced (obj dir dropped, resim x2)"
+            % (detail,))
+    if verdict_before is not None:
+        integrity["no_behavioral_effect"] = detect_no_behavioral_effect(
+            verdict_before, verdict)
+    return verdict, integrity
 
 
 # --------------------------------------------------------------------------
@@ -1070,6 +1332,64 @@ def prepare_mutant_tree(case: dict, pristine_tree: str, dest: str,
             "seed": case.get("mutant_seed"), "op": case.get("mutant_op")}
 
 
+def hash_tree(tree: str) -> str:
+    """Deterministic sha256 over a scratch tree's files.
+
+    Sorted rel-path + NUL + bytes per file; ignores .git, __pycache__,
+    verilator obj_afterglow_* dirs, and patch debris (*.orig, *.rej) so
+    build/apply byproducts never perturb a RED-baseline comparison.
+    """
+    digest = hashlib.sha256()
+    for dirpath, dirnames, filenames in os.walk(tree):
+        dirnames[:] = sorted(
+            d for d in dirnames
+            if d not in (".git", "__pycache__")
+            and not d.startswith("obj_afterglow_"))
+        for fn in sorted(filenames):
+            if fn.endswith(".orig") or fn.endswith(".rej"):
+                continue
+            full = os.path.join(dirpath, fn)
+            digest.update(os.path.relpath(full, tree).encode("utf-8")
+                          + b"\0")
+            with open(full, "rb") as fh:
+                for chunk in iter(lambda: fh.read(65536), b""):
+                    digest.update(chunk)
+            digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def reset_tree_for_attempt(case: dict, pristine_tree: str, tree: str,
+                           baseline_sha256: str | None = None) -> dict:
+    """Clean-slate reset before attempt N>1 (mutant cases only).
+
+    Re-applies the pinned anchor->bug fault onto a FRESH copy of the
+    recorded pristine tree via prepare_mutant_tree(force=True), so the
+    attempt diagnoses the RED baseline instead of the previous
+    attempt's patch debris (v3-21: attempt-1's edit stayed in-tree and
+    broke attempt-3's dry-run at the same line). Returns
+    {"tree_reset": True, "tree_sha256": <post-reset hash>,
+    "tree_reset_verified": bool}. Fails loudly (LoopError): non-mutant
+    case (no recorded pristine baseline), missing pristine tree, or
+    post-reset hash != baseline (refusing to debug unknown tree state).
+    """
+    if not is_mutant_case(case):
+        raise LoopError("clean-slate reset needs a mutant case with "
+                        "mutant_file/mutant_line (non-mutant trees have "
+                        "no recorded pristine baseline)")
+    if not pristine_tree or not os.path.isdir(pristine_tree):
+        raise LoopError("clean-slate reset: pristine tree absent: %r"
+                        % (pristine_tree,))
+    prepare_mutant_tree(case, pristine_tree, tree, force=True)
+    sha = hash_tree(tree)
+    if baseline_sha256 is not None and sha != baseline_sha256:
+        raise LoopError(
+            "clean-slate reset mismatch: post-reset %s != RED baseline "
+            "%s (refusing to debug unknown tree state)"
+            % (sha[:16], str(baseline_sha256)[:16]))
+    return {"tree_reset": True, "tree_sha256": sha,
+            "tree_reset_verified": baseline_sha256 is not None}
+
+
 PROMPT_VERSIONS = ("v1", "v2", "v3")
 
 
@@ -1095,8 +1415,69 @@ def resolve_prompt_file(raw: str) -> str:
     return str(raw)
 
 
+def patch_one_liner(diff_text: str) -> str:
+    """One-line summary of a unified diff: @@ hunk + first +/- line."""
+    hunk = ""
+    change = ""
+    for ln in (diff_text or "").splitlines():
+        s = ln.strip()
+        if s.startswith("@@") and not hunk:
+            hunk = s
+        elif ((s.startswith("+") and not s.startswith("+++"))
+              or (s.startswith("-") and not s.startswith("---"))):
+            if not change:
+                change = s
+        if hunk and change:
+            break
+    core = " / ".join(p for p in (hunk, change) if p)
+    if not core:
+        first = (diff_text or "").strip().splitlines()
+        core = first[0].strip() if first else "(empty diff)"
+    return core[:160]
+
+
+def format_prior_attempts_block(priors) -> str:
+    """Compact PRIOR_ATTEMPTS block for attempt N>1 diagnose prompts.
+
+    One row per earlier failed attempt: patch one-liner + resim outcome
+    + checksum delta (the v3-21 lesson: attempt-1's applied-but-ineffective
+    patch must be visible to attempt 2, not just "previous patch failed").
+    Empty list -> "" (attempt 1 prompts stay unchanged). Capped so the
+    feedback can never blow the prompt token budget.
+    """
+    rows = []
+    for p in priors or []:
+        rows.append("- attempt %s: patch `%s` -> resim %s; "
+                    "checksum changed: %s"
+                    % (p.get("attempt", "?"), p.get("patch", "?"),
+                       p.get("resim", "?"),
+                       p.get("checksum_changed", "?")))
+    if not rows:
+        return ""
+    block = ("### PRIOR_ATTEMPTS [earlier patches FAILED -- do NOT repeat "
+             "them; diagnose again from the SAME trace]\n"
+             + "\n".join(rows))
+    return block[:600]
+
+
+def _bundle_case(runs_dir: str, run_id: str) -> str:
+    """Case id recorded in a prior bundle's meta.json ("" when unknown)."""
+    try:
+        with open(os.path.join(runs_dir, run_id, "meta.json"),
+                  encoding="utf-8") as fh:
+            meta = json.load(fh)
+        return str(meta.get("case") or meta.get("case_id") or "")
+    except (OSError, ValueError):
+        return ""
+
+
+_RECALL_TOP_K = 2
+_RECALL_OVERFETCH = 4
+
+
 def assemble_harvest(trace_block: str, verdict_text: str, tree: str,
-                     rtl_file_list: list, runs_dir: str) -> tuple:
+                     rtl_file_list: list, runs_dir: str,
+                     current_run_id=None, current_case=None) -> tuple:
     """Assemble the v3 HARVEST block (fingerprint + cone slice + pack).
 
     Returns (harvest_text, counts, fp_record). Budgets are enforced
@@ -1106,6 +1487,13 @@ def assemble_harvest(trace_block: str, verdict_text: str, tree: str,
     Fix-memory recall is ADVISORY ONLY: similar failure signatures with
     Jaccard scores, no patch text -- re-sim decides, recall can never
     override the guard (which only ever sees diffs).
+
+    Recall hygiene: the CURRENT run-id (reruns reuse run-ids) and bundles
+    of the SAME case (same-fault self-match, e.g. mutbigN-v3-02 vs its
+    rerun) are excluded from recall; drops are counted in
+    ``recall_excluded``. The static cone slice falls back to a +/-30-line
+    window around the TOP localization suspect when it yields 0 lines;
+    ``cone_source`` (static | fallback-window | empty) is always logged.
     """
     fp_record = harvest_fp.fingerprint_for_failure(trace_block,
                                                    verdict_text)
@@ -1118,15 +1506,61 @@ def assemble_harvest(trace_block: str, verdict_text: str, tree: str,
         cone_lines, cone_report = [], {
             "seed": "(none)", "resolved": 0, "sought": 0,
             "unparsed": 0, "lines": 0, "files": []}
+    cone_source = "static"
+    if not cone_lines:
+        # Empty static slice (e.g. picorv32 runs): window around the TOP
+        # localization suspect so the model still gets grounded file:line
+        # context instead of a silent empty CONE_SLICE.
+        try:
+            ranked = context_pack.localize(
+                tree, list(rtl_file_list or []), signals)
+        except Exception:  # localization never breaks collection
+            ranked = []
+        static_unparsed = cone_report.get("unparsed", 0)
+        fb_lines: list = []
+        fb_report: dict = {}
+        for rel, hits, _shown in ranked:
+            if hits <= 0:
+                continue
+            for sig in signals:
+                fb_lines, fb_report = harvest_slice.fallback_window(
+                    tree, rel, sig)
+                if fb_lines:
+                    break
+            if fb_lines:
+                break
+        if fb_lines:
+            cone_lines = fb_lines
+            cone_report = dict(fb_report)
+            cone_report["unparsed"] = static_unparsed
+            cone_source = "fallback-window"
+        else:
+            cone_source = "empty"
+    cone_report["cone_source"] = cone_source
     pack_text, pack_counts = harvest_pack.build_v3_pack(
         fp_record, cone_lines, cone_report, verdict_text)
+    excluded_ids = {current_run_id} if current_run_id else set()
     try:
-        recalled = fix_memory.recall_similar(signals, runs_dir, k=2)
+        recalled = fix_memory.recall_similar(
+            signals, runs_dir, k=_RECALL_TOP_K + _RECALL_OVERFETCH,
+            exclude=excluded_ids)
     except Exception:  # recall is advisory: never break collection
         recalled = []
     recall_rows = []
     recall_lines = []
+    recall_excluded = 0
+    if (current_run_id and fix_memory.load_fingerprint(
+            os.path.join(runs_dir, current_run_id)) is not None):
+        # recall_similar dropped it via exclude= above: count the hygiene.
+        recall_excluded += 1
     for run_id, score, rec in recalled or []:
+        if run_id in excluded_ids:
+            recall_excluded += 1  # defense in depth (memory also filters)
+            continue
+        if (current_case and _bundle_case(runs_dir, run_id)
+                == current_case):
+            recall_excluded += 1  # same-case self-match is not signal
+            continue
         if score <= 0:
             continue
         recall_rows.append((run_id, round(float(score), 4)))
@@ -1135,6 +1569,8 @@ def assemble_harvest(trace_block: str, verdict_text: str, tree: str,
                 run_id, float(score),
                 str(rec.get("trap_line", ""))[:160],
                 str(rec.get("oracle_sig", ""))[:160]))
+        if len(recall_rows) >= _RECALL_TOP_K:
+            break
     harvest_text = pack_text
     recall_dropped = False
     if recall_lines:
@@ -1152,10 +1588,12 @@ def assemble_harvest(trace_block: str, verdict_text: str, tree: str,
     counts.update({
         "seed": seed,
         "cone_files": len(cone_report.get("files", [])),
+        "cone_source": cone_source,
         "harvest_lines": len(harvest_text.splitlines()),
         "harvest_tokens": harvest_pack.approx_tokens(harvest_text),
         "recall": recall_rows,
         "recall_dropped": recall_dropped,
+        "recall_excluded": recall_excluded,
     })
     return harvest_text, counts, fp_record
 
@@ -1225,6 +1663,9 @@ def main(argv=None) -> int:
         "diagnosed": False, "fixed_unaided": False,
         "patch_lines": 0, "patch_source": "none", "explain": "MISSING",
         "attempts": [],
+        # Resim-integrity default: set True (attempt + meta) only when a
+        # resim returns identical checksum + unchanged tohost.
+        "no_behavioral_effect": False,
         "goals": getattr(args, "goals", GOALS_FIX),
         "opt_status": OPT_STATUS_SKIPPED,
     }
@@ -1308,6 +1749,7 @@ def main(argv=None) -> int:
     meta["sim_project"] = case["project"]
     meta["sim_tree_sha"] = sha
     mutant_record = None
+    pristine_tree = None
     if is_mutant_case(case):
         # Mutant live-fire: the pinned pristine tree is NEVER written.
         # The fault is applied line-targeted onto a scratch copy (no
@@ -1390,6 +1832,11 @@ def main(argv=None) -> int:
                          "inject may not reproduce this case")
         print("FATAL: %s" % meta["error"], file=sys.stderr)
         return finish("red")
+    if mutant_record is not None:
+        # Clean-slate anchor: hash of the RED scratch tree. Attempt N>1
+        # resets to this baseline before diagnosing (v3-21: attempt-1's
+        # patch stayed in-tree and broke attempt-3's dry-run at 1446).
+        meta["red_baseline_tree_sha256"] = hash_tree(tree)
 
     # ---- COLLECT
     args.prompt = resolve_prompt_file(args.prompt)
@@ -1422,7 +1869,8 @@ def main(argv=None) -> int:
             try:
                 harvest_text, harvest_counts, fp_record = assemble_harvest(
                     bundle["trace_block"], verdict_json, tree,
-                    rtl_files(tree), os.path.join(ROOT, "runs"))
+                    rtl_files(tree), os.path.join(ROOT, "runs"),
+                    current_run_id=run_id, current_case=args.case)
                 # NEW bundle only (fix_memory.write_fingerprint creates
                 # parent dirs for run_dir; old bundles are never touched).
                 fix_memory.write_fingerprint(run_dir, fp_record)
@@ -1547,8 +1995,51 @@ def main(argv=None) -> int:
     green = False
     verdict_after: dict = {}
     reached_live_phase = True
+    # LOOP FEEDBACK (resim-integrity): set after a behaviorally-null
+    # resim (identical checksum + unchanged tohost); threaded into the
+    # NEXT attempt's prompt as a separate context block and logged
+    # verbatim in text_request.json. Cleared when a resim shows a
+    # behavioral change. Never baked into a prompt template (no
+    # prompt-file bump for this).
+    loop_feedback = ""
+    # Prior-attempt failure feedback (v3-21 lesson): one compact row per
+    # earlier failed attempt (patch one-liner + resim outcome + checksum
+    # delta), threaded into attempt N>1 prompts as a context block.
+    prior_attempts: list = []
     for attempt in range(MAX_ATTEMPTS):
         meta["retries"] = attempt
+        if attempt > 0:
+            # Clean-slate attempts: reset to the recorded RED baseline
+            # BEFORE diagnosing again (v3-21 lesson: attempt N must not
+            # debug attempt N-1's patch debris). Mutant trees re-apply
+            # the pinned fault onto the pristine copy; non-mutant trees
+            # have no recorded baseline (logged false, honestly).
+            if mutant_record is not None:
+                try:
+                    reset_info = reset_tree_for_attempt(
+                        case, pristine_tree, tree,
+                        meta.get("red_baseline_tree_sha256"))
+                except LoopError as exc:
+                    meta["error"] = ("clean-slate reset failed before "
+                                     "attempt %d: %s" % (attempt + 1, exc))
+                    print("FATAL: %s" % meta["error"], file=sys.stderr)
+                    break
+                reset_note = {
+                    "tree_reset": True,
+                    "tree_reset_verified":
+                        reset_info["tree_reset_verified"]}
+                print("[RESET] scratch tree restored to RED baseline %s"
+                      % reset_info["tree_sha256"][:12], flush=True)
+            else:
+                reset_note = {
+                    "tree_reset": False,
+                    "tree_reset_reason": "non-mutant tree: no recorded "
+                                         "pristine baseline"}
+        else:
+            reset_note = {
+                "tree_reset": False,
+                "tree_reset_reason": "first attempt runs on the RED "
+                                     "tree (no reset needed)"}
         note = ""
         if attempt > 0:
             prev = last_attempt.get("summary", "previous attempt failed")
@@ -1557,6 +2048,17 @@ def main(argv=None) -> int:
                     "propose a corrected unified diff."
                     % (attempt + 1, MAX_ATTEMPTS, prev[:600]))
         attempt_prompt = full_prompt + note
+        fb_block = format_prior_attempts_block(prior_attempts)
+        if fb_block:
+            # Structured failure history (patch one-liner + resim +
+            # checksum delta per prior attempt): separate context block,
+            # prompt templates untouched, logged verbatim in
+            # text_request.json below.
+            attempt_prompt += "\n" + fb_block
+        if loop_feedback:
+            # No-op/stale-build signal from the previous resim: separate
+            # context block (prompt templates untouched, hashes stable).
+            attempt_prompt += "\n\nLOOP FEEDBACK: " + loop_feedback
         # DIAGNOSE (live only; transport flakes retry with backoff)
         try:
             call, transport_waits = call_text_with_backoff(attempt_prompt)
@@ -1579,16 +2081,27 @@ def main(argv=None) -> int:
                      "trace_tokens": counts["trace_tokens"],
                      "case": args.case, "seed": args.seed,
                      "max_tokens": TEXT_MAX_TOKENS, "attempt": attempt + 1,
-                     "error": str(exc)}, indent=2) + "\n")
+                     "error": str(exc),
+                     "loop_feedback": loop_feedback}, indent=2) + "\n")
             break
         try:
-            model_obj = extract_model_json(call["content"])
+            # Truncation salvage (v3-21 lesson): a max_tokens cut that
+            # still yields a complete diagnosis+diff is repaired WITHOUT
+            # burning a retry (salvaged=True below). Only a failed
+            # salvage records an unparseable attempt and continues.
+            model_obj, salvaged = parse_model_output(call["content"])
         except LoopError as exc:
             last_attempt = {"attempt": attempt + 1,
                             "summary": "unparseable model output: %s" % exc,
                             "text_latency_ms": call["latency_ms"],
-                            "text_request_id": call["request_id"]}
-            meta["attempts"].append(last_attempt)
+                            "text_request_id": call["request_id"],
+                            "salvaged": False}
+            meta["attempts"].append({**reset_note, **last_attempt})
+            prior_attempts.append({
+                "attempt": attempt + 1,
+                "patch": "(unparseable model output)",
+                "resim": "not-run",
+                "checksum_changed": "n/a"})
             print("[DIAGNOSE] attempt %d unparseable: %s"
                   % (attempt + 1, exc), flush=True)
             continue
@@ -1597,8 +2110,9 @@ def main(argv=None) -> int:
         model_diff = str(model_obj["patch_diff"])
         meta["diagnosed"] = True
         meta["transport_retries"] = transport_waits  # proof of flakes survived
-        print("[DIAGNOSE] attempt %d latency=%dms req=%s diagnosis=%.120s"
-              % (attempt + 1, call["latency_ms"], call["request_id"],
+        print("[DIAGNOSE] attempt %d%s latency=%dms req=%s diagnosis=%.120s"
+              % (attempt + 1, " SALVAGED" if salvaged else "",
+                 call["latency_ms"], call["request_id"],
                  diagnosis_text.replace("\n", " ")), flush=True)
 
         # EXPLAIN (live image; failure recorded, never silent)
@@ -1650,13 +2164,15 @@ def main(argv=None) -> int:
                      "trace_tokens": counts["trace_tokens"],
                      "case": args.case, "seed": args.seed,
                      "max_tokens": TEXT_MAX_TOKENS,
-                     "attempt": attempt + 1}, indent=2) + "\n")
+                     "attempt": attempt + 1,
+                     "loop_feedback": loop_feedback}, indent=2) + "\n")
             with open(api("text_response.json"), "w",
                       encoding="utf-8") as fh:
                 fh.write(json.dumps(
                     {"raw": call["raw"], "content": call["content"],
                      "diagnosis": diagnosis_text, "expected": expected_text,
                      "parsed_keys": sorted(model_obj.keys()),
+                     "salvaged": salvaged,
                      "latency_ms": call["latency_ms"],
                      "request_id": call["request_id"],
                      "model": call["model"], "usage": call["usage"]},
@@ -1668,12 +2184,13 @@ def main(argv=None) -> int:
             meta["api_usage"] = call["usage"]
             meta["retries"] = attempt
             meta["attempts"].append(
-                {"attempt": attempt + 1,
+                {**reset_note, **{"attempt": attempt + 1,
                  "text_latency_ms": call["latency_ms"],
                  "text_request_id": call["request_id"],
                  "diagnosis_chars": len(diagnosis_text),
+                 "salvaged": salvaged,
                  "patch_source_try": "withheld-triage",
-                 "summary": "triage stop: diagnosis saved, patch withheld"})
+                 "summary": "triage stop: diagnosis saved, patch withheld"}})
             with open(os.path.join(run_dir, "patch.diff"), "w",
                       encoding="utf-8") as fh:
                 fh.write("")
@@ -1692,6 +2209,7 @@ def main(argv=None) -> int:
                         "text_latency_ms": call["latency_ms"],
                         "text_request_id": call["request_id"],
                         "diagnosis_chars": len(diagnosis_text),
+                        "salvaged": salvaged,
                         "guard_ok": outcome["guard_ok"],
                         "patch_source_try": "model-verbatim",
                         "summary": summary}
@@ -1708,13 +2226,23 @@ def main(argv=None) -> int:
             if not hit:
                 last_attempt["summary"] += (
                     "; bootstrap refused (diagnosis names no gate signal)")
-                meta["attempts"].append(last_attempt)
+                meta["attempts"].append({**reset_note, **last_attempt})
+                prior_attempts.append({
+                    "attempt": attempt + 1,
+                    "patch": patch_one_liner(model_diff),
+                    "resim": "not-run (guard-rejected; bootstrap refused)",
+                    "checksum_changed": "n/a"})
                 continue
             try:
                 canon, _hits = canonical_diff(tree, case)
             except LoopError as exc:
                 last_attempt["summary"] += "; bootstrap impossible: %s" % exc
-                meta["attempts"].append(last_attempt)
+                meta["attempts"].append({**reset_note, **last_attempt})
+                prior_attempts.append({
+                    "attempt": attempt + 1,
+                    "patch": patch_one_liner(model_diff),
+                    "resim": "not-run (bootstrap impossible)",
+                    "checksum_changed": "n/a"})
                 continue
             bout = try_apply_diff(
                 canon, tree, os.path.join(run_dir, "bootstrap.diff"), spec)
@@ -1723,7 +2251,12 @@ def main(argv=None) -> int:
             if not bout["applied"]:
                 last_attempt["summary"] += (
                     "; bootstrap REJECTED: %s" % bout["reasons"])
-                meta["attempts"].append(last_attempt)
+                meta["attempts"].append({**reset_note, **last_attempt})
+                prior_attempts.append({
+                    "attempt": attempt + 1,
+                    "patch": patch_one_liner(model_diff),
+                    "resim": "not-run (guard-rejected; bootstrap rejected)",
+                    "checksum_changed": "n/a"})
                 continue
             outcome = bout
             outcome["bootstrap_gate"] = hit
@@ -1737,7 +2270,7 @@ def main(argv=None) -> int:
         final_patch = outcome.get("applied_diff", "")
         meta["patch_lines"] = outcome.get("patch_lines", 0)
         last_attempt["summary"] += "; applied via %s" % final_source
-        meta["attempts"].append(last_attempt)
+        meta["attempts"].append({**reset_note, **last_attempt})
         # persist the deciding text call (this attempt produced the patch)
         with open(api("text_request.json"), "w", encoding="utf-8") as fh:
             fh.write(json.dumps(
@@ -1749,12 +2282,14 @@ def main(argv=None) -> int:
                  "trace_tokens": counts["trace_tokens"],
                  "case": args.case, "seed": args.seed,
                  "max_tokens": TEXT_MAX_TOKENS,
-                 "attempt": attempt + 1}, indent=2) + "\n")
+                 "attempt": attempt + 1,
+                 "loop_feedback": loop_feedback}, indent=2) + "\n")
         with open(api("text_response.json"), "w", encoding="utf-8") as fh:
             fh.write(json.dumps(
                 {"raw": call["raw"], "content": call["content"],
                  "diagnosis": diagnosis_text, "expected": expected_text,
                  "parsed_keys": sorted(model_obj.keys()),
+                 "salvaged": salvaged,
                  "latency_ms": call["latency_ms"],
                  "request_id": call["request_id"],
                  "model": call["model"], "usage": call["usage"]},
@@ -1765,17 +2300,38 @@ def main(argv=None) -> int:
         meta["api_usage"] = call["usage"]
         meta["retries"] = attempt
 
-        # RESIM + VERIFY
+        # RESIM + VERIFY (integrity-guarded: snapshot the patched
+        # sources into the bundle, rebuild, re-hash; a drift forces ONE
+        # clean rebuild; an identical checksum/tohost flags a
+        # behaviorally-null resim for the next attempt's feedback).
         print("[RESIM] rebuilding patched tree...", flush=True)
         try:
-            verdict_after = resim_after(
+            verdict_after, resim_integrity = resim_with_integrity(
                 tree, case, args.seed,
-                art("boot_after.log"), art("verdict_after.json"))
+                art("boot_after.log"), art("verdict_after.json"),
+                run_dir=run_dir, verdict_before=verdict_before)
         except Exception as exc:
             last_attempt["summary"] += "; RESIM crashed: %r" % (exc,)
             meta["error"] = "RESIM failed: %r" % (exc,)
             print("FATAL: %s" % meta["error"], file=sys.stderr)
             break
+        last_attempt["resim_integrity"] = {
+            "stale-tree-suspect":
+                resim_integrity.get("stale-tree-suspect", False),
+            "clean_rebuilds": resim_integrity.get("clean_rebuilds", 0),
+            "no_behavioral_effect":
+                resim_integrity.get("no_behavioral_effect", False),
+            "integrity_detail":
+                resim_integrity.get("integrity_detail", ""),
+        }
+        meta["attempts"][-1].update(last_attempt["resim_integrity"])
+        if resim_integrity.get("stale-tree-suspect"):
+            last_attempt["stale-tree-suspect"] = True
+            meta["attempts"][-1]["stale-tree-suspect"] = True
+            print("[RESIM] tree drifted under build -- "
+                  "clean rebuild forced (x1): %s"
+                  % resim_integrity.get("integrity_detail", ""),
+                  flush=True)
         meta["tohost_after"] = verdict_after.get("tohost")
         meta["checksum_after"] = verdict_after.get("checksum")
         meta["cycles_after"] = verdict_after.get("cycles")
@@ -1792,6 +2348,38 @@ def main(argv=None) -> int:
             break
         last_attempt["summary"] += (
             "; RESIM still RED (tohost=%s)" % verdict_after.get("tohost"))
+        meta["attempts"][-1]["summary"] = last_attempt["summary"]
+        if resim_integrity.get("no_behavioral_effect"):
+            # v3-21 signal: checksum_after == checksum_before and tohost
+            # unchanged -- the patch (or the build of it) had no
+            # observable effect. Flag it and arm the next attempt's
+            # LOOP FEEDBACK block (prompt templates untouched).
+            last_attempt["no_behavioral_effect"] = True
+            meta["attempts"][-1]["no_behavioral_effect"] = True
+            meta["no_behavioral_effect"] = True
+            loop_feedback = build_loop_feedback(
+                attempt + 1, verdict_before, verdict_after)
+            print("[VERIFY] %s" % NO_BEHAVIORAL_EFFECT_MSG, flush=True)
+        else:
+            # Behavioral change observed: stale feedback must not leak
+            # into the next attempt's diagnosis.
+            loop_feedback = ""
+        # FAILURE FEEDBACK (v3-21 lesson): the next attempt's prompt gets
+        # the patch one-liner + resim outcome + checksum delta, verbatim
+        # in text_request.json. An applied patch that changed nothing
+        # (checksum unchanged) must be visible, not just "still RED".
+        after_checksum = verdict_after.get("checksum")
+        before_checksum = meta.get("checksum_before")
+        if after_checksum is None or before_checksum is None:
+            changed = "n/a"
+        else:
+            changed = ("no" if after_checksum == before_checksum
+                       else "yes")
+        prior_attempts.append({
+            "attempt": attempt + 1,
+            "patch": patch_one_liner(final_patch),
+            "resim": "RED (tohost=%s)" % verdict_after.get("tohost"),
+            "checksum_changed": changed})
         # fall through to next attempt (retry with feedback note)
 
     # ---- bundle tail
