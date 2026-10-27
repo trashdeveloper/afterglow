@@ -96,6 +96,15 @@ DEFAULT_BASE = "https://api.meta.ai"
 TEXT_TIMEOUT_S = 180
 TEXT_MAX_TOKENS = 8000
 MAX_ATTEMPTS = 3  # initial + 2 retries (AGENTS.md section 2e), then RED
+# Transport-flake accounting (wave-2): exhausted call_text_with_backoff
+# sequences (e.g. 3 EMPTYs) are transport failures, NOT diagnostic
+# attempts. Only completed model responses (parseable or salvaged)
+# consume MAX_ATTEMPTS. Persistent transport death still fails loud and
+# bounded via this cap, then degrades to triage.
+MAX_TRANSPORT_FAILURES = 3
+# Attempt-diversity accounting (wave-2): at most one duplicate-direction
+# re-ask per run (extra model ask, no resim burned).
+MAX_DUPLICATE_REASKS = 1
 
 # Full-auto-by-default loop mode: every run attempts PATCH->RESIM->VERIFY
 # (mode "live", exit 0/1) unless --triage / --stop-before-patch selects
@@ -376,6 +385,10 @@ def call_text_with_backoff(prompt: str, call_fn=None, sleep_fn=None,
                       "retrying in %.1fs" % (i + 1, MAX_ATTEMPTS, exc, wait),
                       flush=True)
                 sleep_fn(wait)
+    # Proof for flake-vs-signal accounting: the exhausted sequence
+    # keeps the waits it survived so the caller can log transport
+    # retries separately from consumed diagnostic attempts.
+    last_exc.transport_waits = list(waits)  # noqa: SLF -- proof attr
     raise last_exc
 
 
@@ -1460,6 +1473,117 @@ def format_prior_attempts_block(priors) -> str:
     return block[:600]
 
 
+def direction_key(diff_text: str) -> str:
+    """Normalized change-direction key for one proposed patch.
+
+    ``file + sorted changed-line numbers + op-word`` per file, ``|``
+    joined across files sorted by path. Line numbers are NEW-file lines
+    touched by the hunk (added lines; a deletion site records the line
+    it was removed before). Op-word is add/remove/replace (unknown when
+    the text carries no +/- lines, e.g. a bare one-liner -- the hunk
+    start then anchors the key so distinct hunks still differ).
+    Full diffs and bare one-liners both work; equal keys mean the same
+    direction (the v3-21 attempts-1-and-3 same-patch lesson).
+    """
+    text = diff_text or ""
+    if not text.strip():
+        return "(empty)"
+    files: dict = {}
+
+    def ensure(path: str) -> dict:
+        if path not in files:
+            files[path] = {"lines": set(), "starts": set(),
+                           "add": False, "del": False}
+        return files[path]
+
+    cur: str | None = None
+    new_lineno = 0
+    for ln in text.splitlines():
+        if ln.startswith("+++ "):
+            path = ln[4:].strip()
+            if path.startswith("b/"):
+                path = path[2:]
+            if path in ("/dev/null", "dev/null"):
+                continue  # deleted file: keep the --- path slot instead
+            cur = path or "unknown"
+            ensure(cur)
+            continue
+        if ln.startswith("--- "):
+            if cur is None:
+                path = ln[4:].strip()
+                if path.startswith("a/"):
+                    path = path[2:]
+                if path not in ("/dev/null", "dev/null"):
+                    cur = path or "unknown"
+                    ensure(cur)
+            continue
+        if ln.startswith("@@"):
+            m = re.search(r"\+(\d+)(?:,(\d+))?", ln)
+            if m:
+                new_lineno = int(m.group(1))
+                if cur is None:
+                    cur = "unknown"
+                ensure(cur)["starts"].add(new_lineno)
+            continue
+        if cur is None:
+            continue
+        if ln.startswith("+") and not ln.startswith("+++"):
+            files[cur]["lines"].add(new_lineno)
+            files[cur]["add"] = True
+            new_lineno += 1
+        elif ln.startswith("-") and not ln.startswith("---"):
+            files[cur]["lines"].add(new_lineno)
+            files[cur]["del"] = True
+        else:
+            new_lineno += 1  # context line advances the new-file cursor
+    if not files:
+        return "(empty)"
+    segs = []
+    for path in sorted(files):
+        info = files[path]
+        lines = sorted(info["lines"]) or sorted(info["starts"])
+        if info["add"] and info["del"]:
+            op = "replace"
+        elif info["add"]:
+            op = "add"
+        elif info["del"]:
+            op = "remove"
+        else:
+            op = "unknown"
+        nums = ",".join(str(n) for n in lines) if lines else "none"
+        segs.append("%s:%s:%s" % (path, nums, op))
+    return "|".join(segs)
+
+
+def _prior_direction(entry: dict) -> str:
+    """Direction key for one prior_attempts entry.
+
+    Entries recorded with a full diff carry the stored ``direction``
+    (exact); legacy / fabricated one-liner-only entries fall back to
+    keying the one-liner text itself (hunk-anchored, still comparable).
+    """
+    if not isinstance(entry, dict):
+        return "(empty)"
+    stored = entry.get("direction")
+    if isinstance(stored, str) and stored:
+        return stored
+    return direction_key(str(entry.get("patch", "")))
+
+
+def is_duplicate_direction(diff_text: str, priors) -> bool:
+    """True when the proposed patch repeats a prior attempt's direction."""
+    try:
+        key = direction_key(diff_text)
+    except Exception:  # noqa: BLE001 -- unparseable text is never a dup
+        return False
+    if key in ("(empty)", "(unparseable)"):
+        return False
+    for prior in priors or []:
+        if key == _prior_direction(prior):
+            return True
+    return False
+
+
 def _bundle_case(runs_dir: str, run_id: str) -> str:
     """Case id recorded in a prior bundle's meta.json ("" when unknown)."""
     try:
@@ -2006,7 +2130,69 @@ def main(argv=None) -> int:
     # earlier failed attempt (patch one-liner + resim outcome + checksum
     # delta), threaded into attempt N>1 prompts as a context block.
     prior_attempts: list = []
-    for attempt in range(MAX_ATTEMPTS):
+    # Flake-vs-signal accounting (wave-2): ONLY completed model responses
+    # (parseable or salvaged) consume the MAX_ATTEMPTS diagnostic budget.
+    # Transport flakes (EMPTY content) retry the SAME diagnostic attempt;
+    # persistent transport death fails loud and bounded via
+    # MAX_TRANSPORT_FAILURES. Proof: attempts_consumed vs
+    # transport_retries / transport_failures in meta.
+    attempts_consumed = 0
+    transport_failures = 0
+    transport_waits_all: list = []
+    duplicate_reasks = 0
+    meta["attempts_consumed"] = 0
+    meta["transport_retries"] = []
+    meta["transport_failures"] = 0
+
+    def note_transport_failure(exc: Exception) -> bool:
+        """Account one exhausted transport sequence; True => stop the run.
+
+        Reads the current attempt_prompt/loop_feedback/attempt for the
+        proof snapshot written to text_request.json.
+        """
+        nonlocal transport_failures
+        transport_failures += 1
+        transport_waits_all.extend(
+            list(getattr(exc, "transport_waits", None) or []))
+        meta["transport_retries"] = list(transport_waits_all)
+        meta["transport_failures"] = transport_failures
+        meta["attempts_consumed"] = attempts_consumed
+        print("[DIAGNOSE] transport failure %d of %d on attempt %d: %s; "
+              "diagnostic budget preserved (%d/%d consumed)"
+              % (transport_failures, MAX_TRANSPORT_FAILURES, attempt + 1,
+                 exc, attempts_consumed, MAX_ATTEMPTS), flush=True)
+        with open(api("text_request.json"), "w",
+                  encoding="utf-8") as fh:
+            fh.write(json.dumps(
+                {"model": TEXT_MODEL, "endpoint": text_url(),
+                 "prompt": attempt_prompt, "prompt_sha256": prompt_hash,
+                 "prompt_file": args.prompt,
+                 "prompt_tokens": len(attempt_prompt.split()),
+                 "trace_lines": counts["trace_lines"],
+                 "trace_tokens": counts["trace_tokens"],
+                 "case": args.case, "seed": args.seed,
+                 "max_tokens": TEXT_MAX_TOKENS, "attempt": attempt + 1,
+                 "error": str(exc),
+                 "transport_failure": transport_failures,
+                 "attempts_consumed": attempts_consumed,
+                 "loop_feedback": loop_feedback}, indent=2) + "\n")
+        if transport_failures >= MAX_TRANSPORT_FAILURES:
+            meta["error"] = (
+                "live text API failed after %d transport failures "
+                "(%d diagnostic attempts completed): %s "
+                "(no heuristic fallback)"
+                % (transport_failures, attempts_consumed, exc))
+            print("FATAL: %s" % meta["error"], file=sys.stderr)
+            # The shared bundle tail below writes the remaining
+            # placeholders, then the live run DEGRADEs to triage.
+            return True
+        return False
+
+    attempt = 0
+    while attempts_consumed < MAX_ATTEMPTS:
+        # Transport retries never advance the display counter: attempt N
+        # is retried as attempt N until a completed response consumes it.
+        attempt = attempts_consumed
         meta["retries"] = attempt
         if attempt > 0:
             # Clean-slate attempts: reset to the recorded RED baseline
@@ -2063,27 +2249,11 @@ def main(argv=None) -> int:
         try:
             call, transport_waits = call_text_with_backoff(attempt_prompt)
         except LiveAPIError as exc:
-            meta["error"] = ("live text API failed after %d attempts: %s "
-                             "(no heuristic fallback)" % (MAX_ATTEMPTS, exc))
-            meta["transport_retries"] = []
-            print("FATAL: %s" % meta["error"], file=sys.stderr)
-            # persist the request for proof even though the call died;
-            # the shared bundle tail below writes the remaining
-            # placeholders, then the live run DEGRADEs to triage.
-            with open(api("text_request.json"), "w",
-                      encoding="utf-8") as fh:
-                fh.write(json.dumps(
-                    {"model": TEXT_MODEL, "endpoint": text_url(),
-                     "prompt": attempt_prompt, "prompt_sha256": prompt_hash,
-                     "prompt_file": args.prompt,
-                     "prompt_tokens": len(attempt_prompt.split()),
-                     "trace_lines": counts["trace_lines"],
-                     "trace_tokens": counts["trace_tokens"],
-                     "case": args.case, "seed": args.seed,
-                     "max_tokens": TEXT_MAX_TOKENS, "attempt": attempt + 1,
-                     "error": str(exc),
-                     "loop_feedback": loop_feedback}, indent=2) + "\n")
-            break
+            # Transport flake, NOT a diagnostic attempt: budget preserved,
+            # same attempt retried (bounded by MAX_TRANSPORT_FAILURES).
+            if note_transport_failure(exc):
+                break
+            continue
         try:
             # Truncation salvage (v3-21 lesson): a max_tokens cut that
             # still yields a complete diagnosis+diff is repaired WITHOUT
@@ -2091,6 +2261,10 @@ def main(argv=None) -> int:
             # salvage records an unparseable attempt and continues.
             model_obj, salvaged = parse_model_output(call["content"])
         except LoopError as exc:
+            # Completed response, failed salvage: consumes one diagnostic
+            # attempt (only transport flakes are exempt).
+            attempts_consumed += 1
+            meta["attempts_consumed"] = attempts_consumed
             last_attempt = {"attempt": attempt + 1,
                             "summary": "unparseable model output: %s" % exc,
                             "text_latency_ms": call["latency_ms"],
@@ -2100,6 +2274,7 @@ def main(argv=None) -> int:
             prior_attempts.append({
                 "attempt": attempt + 1,
                 "patch": "(unparseable model output)",
+                "direction": "(unparseable)",
                 "resim": "not-run",
                 "checksum_changed": "n/a"})
             print("[DIAGNOSE] attempt %d unparseable: %s"
@@ -2108,8 +2283,68 @@ def main(argv=None) -> int:
         diagnosis_text = str(model_obj["diagnosis"])
         expected_text = str(model_obj.get("expected", ""))
         model_diff = str(model_obj["patch_diff"])
+        transport_waits_all.extend(list(transport_waits or []))
+        meta["transport_retries"] = list(transport_waits_all)
+        # Attempt diversity (wave-2): a proposal with the same direction
+        # (file+lines+op) as a prior patch (the v3-21 attempts-1-and-3
+        # lesson) gets ONE extra model ask with an explicit avoid note.
+        # No resim is burned for the duplicate; at most one re-ask per
+        # run (a repeated duplicate is tolerated). Prompt templates are
+        # untouched (context block only, v3 hash stable); the augmented
+        # prompt is logged verbatim in text_request.json below.
+        duplicate_info: dict = {}
+        if (duplicate_reasks < MAX_DUPLICATE_REASKS
+                and is_duplicate_direction(model_diff, prior_attempts)):
+            duplicate_reasks += 1
+            dup_key = direction_key(model_diff)
+            dup_one = patch_one_liner(model_diff)
+            duplicate_info = {"duplicate_direction": True,
+                              "duplicate_patch": dup_one,
+                              "duplicate_key": dup_key,
+                              "reasked": True}
+            print("[DIAGNOSE] attempt %d repeats prior direction %s; "
+                  "re-asking once with an explicit avoid note (no resim "
+                  "burned)" % (attempt + 1, dup_key), flush=True)
+            attempt_prompt += (
+                "\n\nAVOID REPEAT: your proposed patch repeats an earlier "
+                "FAILED direction (%s: `%s`). Propose a DIFFERENT direction "
+                "-- different file, lines, or add/remove/replace operation "
+                "-- diagnose again from the SAME trace." % (dup_key, dup_one))
+            try:
+                call, transport_waits = call_text_with_backoff(
+                    attempt_prompt)
+            except LiveAPIError as exc:
+                if note_transport_failure(exc):
+                    break
+                continue
+            transport_waits_all.extend(list(transport_waits or []))
+            meta["transport_retries"] = list(transport_waits_all)
+            try:
+                model_obj, salvaged = parse_model_output(call["content"])
+            except LoopError as exc:
+                attempts_consumed += 1
+                meta["attempts_consumed"] = attempts_consumed
+                last_attempt = {"attempt": attempt + 1,
+                                "summary": ("unparseable model output "
+                                            "(re-ask): %s" % exc),
+                                "text_latency_ms": call["latency_ms"],
+                                "text_request_id": call["request_id"],
+                                "salvaged": False,
+                                **duplicate_info}
+                meta["attempts"].append({**reset_note, **last_attempt})
+                prior_attempts.append({
+                    "attempt": attempt + 1,
+                    "patch": "(unparseable model output)",
+                    "direction": "(unparseable)",
+                    "resim": "not-run",
+                    "checksum_changed": "n/a"})
+                print("[DIAGNOSE] attempt %d re-ask unparseable: %s"
+                      % (attempt + 1, exc), flush=True)
+                continue
+            model_diff = str(model_obj["patch_diff"])
+        attempts_consumed += 1
+        meta["attempts_consumed"] = attempts_consumed
         meta["diagnosed"] = True
-        meta["transport_retries"] = transport_waits  # proof of flakes survived
         print("[DIAGNOSE] attempt %d%s latency=%dms req=%s diagnosis=%.120s"
               % (attempt + 1, " SALVAGED" if salvaged else "",
                  call["latency_ms"], call["request_id"],
@@ -2190,7 +2425,8 @@ def main(argv=None) -> int:
                  "diagnosis_chars": len(diagnosis_text),
                  "salvaged": salvaged,
                  "patch_source_try": "withheld-triage",
-                 "summary": "triage stop: diagnosis saved, patch withheld"}})
+                 "summary": "triage stop: diagnosis saved, patch withheld",
+                 **duplicate_info}})
             with open(os.path.join(run_dir, "patch.diff"), "w",
                       encoding="utf-8") as fh:
                 fh.write("")
@@ -2212,7 +2448,8 @@ def main(argv=None) -> int:
                         "salvaged": salvaged,
                         "guard_ok": outcome["guard_ok"],
                         "patch_source_try": "model-verbatim",
-                        "summary": summary}
+                        "summary": summary,
+                        **duplicate_info}
         if not outcome["applied"]:
             # trust evidence: keep the rejected verbatim diff
             with open(os.path.join(run_dir, "rejected_model.diff"), "w",
@@ -2230,6 +2467,7 @@ def main(argv=None) -> int:
                 prior_attempts.append({
                     "attempt": attempt + 1,
                     "patch": patch_one_liner(model_diff),
+                    "direction": direction_key(model_diff),
                     "resim": "not-run (guard-rejected; bootstrap refused)",
                     "checksum_changed": "n/a"})
                 continue
@@ -2241,6 +2479,7 @@ def main(argv=None) -> int:
                 prior_attempts.append({
                     "attempt": attempt + 1,
                     "patch": patch_one_liner(model_diff),
+                    "direction": direction_key(model_diff),
                     "resim": "not-run (bootstrap impossible)",
                     "checksum_changed": "n/a"})
                 continue
@@ -2255,6 +2494,7 @@ def main(argv=None) -> int:
                 prior_attempts.append({
                     "attempt": attempt + 1,
                     "patch": patch_one_liner(model_diff),
+                    "direction": direction_key(model_diff),
                     "resim": "not-run (guard-rejected; bootstrap rejected)",
                     "checksum_changed": "n/a"})
                 continue
@@ -2378,6 +2618,7 @@ def main(argv=None) -> int:
         prior_attempts.append({
             "attempt": attempt + 1,
             "patch": patch_one_liner(final_patch),
+            "direction": direction_key(final_patch),
             "resim": "RED (tohost=%s)" % verdict_after.get("tohost"),
             "checksum_changed": changed})
         # fall through to next attempt (retry with feedback note)

@@ -85,6 +85,17 @@ MODEL_DIFF_2 = """diff --git a/picorv32.v b/picorv32.v
 +reg mem_la_read = 1;
 """
 
+# Wave-2 diversity: attempt 3 must propose a THIRD direction, otherwise
+# the duplicate-direction re-ask (one extra model ask, no resim burned)
+# fires and this threading fixture makes 4 text calls instead of 3.
+MODEL_DIFF_3 = """diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -378,1 +378,1 @@
+-reg mem_la_write = 0;
++reg mem_la_write = 1;
+"""
+
 
 def _write(path, text):
     os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -169,7 +180,8 @@ class LoopFeedback(unittest.TestCase):
         def fake_call(prompt):
             prompts.append(prompt)
             n = len(prompts)
-            diff = MODEL_DIFF_1 if n < 2 else MODEL_DIFF_2
+            diff = (MODEL_DIFF_1 if n < 2 else
+                    MODEL_DIFF_2 if n < 3 else MODEL_DIFF_3)
             return ({"content": json.dumps(
                 {"diagnosis": "mock diagnosis %d" % n,
                  "patch_diff": diff, "expected": "tohost: PASS"}),
