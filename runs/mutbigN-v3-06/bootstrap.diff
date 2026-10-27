@@ -1,0 +1,12 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -579,7 +579,7 @@
+ 				mem_wdata <= mem_la_wdata;
+ 			end
+ 			case (mem_state)
+-				1: begin
++				0: begin
+ 					if (mem_do_prefetch || mem_do_rinst || mem_do_rdata) begin
+ 						mem_valid <= !mem_la_use_prefetched_high_word;
+ 						mem_instr <= mem_do_prefetch || mem_do_rinst;

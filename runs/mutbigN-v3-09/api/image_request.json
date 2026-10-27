@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-09\nFailing-trace sha256 (first 16 hex): 816ed53d5c034fec\nVerbatim diagnosis from the debug agent:\nFetch test with 256-word NOP mem traps immediately with `TRAP: cpu trap asserted` and `tohost: FAIL 0xdead` instead of clean fetch progress with no trap. instr_trap is stuck at 1 even for valid instr_addi. Root cause at picorv32.v:679 where `assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) || !{...}` uses OR, so when CATCH_ILLINSN/WITH_PCPI is set it forces trap on every instruction; it must be AND to trap only on illegal instructions.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 816ed53d5c034fec in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "8757efbad4a3b8fad40f59de339618843f515765b1ed043bc6d8dd5a0ad24125",
+  "trace_sha256": "816ed53d5c034fecb7cfdfbbc9d1a371deee9d7d4417d06ada5a395b5f937ad6",
+  "diagnosis_sha256": "a5d870df720e36184d076281e899ff9717091e0892da808e2dacd2c1fdd301e4",
+  "case": "mut-bigN-09",
+  "attempt": 1
+}

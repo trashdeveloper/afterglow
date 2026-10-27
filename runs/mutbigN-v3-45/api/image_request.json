@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-45\nFailing-trace sha256 (first 16 hex): 359874995374c7b1\nVerbatim diagnosis from the debug agent:\nLoopback TX of 0xa5 was received as 0xfc (TRAP: uart data mismatch got 0xfc want 0xa5, tohost FAIL 0xdead). ser_tx is driven as send_pattern[0] per line 107, but line 131 shifts as {1'b1, send_pattern[9:2]} which drops two bits per tick and builds a 9-bit value, corrupting the serial stream. Root cause is the [9:2] slice; correct single-bit shift is [9:1] to preserve data and stop-bit 1s.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 359874995374c7b1 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "5ac0c96259bd8b269faa0a0c55d2b8e11fc6d67a698a37745e79ca3a2d1b8958",
+  "trace_sha256": "359874995374c7b17bf4eb30626e2d6cf01f07e91fddd8da6756d154c2ec101c",
+  "diagnosis_sha256": "9457393373fb468441a185fe8756ec73eb0e1751bbde8825d3acf5a7b0a59bfd",
+  "case": "mut-bigN-45",
+  "attempt": 1
+}

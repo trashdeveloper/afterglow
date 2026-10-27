@@ -1,0 +1,53 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17d30-7231-7321-be01-64b7f5a91bb6",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Trace shows fetch starvation with max_addr=0x00000000 and FAIL 0xdead instead of advancing through 256 NOPs. Expected mem_do_rdata to clear to 0 on !resetn||mem_done to allow next mem_do_rinst, but picorv32.v:1952 sets it to 1. This holds data-phase active and blocks instruction fetch, causing the 2009-cycle no-progress trap.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1949,6 +1949,6 @@\\n \\t\\tif (!resetn || mem_done) begin\\n \\t\\t\\tmem_do_prefetch <= 0;\\n \\t\\t\\tmem_do_rinst <= 0;\\n-\\t\\t\\tmem_do_rdata <= 1;\\n+\\t\\t\\tmem_do_rdata <= 0;\\n \\t\\t\\tmem_do_wdata <= 0;\\n \\t\\tend\\n\", \"expected\": \"tohost PASS with max_addr != 0x00000000 and no TRAP: no progress\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793101689,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 3486,
+      "prompt_tokens": 1807,
+      "total_tokens": 5293,
+      "completion_tokens_details": {
+        "reasoning_tokens": 3226
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Trace shows fetch starvation with max_addr=0x00000000 and FAIL 0xdead instead of advancing through 256 NOPs. Expected mem_do_rdata to clear to 0 on !resetn||mem_done to allow next mem_do_rinst, but picorv32.v:1952 sets it to 1. This holds data-phase active and blocks instruction fetch, causing the 2009-cycle no-progress trap.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1949,6 +1949,6 @@\\n \\t\\tif (!resetn || mem_done) begin\\n \\t\\t\\tmem_do_prefetch <= 0;\\n \\t\\t\\tmem_do_rinst <= 0;\\n-\\t\\t\\tmem_do_rdata <= 1;\\n+\\t\\t\\tmem_do_rdata <= 0;\\n \\t\\t\\tmem_do_wdata <= 0;\\n \\t\\tend\\n\", \"expected\": \"tohost PASS with max_addr != 0x00000000 and no TRAP: no progress\"}",
+  "diagnosis": "Trace shows fetch starvation with max_addr=0x00000000 and FAIL 0xdead instead of advancing through 256 NOPs. Expected mem_do_rdata to clear to 0 on !resetn||mem_done to allow next mem_do_rinst, but picorv32.v:1952 sets it to 1. This holds data-phase active and blocks instruction fetch, causing the 2009-cycle no-progress trap.",
+  "expected": "tohost PASS with max_addr != 0x00000000 and no TRAP: no progress",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "latency_ms": 29178,
+  "request_id": "chatcmpl-01a17d30-7231-7321-be01-64b7f5a91bb6",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 3486,
+    "prompt_tokens": 1807,
+    "total_tokens": 5293,
+    "completion_tokens_details": {
+      "reasoning_tokens": 3226
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

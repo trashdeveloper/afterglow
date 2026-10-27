@@ -1,0 +1,53 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17d24-dfcd-73fb-b5d9-24193c439327",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"TRAP asserted with tohost FAIL 0xdead during 256-word NOP fetch instead of clean fetch progress with no trap. decoder_trigger at picorv32.v:1446 fires on mem_do_rinst || mem_done, so data-phase mem_done re-triggers the decoder on a stale word that decodes illegal. Removing the mem_done term restricts trigger to instruction fetch only, preventing the spurious illegal decode and trap.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1446,5 +1446,5 @@\\n-\\t\\tdecoder_trigger <= mem_do_rinst || mem_done;\\n+\\t\\tdecoder_trigger <= mem_do_rinst;\\n \\t\\tdecoder_trigger_q <= decoder_trigger;\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n \\t\\tdo_waitirq <= 0;\\n\", \"expected\": \"tohost 0x1 PASS, no TRAP: cpu trap asserted, fetch progress over 256 NOPs\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793100930,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 7066,
+      "prompt_tokens": 1690,
+      "total_tokens": 8756,
+      "completion_tokens_details": {
+        "reasoning_tokens": 6809
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"TRAP asserted with tohost FAIL 0xdead during 256-word NOP fetch instead of clean fetch progress with no trap. decoder_trigger at picorv32.v:1446 fires on mem_do_rinst || mem_done, so data-phase mem_done re-triggers the decoder on a stale word that decodes illegal. Removing the mem_done term restricts trigger to instruction fetch only, preventing the spurious illegal decode and trap.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1446,5 +1446,5 @@\\n-\\t\\tdecoder_trigger <= mem_do_rinst || mem_done;\\n+\\t\\tdecoder_trigger <= mem_do_rinst;\\n \\t\\tdecoder_trigger_q <= decoder_trigger;\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n \\t\\tdo_waitirq <= 0;\\n\", \"expected\": \"tohost 0x1 PASS, no TRAP: cpu trap asserted, fetch progress over 256 NOPs\"}",
+  "diagnosis": "TRAP asserted with tohost FAIL 0xdead during 256-word NOP fetch instead of clean fetch progress with no trap. decoder_trigger at picorv32.v:1446 fires on mem_do_rinst || mem_done, so data-phase mem_done re-triggers the decoder on a stale word that decodes illegal. Removing the mem_done term restricts trigger to instruction fetch only, preventing the spurious illegal decode and trap.",
+  "expected": "tohost 0x1 PASS, no TRAP: cpu trap asserted, fetch progress over 256 NOPs",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "latency_ms": 63740,
+  "request_id": "chatcmpl-01a17d24-dfcd-73fb-b5d9-24193c439327",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 7066,
+    "prompt_tokens": 1690,
+    "total_tokens": 8756,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6809
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

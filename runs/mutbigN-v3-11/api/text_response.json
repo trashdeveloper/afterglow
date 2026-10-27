@@ -1,0 +1,53 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17d16-577f-7273-9aa3-630e35f604ab",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Fetch TB reports TRAP: no progress max_addr=0x00000000 with tohost FAIL 0xdead after CYCLES=2009, vs expected PC advancing through 256-word NOP mem. reg_pc never leaves PROGADDR_RESET so max_addr stays 0. Root cause at picorv32.v:1450 where do_waitirq <= 1 is forced every cycle, stalling decode/fetch and blocking any progress.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1448,3 +1448,3 @@\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n-\\t\\tdo_waitirq <= 1;\\n+\\t\\tdo_waitirq <= 0;\\n\", \"expected\": \"tohost PASS (not FAIL 0xdead), max_addr advances beyond 0x00000000 with no TRAP: no progress\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793099978,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 5000,
+      "prompt_tokens": 1715,
+      "total_tokens": 6715,
+      "completion_tokens_details": {
+        "reasoning_tokens": 4760
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Fetch TB reports TRAP: no progress max_addr=0x00000000 with tohost FAIL 0xdead after CYCLES=2009, vs expected PC advancing through 256-word NOP mem. reg_pc never leaves PROGADDR_RESET so max_addr stays 0. Root cause at picorv32.v:1450 where do_waitirq <= 1 is forced every cycle, stalling decode/fetch and blocking any progress.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1448,3 +1448,3 @@\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n-\\t\\tdo_waitirq <= 1;\\n+\\t\\tdo_waitirq <= 0;\\n\", \"expected\": \"tohost PASS (not FAIL 0xdead), max_addr advances beyond 0x00000000 with no TRAP: no progress\"}",
+  "diagnosis": "Fetch TB reports TRAP: no progress max_addr=0x00000000 with tohost FAIL 0xdead after CYCLES=2009, vs expected PC advancing through 256-word NOP mem. reg_pc never leaves PROGADDR_RESET so max_addr stays 0. Root cause at picorv32.v:1450 where do_waitirq <= 1 is forced every cycle, stalling decode/fetch and blocking any progress.",
+  "expected": "tohost PASS (not FAIL 0xdead), max_addr advances beyond 0x00000000 with no TRAP: no progress",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "latency_ms": 46460,
+  "request_id": "chatcmpl-01a17d16-577f-7273-9aa3-630e35f604ab",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 5000,
+    "prompt_tokens": 1715,
+    "total_tokens": 6715,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4760
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

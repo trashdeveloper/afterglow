@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-30\nFailing-trace sha256 (first 16 hex): e481473b05baf94d\nVerbatim diagnosis from the debug agent:\nFetch test with 256 NOPs asserts TRAP and reports tohost FAIL 0xdead instead of progressing. mem_rdata_latched in picorv32.v:388 selects mem_rdata_latched_noshuffle[31:16] (0x0000) for mem_la_firstword instead of [15:0] (0x0013), decoding as illegal compressed and trapping. Root cause is the wrong half-word select on the firstword path; fixing to [15:0] restores correct fetch alignment.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash e481473b05baf94d in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "ac190ebb71dd84cb4a4067cb2028e3632adad5bed426073f2b86c4657140e3b0",
+  "trace_sha256": "e481473b05baf94d5760f5d49cef25eb6345c7a8360ae1ca6aa9ca8c7194f101",
+  "diagnosis_sha256": "23840a3b56d60b7b6e9aec9c23bc69caad3835437cb7c3ffd8cd8a4341a34a80",
+  "case": "mut-bigN-30",
+  "attempt": 1
+}

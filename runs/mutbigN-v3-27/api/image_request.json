@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-27\nFailing-trace sha256 (first 16 hex): 5bb8cdb7838e15c8\nVerbatim diagnosis from the debug agent:\nLoopback send 0xa5 never set recv_buf_valid, causing `TRAP: uart timeout, no byte received` and `FAIL 0xdead` instead of a received byte. Expected recv_divcnt to increment each cycle to exceed cfg_divider and advance recv_state 1->2 and 10->0, but line 74 does `recv_divcnt <= recv_divcnt + 0` so the counter stays 0 and reception never completes. Root cause is the zero increment in picosoc/simpleuart.v line 74 stalling the UART receiver divider.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 5bb8cdb7838e15c8 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "f67de6f4a433f93f33136899f096919df15bf9716b712ccd2832fabcc0eeccd6",
+  "trace_sha256": "5bb8cdb7838e15c85a85930bf3195c45c24ce9f90371bed677a8f486b6194e18",
+  "diagnosis_sha256": "277ed1e81fbe090f3f5822108d18ca532bcfc7b0e0d74ae3f7ebb1df49c0ebd9",
+  "case": "mut-bigN-27",
+  "attempt": 1
+}

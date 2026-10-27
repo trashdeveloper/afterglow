@@ -1,0 +1,136 @@
+{
+  "run_id": "mutbigN-v3-21",
+  "case_id": "mut-bigN-21",
+  "case": "mut-bigN-21",
+  "mode": "live",
+  "status": "red",
+  "retries": 2,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T11:34:27Z",
+  "wall_end_utc": "2026-10-27T11:44:28Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": false,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "attempt": 1,
+      "text_latency_ms": 63740,
+      "text_request_id": "chatcmpl-01a17d24-dfcd-73fb-b5d9-24193c439327",
+      "diagnosis_chars": 385,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)"
+    },
+    {
+      "attempt": 2,
+      "summary": "unparseable model output: model output is not a JSON object: '{\"diagnosis\": \"CONE_SLICE is empty so trace wins. 256-word NOP fetch should progress with no trap, but trace shows `TRAP: cpu trap asserted` and `tohost: FAIL 0xdead` at CYCLES=2009. Excerpt picorv32.'",
+      "text_latency_ms": 76693,
+      "text_request_id": "chatcmpl-01a17d28-f7a2-747c-bbfc-b96d100005e2"
+    },
+    {
+      "attempt": 3,
+      "text_latency_ms": 69337,
+      "text_request_id": "chatcmpl-01a17d2c-c294-726e-92b7-e9ff4dc5da29",
+      "diagnosis_chars": 400,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picorv32.v\\nHunk #1 FAILED at 1446.\\n1 out of 1 hunk FAILED\\n']; bootstrap impossible: bootstrap: bug line not found in tree (already fixed or unexpected tree state)"
+    }
+  ],
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-21.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutbigN-v3-21",
+  "mutant_record": {
+    "file": "picorv32.v",
+    "line": 1446,
+    "before": "decoder_trigger <= mem_do_rinst && mem_done;",
+    "after": "decoder_trigger <= mem_do_rinst || mem_done;",
+    "seed": "1234",
+    "op": "logic_swap"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "mut-bigN-21",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+  "cycles_before": 2009,
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 19,
+    "pack_tokens": 70,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "d52ca6bb4e446a3edfed66d96bace0902aae1d58d3df04abdc934f249c056cfc",
+    "cone_lines": 0,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "asserted",
+    "cone_files": 0,
+    "harvest_lines": 23,
+    "harvest_tokens": 115,
+    "recall": [
+      [
+        "mutbigN-v3-05",
+        1.0
+      ],
+      [
+        "mutbigN-v3-07",
+        1.0
+      ]
+    ],
+    "recall_dropped": false,
+    "status": "ok"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 702,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "b15e60d236099d8148719e0bea1c31d07713f96bbe3ea9bf64fc10f0f9842eb2",
+  "transport_retries": [
+    5.786555443555875,
+    18.507808564336305
+  ],
+  "image_latency_ms": 20769,
+  "image_request_id": "8f58433e-b9fe-4ec0-abe8-35a99d9ae153",
+  "image_bytes": 1807317,
+  "text_latency_ms": 63740,
+  "text_request_id": "chatcmpl-01a17d24-dfcd-73fb-b5d9-24193c439327",
+  "api_usage": {
+    "completion_tokens": 7066,
+    "prompt_tokens": 1690,
+    "total_tokens": 8756,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6809
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "FAIL 0xdead",
+  "checksum_after": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+  "cycles_after": 2009,
+  "error": "still RED after 3 attempt(s); see attempts log",
+  "time_to_green_s": 601.8,
+  "est_usd": 0.089908,
+  "text_tokens": 8756,
+  "image_calls": 1
+}

@@ -1,0 +1,10 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -113,5 +113,5 @@
+ 		if (!resetn) begin
+-			send_pattern <= ~1;
++			send_pattern <= ~0;
+ 			send_bitcnt <= 0;
+ 			send_divcnt <= 0;
+ 			send_dummy <= 1;

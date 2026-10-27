@@ -1,0 +1,53 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17d0e-a9e9-77b6-9af7-260855270aab",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Fetch makes no progress with max_addr stuck at 0x00000000 (FAIL 0xdead, TRAP: no progress). Expected reset to leave mem_state idle (0) with mem_valid low so case mem_state 0 can issue mem_do_prefetch/mem_do_rinst/mem_do_rdata. Root cause in excerpt at line 568 is reset forces mem_state <= 1 with mem_valid <= 0, so the machine starts in the wait state waiting for mem_ready that never comes and the first fetch is never issued.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -565,8 +565,8 @@\\n \\talways @(posedge clk) begin\\n \\t\\tif (!resetn || trap) begin\\n \\t\\t\\tif (!resetn)\\n- \\t\\t\\t\\tmem_state <= 1;\\n+ \\t\\t\\t\\tmem_state <= 0;\\n \\t\\t\\tif (!resetn || mem_ready)\\n \\t\\t\\t\\tmem_valid <= 0;\\n \\t\\t\\tmem_la_secondword <= 0;\", \"expected\": \"tohost PASS (not FAIL 0xdead), no TRAP: no progress max_addr=0x00000000, max_addr advances beyond 0x00000000\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793099475,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 2998,
+      "prompt_tokens": 1713,
+      "total_tokens": 4711,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2691
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Fetch makes no progress with max_addr stuck at 0x00000000 (FAIL 0xdead, TRAP: no progress). Expected reset to leave mem_state idle (0) with mem_valid low so case mem_state 0 can issue mem_do_prefetch/mem_do_rinst/mem_do_rdata. Root cause in excerpt at line 568 is reset forces mem_state <= 1 with mem_valid <= 0, so the machine starts in the wait state waiting for mem_ready that never comes and the first fetch is never issued.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -565,8 +565,8 @@\\n \\talways @(posedge clk) begin\\n \\t\\tif (!resetn || trap) begin\\n \\t\\t\\tif (!resetn)\\n- \\t\\t\\t\\tmem_state <= 1;\\n+ \\t\\t\\t\\tmem_state <= 0;\\n \\t\\t\\tif (!resetn || mem_ready)\\n \\t\\t\\t\\tmem_valid <= 0;\\n \\t\\t\\tmem_la_secondword <= 0;\", \"expected\": \"tohost PASS (not FAIL 0xdead), no TRAP: no progress max_addr=0x00000000, max_addr advances beyond 0x00000000\"}",
+  "diagnosis": "Fetch makes no progress with max_addr stuck at 0x00000000 (FAIL 0xdead, TRAP: no progress). Expected reset to leave mem_state idle (0) with mem_valid low so case mem_state 0 can issue mem_do_prefetch/mem_do_rinst/mem_do_rdata. Root cause in excerpt at line 568 is reset forces mem_state <= 1 with mem_valid <= 0, so the machine starts in the wait state waiting for mem_ready that never comes and the first fetch is never issued.",
+  "expected": "tohost PASS (not FAIL 0xdead), no TRAP: no progress max_addr=0x00000000, max_addr advances beyond 0x00000000",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "latency_ms": 26740,
+  "request_id": "chatcmpl-01a17d0e-a9e9-77b6-9af7-260855270aab",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 2998,
+    "prompt_tokens": 1713,
+    "total_tokens": 4711,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2691
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

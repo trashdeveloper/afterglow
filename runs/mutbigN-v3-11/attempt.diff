@@ -1,0 +1,8 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1448,3 +1448,3 @@
+ 		decoder_pseudo_trigger <= 0;
+ 		decoder_pseudo_trigger_q <= decoder_pseudo_trigger;
+-		do_waitirq <= 1;
++		do_waitirq <= 0;

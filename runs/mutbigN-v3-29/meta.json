@@ -1,0 +1,118 @@
+{
+  "run_id": "mutbigN-v3-29",
+  "case_id": "mut-bigN-29",
+  "case": "mut-bigN-29",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T11:51:31Z",
+  "wall_end_utc": "2026-10-27T11:52:30Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "canonical-bootstrap-gated",
+  "explain": "ok",
+  "attempts": [
+    {
+      "attempt": 1,
+      "text_latency_ms": 40194,
+      "text_request_id": "chatcmpl-01a17d34-2341-767b-91e7-9a8d9aca2c3b",
+      "diagnosis_chars": 415,
+      "guard_ok": true,
+      "patch_source_try": "canonical-bootstrap-gated",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picosoc/simpleuart.v\\nHunk #1 FAILED at 78.\\n1 out of 1 hunk FAILED\\n']; applied via canonical-bootstrap-gated",
+      "gate_signal": "divider"
+    }
+  ],
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-29.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutbigN-v3-29",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 83,
+    "before": "1: begin",
+    "after": "0: begin",
+    "seed": "1234",
+    "op": "num_bump"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-bigN-29",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "7ead7d9c1ebd862283bf0991c6a01fd4f7dad63f24f2be953b7f57e1f7edd073",
+  "cycles_before": 2684,
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 36,
+    "pack_tokens": 177,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "78cff3414af7d58092d9d892489d76ba7512e40d4cb60237d6a1e7e95c8225f7",
+    "cone_lines": 18,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "uart",
+    "cone_files": 2,
+    "harvest_lines": 40,
+    "harvest_tokens": 230,
+    "recall": [
+      [
+        "ablate-v3-uartdiv",
+        0.6
+      ],
+      [
+        "mut-live-02-v3",
+        0.6
+      ]
+    ],
+    "recall_dropped": false,
+    "status": "ok"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 821,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "ebcc98b977edd1d319830ca071367b53e1caaed2890b8f9c0fe15758256aef56",
+  "transport_retries": [],
+  "image_latency_ms": 18424,
+  "image_request_id": "1b32718c-c4f0-4034-98d2-7b8d93f9d615",
+  "image_bytes": 1409073,
+  "text_latency_ms": 40194,
+  "text_request_id": "chatcmpl-01a17d34-2341-767b-91e7-9a8d9aca2c3b",
+  "api_usage": {
+    "completion_tokens": 5122,
+    "prompt_tokens": 2215,
+    "total_tokens": 7337,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4782
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 59.1,
+  "est_usd": 0.075406,
+  "text_tokens": 7337,
+  "image_calls": 1
+}

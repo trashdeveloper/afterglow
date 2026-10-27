@@ -1,0 +1,53 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17d08-f3f5-7247-b88d-d353bd2deb47",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Fetch TB reports `TRAP: no progress max_addr=0x00000000` vs expected advancing PC/fetch progress (fingerprint 938a85fe28aa). Root cause in picorv32.v:376 `mem_done` uses `&& (&mem_state && mem_do_rinst)` instead of `||`, requiring both `mem_xfer && |mem_state` and `&mem_state` simultaneously so `mem_done` never asserts in normal states and the fetch FSM stalls at addr 0.\",\n\"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -375,7 +375,7 @@\\n \\twire mem_busy = |{mem_do_prefetch, mem_do_rinst, mem_do_rdata, mem_do_wdata};\\n-\\twire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) && (&mem_state && mem_do_rinst)) &&\\n+\\twire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) || (&mem_state && mem_do_rinst)) &&\\n \\t\\t\\t(!mem_la_firstword || (~&mem_rdata_latched[1:0] && mem_xfer));\\n\",\n\"expected\": \"tohost PASS (not FAIL 0xdead), no `no progress max_addr=0x00000000` trap with progress/max_addr advancing, checksum != 563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793099101,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 3733,
+      "prompt_tokens": 2048,
+      "total_tokens": 5781,
+      "completion_tokens_details": {
+        "reasoning_tokens": 3340
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Fetch TB reports `TRAP: no progress max_addr=0x00000000` vs expected advancing PC/fetch progress (fingerprint 938a85fe28aa). Root cause in picorv32.v:376 `mem_done` uses `&& (&mem_state && mem_do_rinst)` instead of `||`, requiring both `mem_xfer && |mem_state` and `&mem_state` simultaneously so `mem_done` never asserts in normal states and the fetch FSM stalls at addr 0.\",\n\"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -375,7 +375,7 @@\\n \\twire mem_busy = |{mem_do_prefetch, mem_do_rinst, mem_do_rdata, mem_do_wdata};\\n-\\twire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) && (&mem_state && mem_do_rinst)) &&\\n+\\twire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) || (&mem_state && mem_do_rinst)) &&\\n \\t\\t\\t(!mem_la_firstword || (~&mem_rdata_latched[1:0] && mem_xfer));\\n\",\n\"expected\": \"tohost PASS (not FAIL 0xdead), no `no progress max_addr=0x00000000` trap with progress/max_addr advancing, checksum != 563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15\"}",
+  "diagnosis": "Fetch TB reports `TRAP: no progress max_addr=0x00000000` vs expected advancing PC/fetch progress (fingerprint 938a85fe28aa). Root cause in picorv32.v:376 `mem_done` uses `&& (&mem_state && mem_do_rinst)` instead of `||`, requiring both `mem_xfer && |mem_state` and `&mem_state` simultaneously so `mem_done` never asserts in normal states and the fetch FSM stalls at addr 0.",
+  "expected": "tohost PASS (not FAIL 0xdead), no `no progress max_addr=0x00000000` trap with progress/max_addr advancing, checksum != 563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "latency_ms": 40345,
+  "request_id": "chatcmpl-01a17d08-f3f5-7247-b88d-d353bd2deb47",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 3733,
+    "prompt_tokens": 2048,
+    "total_tokens": 5781,
+    "completion_tokens_details": {
+      "reasoning_tokens": 3340
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

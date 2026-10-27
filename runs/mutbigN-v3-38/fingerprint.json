@@ -1,0 +1,11 @@
+{
+  "fingerprint": "d2e1c6a818eabe07f32a6d4ee504d83108b8b78d90cc64ff211897b867a6c047",
+  "trap_line": "TRAP: uart data mismatch got 0xf0 want 0xa5",
+  "oracle_sig": "FAIL 0xdead",
+  "signals": [
+    "uart",
+    "xa5",
+    "xdead",
+    "xf0"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-08\nFailing-trace sha256 (first 16 hex): 188dafd6223c3f09\nVerbatim diagnosis from the debug agent:\nLoopback divider 64 sending 0xa5 never asserted recv_buf_valid, so reg_dat_do stayed ~0 instead of 0xa5 and TB hit TRAP: uart timeout, no byte received with FAIL 0xdead. CONE_SLICE is unresolved (0/1, only picosoc/spiflash.v:52 and scripts/quartus/system.v:67 etc.) with no simpleuart recv logic, so trace wins. Root cause in picosoc/simpleuart.v:39 where reg [3:1] recv_state truncates the receiver to 3 bits and prevents the full start+8data+stop sequence from completing.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 188dafd6223c3f09 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "59412f7aa6e0a9bb48e24c50bd121d21a9d1780d6948ae5f02d7e07bc6750a92",
+  "trace_sha256": "188dafd6223c3f09a66806ee465aa94fe767c8d1bbf19e36f1b9a3a64e537e18",
+  "diagnosis_sha256": "eeba26e854c9229c790eeed8fa9c887926fb6e89858eae992a5da8733dc453c7",
+  "case": "mut-bigN-08",
+  "attempt": 1
+}

@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-24\nFailing-trace sha256 (first 16 hex): 9154ae4f0e1606db\nVerbatim diagnosis from the debug agent:\nTrace is minimal/unclear: only TRAP: cpu trap asserted and tohost FAIL 0xdead after CYCLES=2009 on 256-word NOP fetch test with no per-cycle PC/mem signals. mem_done is asserted early vs expected only on terminal mem_state with active rinst, causing mis-fetch and trap. Root cause in excerpt picorv32.v:376 uses (&mem_state || mem_do_rinst) instead of (&mem_state && mem_do_rinst).\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 9154ae4f0e1606db in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "b0e245def39f41dfc8b4d09cf7f1f68b709ccdc59e32cc846740db4b1311cf08",
+  "trace_sha256": "9154ae4f0e1606db60b9a12bf643ae7e5c70cfeea36be4b773ed8e68018ae932",
+  "diagnosis_sha256": "11a05077a702af21521b17f94639e12bf58fcb6182da57e098dbe341b73abb3e",
+  "case": "mut-bigN-24",
+  "attempt": 1
+}

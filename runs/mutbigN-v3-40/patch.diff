@@ -1,0 +1,8 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -892,3 +892,3 @@
+-			compressed_instr <= 1;
++			compressed_instr <= 0;
+ 			if (COMPRESSED_ISA && mem_rdata_latched[1:0] != 2'b11) begin
+ 				compressed_instr <= 1;

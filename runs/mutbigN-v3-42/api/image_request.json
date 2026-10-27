@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-42\nFailing-trace sha256 (first 16 hex): 2c78008a62f45665\nVerbatim diagnosis from the debug agent:\nFetch test shows max_addr stuck at 0x00000000 with TRAP: no progress, expected PC to advance through 256 NOP words. mem_state never leaves 0 for instruction fetch so mem_valid never asserts. Root cause in excerpt line 583 is `if (mem_do_prefetch && mem_do_rinst || mem_do_rdata)` using && instead of ||, requiring prefetch and rinst together and blocking normal fetch.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 2c78008a62f45665 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "f7b1ed59415263860e5c60148be996d0e650eea5daf3d7db4ffd5d2b4d05351d",
+  "trace_sha256": "2c78008a62f45665b4463c846dc73f00ee9fecc60bedfa4cdb6948c601b1ad84",
+  "diagnosis_sha256": "360d667310015315560775d01321ea77b39429945eb91865543835c254b400db",
+  "case": "mut-bigN-42",
+  "attempt": 1
+}

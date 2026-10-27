@@ -1,0 +1,11 @@
+{
+  "fingerprint": "2080fe820d70f7aabd40f10fc9a76d0727e41350f42697222e617b4b652251ca",
+  "trap_line": "TRAP: no progress max_addr=0x00000004",
+  "oracle_sig": "FAIL 0xdead",
+  "signals": [
+    "max_addr",
+    "progress",
+    "x00000004",
+    "xdead"
+  ]
+}

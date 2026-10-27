@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-25\nFailing-trace sha256 (first 16 hex): 4096b0119587dece\nVerbatim diagnosis from the debug agent:\nTrace shows fetch starvation with max_addr=0x00000000 and FAIL 0xdead instead of advancing through 256 NOPs. Expected mem_do_rdata to clear to 0 on !resetn||mem_done to allow next mem_do_rinst, but picorv32.v:1952 sets it to 1. This holds data-phase active and blocks instruction fetch, causing the 2009-cycle no-progress trap.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 4096b0119587dece in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "dd38a21a9a3c2621f4dd4d2266ca2250fd82c4165f8c626fa585b41869ecfbda",
+  "trace_sha256": "4096b0119587decebb02605cbea838c382ef516eecf346055af3d403112faa8f",
+  "diagnosis_sha256": "22692de066edefec6c40d07da1ad825aad791db5639a6eb049d9072db3c5f37c",
+  "case": "mut-bigN-25",
+  "attempt": 1
+}

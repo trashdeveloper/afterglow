@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-16\nFailing-trace sha256 (first 16 hex): fd33eca09b0d3bed\nVerbatim diagnosis from the debug agent:\nFetch progress stuck at max_addr=0x00000004 vs expected sequential advance through 256 NOP words, causing TRAP no progress and FAIL 0xdead. With latched_branch=0 and latched_store=1 for NOP ALU ops, case (1b0) at picorv32.v:1498 matches zeros so the latched_branch arm at picorv32.v:1499-1500 fires on non-branch and sets current_pc to ALU result masked with ~1 instead of reg_next_pc. This livelocks PC around 0x0/0x4 explaining no progress; CONE_SLICE empty so trace wins over HARVEST.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash fd33eca09b0d3bed in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "388b5f27fae7710d40498d6f6420530b563d17b984e1b1dcd29b5a9a34b4f00c",
+  "trace_sha256": "fd33eca09b0d3bed7b950628b0437496efec424d528ab366f21a77b6ca7472f2",
+  "diagnosis_sha256": "810c8ee8e322bea94be7ae7f4130ca866c01ec96902ef40f2775d5742d92b1ef",
+  "case": "mut-bigN-16",
+  "attempt": 1
+}

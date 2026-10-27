@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-44\nFailing-trace sha256 (first 16 hex): 8d42d1319b2dea9b\nVerbatim diagnosis from the debug agent:\nFetch NOP test traps with TRAP: no progress max_addr=0x00000000 for 2009 cycles, expected PC to advance sequentially through NOP memory. Every NOP (opcode 0010011, funct3 000) wrongly decodes with instr_jalr asserted instead of deasserted, causing a jump to 0 loop. Root cause is line 870 in picorv32.v where instr_jalr compares mem_rdata_latched[6:0] != 7'b1100111 instead of ==, inverting JALR decode.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 8d42d1319b2dea9b in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "333cd59c1d556e9780ec073f8600fe75389ac3ddca1da7fa921c85e4481871fe",
+  "trace_sha256": "8d42d1319b2dea9bee163185a0fcefc2f808ef56800a367bd163f1becf9bf48e",
+  "diagnosis_sha256": "9e18fc9375a14891351f7b23d1724681d816cb7a721714eaae88e240f0b7f37f",
+  "case": "mut-bigN-44",
+  "attempt": 1
+}

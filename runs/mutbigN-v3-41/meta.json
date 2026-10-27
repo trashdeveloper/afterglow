@@ -1,0 +1,117 @@
+{
+  "run_id": "mutbigN-v3-41",
+  "case_id": "mut-bigN-41",
+  "case": "mut-bigN-41",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T12:05:10Z",
+  "wall_end_utc": "2026-10-27T12:06:10Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "attempt": 1,
+      "text_latency_ms": 41316,
+      "text_request_id": "chatcmpl-01a17d40-aa09-7032-9587-0ecd6bfc791c",
+      "diagnosis_chars": 346,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim"
+    }
+  ],
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-41.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutbigN-v3-41",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 132,
+    "before": "send_bitcnt <= send_bitcnt - 1;",
+    "after": "send_bitcnt <= send_bitcnt - 2;",
+    "seed": "1234",
+    "op": "num_bump"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-bigN-41",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+  "cycles_before": 22023,
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 65,
+    "pack_tokens": 307,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "bf263cfe722478d447eda314288bdbea85be5874e177a35cafb50f67fc9c1e8e",
+    "cone_lines": 47,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "byte",
+    "cone_files": 4,
+    "harvest_lines": 69,
+    "harvest_tokens": 356,
+    "recall": [
+      [
+        "mut-live-01-v3",
+        1.0
+      ],
+      [
+        "mut-live-03-v3",
+        1.0
+      ]
+    ],
+    "recall_dropped": false,
+    "status": "ok"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 66,
+  "prompt_tokens": 939,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "7cbd8e931dddd3da65228904c2d54eba98cfa8d394feb671c262f7c497370975",
+  "transport_retries": [],
+  "image_latency_ms": 17753,
+  "image_request_id": "b9aee09e-4ff0-423a-bdab-7f66ae01b5be",
+  "image_bytes": 1343510,
+  "text_latency_ms": 41316,
+  "text_request_id": "chatcmpl-01a17d40-aa09-7032-9587-0ecd6bfc791c",
+  "api_usage": {
+    "completion_tokens": 4588,
+    "prompt_tokens": 2506,
+    "total_tokens": 7094,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4301
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 59.6,
+  "est_usd": 0.071716,
+  "text_tokens": 7094,
+  "image_calls": 1
+}

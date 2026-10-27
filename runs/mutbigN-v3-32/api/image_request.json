@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-32\nFailing-trace sha256 (first 16 hex): 196be66dfd1bbd26\nVerbatim diagnosis from the debug agent:\nFetch test executes 256 NOPs (ADDI x0,x0,0, opcode 7'b0010011) but traps with FAIL 0xdead and TRAP asserted instead of progressing. is_alu_reg_imm never asserts for NOPs so the decoder falls through to illegal-instruction trap. Root cause in excerpt at picorv32.v:877 where is_alu_reg_imm compares to 7'b1010011 instead of 7'b0010011, a bit-6 single-bit opcode error.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 196be66dfd1bbd26 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "800cb1fe8b4f1bb5d2c1fd1f51f5af52c72a8c996686a1767a696f0db332ca35",
+  "trace_sha256": "196be66dfd1bbd26a4ae0a097dca1818ee00a2780e1d4250d2ff8b28707ad7bc",
+  "diagnosis_sha256": "bc0ea8ea4d97bbc8db1e5aca07690f840258d370c296f9e190f5313f60cd0768",
+  "case": "mut-bigN-32",
+  "attempt": 1
+}

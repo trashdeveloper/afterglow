@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-03\nFailing-trace sha256 (first 16 hex): 049777a83645ec59\nVerbatim diagnosis from the debug agent:\nFetch makes no progress (max_addr=0x00000000 with TRAP: no progress max_addr=0x00000000 and tohost FAIL 0xdead vs expected forward progress). mem_xfer stays 0 so mem_done at picorv32.v:376 never asserts. Root cause at picorv32.v:373 where mem_xfer is (mem_valid && mem_ready) && (mem_la_use_prefetched_high_word && mem_do_rinst) instead of ||, blocking both normal transfers and prefetched-high-word use defined at picorv32.v:372.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 049777a83645ec59 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "b36ad322d9f9706ef7da9f9e7f0b67c7ac1b6e81b794c40f281310b8e1b31b16",
+  "trace_sha256": "049777a83645ec598cb341c8c40c0ad2d841641dd84e233141aff8b08c80e251",
+  "diagnosis_sha256": "f56cf9339f0ca60162be9cb1178ea7b6cb1e5870674df9654ee33c53e0cb83f9",
+  "case": "mut-bigN-03",
+  "attempt": 1
+}

@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-17\nFailing-trace sha256 (first 16 hex): a002d3894ba30b31\nVerbatim diagnosis from the debug agent:\nFetch test traps with `TRAP: no progress max_addr=0x00000000` and `tohost: FAIL 0xdead` instead of advancing fetches. `mem_la_read` in picorv32.v line 380 uses `(mem_do_rinst || mem_do_prefetch && mem_do_rdata)` so prefetch-only or rdata-only cycles never assert look-ahead read due to `&&` precedence, stalling fetch at address 0. Root cause is `&&` where `||` is required for `mem_do_prefetch || mem_do_rdata`.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash a002d3894ba30b31 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "827d936480384e1aefaba30e32659ab4c502335262e608e09c0e8f4482c6dab4",
+  "trace_sha256": "a002d3894ba30b3134bfdcf8345fb20296b631563ecb51bb08fd21a3c36f3c09",
+  "diagnosis_sha256": "b88f068dbb2e5b0aa9372ad5e9cd1df4be61ec0751ee2854ce2fe4555e1b6020",
+  "case": "mut-bigN-17",
+  "attempt": 1
+}

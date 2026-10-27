@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-23\nFailing-trace sha256 (first 16 hex): 127c4a2446ce1c13\nVerbatim diagnosis from the debug agent:\nFetch-only NOP test asserted `TRAP: cpu trap asserted` with `tohost: FAIL 0xdead` vs expected no-trap progress. NOPs have instr_trap==0 but still entered trap handling in cpu_state_ld_rs1. Root cause at picorv32.v:1584 is `case (1'b0)` instead of `case (1'b1)`, so the `parallel_case` match on `(CATCH_ILLINSN || WITH_PCPI) && instr_trap` is inverted.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 127c4a2446ce1c13 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "ec8727bf58c5b06b7345fd54cefc69e6f894800f17154eb2e6e3b97fb5051e52",
+  "trace_sha256": "127c4a2446ce1c1393c54c264c1542f74df200ab60fb94687de07406cbaa2754",
+  "diagnosis_sha256": "605ed7988750813d82bba013554ec6c0486d0d4befa8dd9e011a5ed6015662a9",
+  "case": "mut-bigN-23",
+  "attempt": 1
+}

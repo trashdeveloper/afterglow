@@ -1,0 +1,12 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1405,7 +1405,7 @@
+ 		reg_out <= 'bx;
+ 		set_mem_do_rinst = 0;
+ 		set_mem_do_rdata = 0;
+-		set_mem_do_wdata = 1;
++		set_mem_do_wdata = 0;
+ 
+ 		alu_out_0_q <= alu_out_0;
+ 		alu_out_q <= alu_out;

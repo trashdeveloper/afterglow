@@ -1,0 +1,6 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -877,1 +877,1 @@
+-			is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b1010011;
++			is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;
