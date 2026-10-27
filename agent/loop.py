@@ -134,6 +134,15 @@ STRATEGY_CHANGE_DIRECTIVE = (
 CONSENSUS_WINDOW_LINES = 10
 CONSENSUS_VOTES = 3
 
+# Multimodal feedback pilot (opt-in --multimodal): after explain.png is
+# generated, feed it BACK into a second diagnosis call (same trace window
+# + first diagnosis + the diagram) that either CONFIRMs or REVISEs the
+# first diagnosis. REVISE supersedes for PATCH (both + delta logged);
+# CONFIRM proceeds with the identical patch. Cost gate reuses
+# ladder_cost_ok vs LADDER_COST_CAP_USD; over cap (or image failure, or
+# second-call failure) degrades to single-diagnosis, never blocks.
+# Default OFF keeps the proven single path byte-identical.
+
 # Full-auto-by-default loop mode: every run attempts PATCH->RESIM->VERIFY
 # (mode "live", exit 0/1) unless --triage / --stop-before-patch selects
 # the old stop-before-PATCH behavior (mode "triage", exit 2). --auto is
@@ -1243,6 +1252,25 @@ def parse_args(argv=None):
                          "with no patch/resim. Over the $0.50 cost cap it "
                          "degrades to single-diagnosis. Default OFF keeps "
                          "the proven single path byte-identical.")
+    ap.add_argument("--recall-past-fix", dest="recall_past_fix",
+                    action="store_true", default=False,
+                    help="past-fix recall pilot (opt-in): rank past GREEN "
+                         "runs/ bundles by file+signal overlap and append "
+                         "the top-1 fix (file:lines + one-line lesson, "
+                         "capped tokens, provenance run-id) as a "
+                         "PAST_FIX_RECALL context block. Retrieval is "
+                         "read-only over runs/; a miss logs recall: MISS "
+                         "and changes nothing. Default OFF keeps the "
+                         "proven prompt path byte-identical.")
+    ap.add_argument("--multimodal", action="store_true", default=False,
+                    help="multimodal-feedback pilot (opt-in): after "
+                         "explain.png, run one second diagnosis call "
+                         "(same trace + first diagnosis + diagram) that "
+                         "CONFIRMs or REVISEs; REVISE supersedes for "
+                         "PATCH. Over the $0.50 cost cap, on image "
+                         "failure, or on second-call failure it degrades "
+                         "to single-diagnosis. Default OFF keeps the "
+                         "proven single path byte-identical.")
     return ap.parse_args(argv)
 
 
@@ -1820,6 +1848,104 @@ def consensus_majority(diffs: list) -> tuple:
     return ("split", -1, "split: no agreeing pair (%s)" % detail)
 
 
+def build_multimodal_prompt(case: str, trace_block: str,
+                            first_diagnosis: str, first_diff: str,
+                            image_sha256: str) -> str:
+    """Second-diagnosis prompt: same trace + first diagnosis + diagram ref.
+
+    Pure string function -- no API call, fully testable offline. The
+    diagram itself travels out-of-band as runs/<id>/explain.png; the
+    prompt binds it by sha256 so the proof bundle stays verifiable.
+    Asks for JSON-only {decision, diagnosis, patch_diff, reason} where
+    decision is CONFIRM or REVISE.
+    """
+    trace = (trace_block or "").strip()
+    if len(trace) > 4000:
+        trace = trace[:4000] + "\n...[truncated]"
+    diag = (first_diagnosis or "").strip()
+    if len(diag) > 1500:
+        diag = diag[:1500] + "...[truncated]"
+    diff = (first_diff or "").strip()
+    if len(diff) > 4000:
+        diff = diff[:4000] + "\n...[truncated]"
+    digest = (image_sha256 or "").strip()[:16]
+    return (
+        "You are a hardware-debug reviewer. A first debug agent diagnosed "
+        "an RISC-V RTL failure and an explain.png diagram was drawn from "
+        "that diagnosis (explain.png sha256 first 16 hex: %s).\n"
+        "Case: %s\n"
+        "Failing trace window (same window the first diagnosis saw):\n%s\n"
+        "First diagnosis (verbatim):\n%s\n"
+        "First patch_diff:\n%s\n"
+        "Look at the diagram (explain.png in the run bundle) together with "
+        "the trace above. Either CONFIRM the first diagnosis (it explains "
+        "the failing signal and the diff fixes it) or REVISE it (it "
+        "misnames the signal or the diff is wrong). Reply JSON ONLY with "
+        "keys: decision (exactly \"CONFIRM\" or \"REVISE\"), diagnosis "
+        "(final diagnosis text), patch_diff (final unified diff), reason "
+        "(one sentence: why the diagram confirms or what it corrects)."
+        % (digest, case, trace, diag, diff)
+    )
+
+
+def parse_multimodal_output(content: str, fallback_diagnosis: str = "",
+                            fallback_diff: str = "") -> dict:
+    """Parse the second-diagnosis reply into a CONFIRM/REVISE verdict.
+
+    Decision rule: REVISE supersedes ONLY when decision is literal
+    REVISE with a non-empty diagnosis AND a non-empty
+    patch_diff DIFFERENT from the first diff; everything else CONFIRMs
+    and keeps the first diagnosis. Never raises: unparseable or
+    incomplete replies read as CONFIRM (keep the proven first path).
+    """
+    first_diag = str(fallback_diagnosis or "")
+    first_diff = str(fallback_diff or "")
+    try:
+        text = str(content or "").strip()
+        if text.startswith("```"):
+            text = re.sub(r"^```[a-zA-Z]*\s*", "", text)
+            text = re.sub(r"\s*```$", "", text)
+        start = text.find("{")
+        end = text.rfind("}")
+        if start < 0 or end <= start:
+            raise ValueError("no JSON object")
+        obj = json.loads(text[start:end + 1])
+        if not isinstance(obj, dict):
+            raise ValueError("not an object")
+    except Exception as exc:
+        return {"decision": "CONFIRM", "diagnosis": first_diag,
+                "patch_diff": first_diff, "reason": (
+                    "unparseable second call (%s); keeping first "
+                    "diagnosis" % (exc,)),
+                "revised": False}
+    decision = str(obj.get("decision", "") or "").strip()
+    diag = str(obj.get("diagnosis", "") or "").strip()
+    diff = str(obj.get("patch_diff", "") or "").strip()
+    reason = str(obj.get("reason", "") or "").strip()
+    if (decision == "REVISE" and diag and diff
+            and re.sub(r"\s+", "", diff) != re.sub(
+                r"\s+", "", first_diff)):
+        return {"decision": "REVISE", "diagnosis": diag,
+                "patch_diff": diff,
+                "reason": reason or "second call revises the diagnosis",
+                "revised": True}
+    if decision == "REVISE" and (not diag or not diff):
+        return {"decision": "CONFIRM", "diagnosis": first_diag,
+                "patch_diff": first_diff, "reason": (
+                    "REVISE without complete diagnosis+diff; keeping "
+                    "first diagnosis"),
+                "revised": False}
+    if decision == "REVISE":
+        return {"decision": "CONFIRM", "diagnosis": first_diag,
+                "patch_diff": first_diff, "reason": (
+                    "REVISE with identical diff; keeping first diagnosis"),
+                "revised": False}
+    return {"decision": "CONFIRM", "diagnosis": first_diag,
+            "patch_diff": first_diff,
+            "reason": reason or "second call confirms the first diagnosis",
+            "revised": False}
+
+
 def _bundle_case(runs_dir: str, run_id: str) -> str:
     """Case id recorded in a prior bundle's meta.json ("" when unknown)."""
     try:
@@ -2333,6 +2459,50 @@ def main(argv=None) -> int:
         "status": "n/a"}
     full_prompt = bundle["full_prompt"]
     counts = bundle["counts"]
+    # PAST-FIX RECALL (opt-in --recall-past-fix, default OFF: without
+    # the flag this whole block is skipped so the proven prompt path
+    # stays byte-identical). Read-only retrieval over runs/ (never
+    # writes bundles); the top-1 past GREEN fix is appended as a
+    # separate context block (prompt templates untouched, prompt hash
+    # stable), provenance lands in meta["recall_past_fix"], and the
+    # block is logged verbatim in text_request.json via attempt_prompt
+    # below. A miss (or a retriever error) logs recall: MISS and leaves
+    # the prompt unchanged (fail-closed: recall never breaks a run).
+    recall_info: dict = {"status": "disabled",
+                         "reason": "flag OFF (default)"}
+    if bool(getattr(args, "recall_past_fix", False)):
+        try:
+            from afterglow_core import recall as recall_mod
+            _rblock, recall_info = recall_mod.recall_for_red(
+                bundle["trace_block"], verdict_json, [rtl_rel],
+                os.path.join(ROOT, "runs"),
+                exclude_case_ids={args.case})
+            if _rblock:
+                _rprompt, _applied, _why = recall_mod.apply_to_prompt(
+                    full_prompt, _rblock,
+                    max_prompt_tokens=collect.MAX_PROMPT_TOKENS)
+                if _applied:
+                    full_prompt = _rprompt
+                    counts = dict(
+                        counts,
+                        prompt_tokens=collect.approx_tokens(full_prompt))
+                else:
+                    recall_info = {"status": "MISS",
+                                   "run_id": recall_info.get("run_id", ""),
+                                   "score": recall_info.get("score", 0.0),
+                                   "fix_ref": recall_info.get("fix_ref", ""),
+                                   "reason": _why}
+                print("[RECALL] %s" % _why, flush=True)
+            else:
+                print("[RECALL] recall: MISS (%s)"
+                      % (recall_info.get("reason", ""),), flush=True)
+        except Exception as _rexc:  # noqa: BLE001 -- fail-closed, never die
+            recall_info = {"status": "MISS", "run_id": "",
+                           "score": 0.0, "fix_ref": "",
+                           "reason": "retriever error: %s" % (_rexc,)}
+            print("[RECALL] recall: MISS (retriever error: %s)"
+                  % (_rexc,), flush=True)
+    meta["recall_past_fix"] = recall_info
     with open(art("input_trace.txt"), "w", encoding="utf-8") as fh:
         fh.write(bundle["trace_block"] + "\n")
     trace_sha = sha256_file(art("input_trace.txt"))
@@ -2395,6 +2565,8 @@ def main(argv=None) -> int:
     # Consensus pilot (opt-in --consensus, default OFF): when False every
     # line below behaves byte-for-byte as the proven single path.
     use_consensus = bool(getattr(args, "consensus", False))
+    # Multimodal pilot (opt-in --multimodal, default OFF): same rule.
+    use_multimodal = bool(getattr(args, "multimodal", False))
     meta["attempts_consumed"] = 0
     meta["transport_retries"] = []
     meta["transport_failures"] = 0
@@ -2879,6 +3051,148 @@ def main(argv=None) -> int:
         with open(api("image_response.json"), "w", encoding="utf-8") as fh:
             fh.write(json.dumps(img_resp, indent=2) + "\n")
 
+        # MULTIMODAL feedback (opt-in --multimodal; default OFF skips
+        # this whole block so the proven single path stays
+        # byte-identical). Feeds explain.png BACK into a second
+        # diagnosis call (same trace window + first diagnosis + the
+        # diagram): CONFIRM proceeds with the identical patch, REVISE
+        # supersedes for PATCH (both + delta logged). Image failure,
+        # cost-cap, or second-call failure degrades to
+        # single-diagnosis and never blocks.
+        multimodal_note = ""
+        multimodal_detail: dict = {}
+        if use_multimodal:
+            if meta.get("explain") != "ok":
+                multimodal_note = (
+                    "multimodal: OFF-image-failed (explain FAILED; "
+                    "single-diagnosis fallback)")
+                print("[MULTIMODAL] %s" % multimodal_note, flush=True)
+            else:
+                cok, cest, csrc = ladder_cost_ok(
+                    run_dir, tracked_spend_usd, attempts_consumed)
+                if not cok:
+                    multimodal_note = (
+                        "multimodal: OFF-cost-cap (est $%.4f via %s >= "
+                        "cap $%.2f; single-diagnosis fallback)"
+                        % (cest, csrc, LADDER_COST_CAP_USD))
+                    print("[MULTIMODAL] %s" % multimodal_note, flush=True)
+                else:
+                    mm_prompt = build_multimodal_prompt(
+                        args.case, bundle["trace_block"],
+                        diagnosis_text, model_diff,
+                        str(img_info.get("sha256", "")))
+                    with open(api("multimodal_request.json"), "w",
+                              encoding="utf-8") as fh:
+                        fh.write(json.dumps(
+                            {"model": TEXT_MODEL,
+                             "endpoint": text_url(),
+                             "prompt": mm_prompt,
+                             "prompt_sha256": sha256_text(mm_prompt),
+                             "case": args.case, "attempt": attempt + 1,
+                             "first_diagnosis_sha256": sha256_text(
+                                 diagnosis_text),
+                             "explain_sha256": str(
+                                 img_info.get("sha256", ""))},
+                            indent=2) + "\n")
+                    try:
+                        mm_call, mm_waits = call_text_with_backoff(
+                            mm_prompt)
+                    except LiveAPIError as mm_exc:
+                        transport_waits_all.extend(
+                            list(getattr(mm_exc, "transport_waits",
+                                         None) or []))
+                        meta["transport_retries"] = list(
+                            transport_waits_all)
+                        multimodal_note = (
+                            "multimodal: OFF-second-call-failed (%s; "
+                            "single-diagnosis fallback)" % (mm_exc,))
+                        with open(api("multimodal_response.json"), "w",
+                                  encoding="utf-8") as fh:
+                            fh.write(json.dumps(
+                                {"error": str(mm_exc),
+                                 "status": "OFF-second-call-failed"},
+                                indent=2) + "\n")
+                        print("[MULTIMODAL] %s" % multimodal_note,
+                              flush=True)
+                    else:
+                        tracked_spend_usd += ladder_text_usd(
+                            mm_call.get("usage"), mm_call.get("model"))
+                        transport_waits_all.extend(list(mm_waits or []))
+                        meta["transport_retries"] = list(
+                            transport_waits_all)
+                        mm_verdict = parse_multimodal_output(
+                            mm_call.get("content", ""),
+                            diagnosis_text, model_diff)
+                        with open(api("multimodal_response.json"), "w",
+                                  encoding="utf-8") as fh:
+                            fh.write(json.dumps(
+                                {"raw": mm_call["raw"],
+                                 "content": mm_call["content"],
+                                 "decision": mm_verdict["decision"],
+                                 "diagnosis": mm_verdict["diagnosis"],
+                                 "patch_diff": mm_verdict["patch_diff"],
+                                 "reason": mm_verdict["reason"],
+                                 "revised": mm_verdict["revised"],
+                                 "latency_ms": mm_call["latency_ms"],
+                                 "request_id": mm_call["request_id"],
+                                 "model": mm_call["model"],
+                                 "usage": mm_call["usage"]},
+                                indent=2) + "\n")
+                        if mm_verdict["revised"]:
+                            first_diag = diagnosis_text
+                            first_diff = model_diff
+                            diagnosis_text = str(
+                                mm_verdict["diagnosis"])
+                            model_diff = str(mm_verdict["patch_diff"])
+                            multimodal_detail = {
+                                "decision": "REVISE",
+                                "reason": mm_verdict["reason"],
+                                "first_diagnosis": first_diag,
+                                "final_diagnosis": diagnosis_text,
+                                "first_patch": patch_one_liner(
+                                    first_diff),
+                                "final_patch": patch_one_liner(
+                                    model_diff),
+                                "patch_changed": first_diff != model_diff,
+                                "direction_before": direction_key(
+                                    first_diff),
+                                "direction_after": direction_key(
+                                    model_diff),
+                                "second_request_id": mm_call[
+                                    "request_id"],
+                            }
+                            multimodal_note = (
+                                "multimodal: REVISED (%s; "
+                                "first %s -> final %s)"
+                                % (mm_verdict["reason"],
+                                   multimodal_detail["first_patch"],
+                                   multimodal_detail["final_patch"]))
+                            print("[MULTIMODAL] attempt %d %s"
+                                  % (attempt + 1, multimodal_note),
+                                  flush=True)
+                        else:
+                            multimodal_detail = {
+                                "decision": "CONFIRM",
+                                "reason": mm_verdict["reason"],
+                                "first_diagnosis": diagnosis_text,
+                                "final_diagnosis": diagnosis_text,
+                                "first_patch": patch_one_liner(
+                                    model_diff),
+                                "final_patch": patch_one_liner(
+                                    model_diff),
+                                "patch_changed": False,
+                                "second_request_id": mm_call[
+                                    "request_id"],
+                            }
+                            multimodal_note = (
+                                "multimodal: CONFIRMED (%s; "
+                                "proceeding with identical patch %s)"
+                                % (mm_verdict["reason"],
+                                   multimodal_detail["final_patch"]))
+                            print("[MULTIMODAL] attempt %d %s"
+                                  % (attempt + 1, multimodal_note),
+                                  flush=True)
+
         # TRIAGE STOP (opt-in): --triage / --stop-before-patch ends the
         # run after DIAGNOSE+EXPLAIN. Persist the deciding text call for
         # proof, write an empty patch.diff, and exit 2. Default auto
@@ -2896,7 +3210,7 @@ def main(argv=None) -> int:
                      "case": args.case, "seed": args.seed,
                      "max_tokens": TEXT_MAX_TOKENS,
                      "attempt": attempt + 1,
-                     "loop_feedback": loop_feedback, **({"consensus": consensus_note} if consensus_note else {})}, indent=2) + "\n")
+                     "loop_feedback": loop_feedback, **({"consensus": consensus_note} if consensus_note else {}), **({"multimodal": multimodal_note, "multimodal_detail": multimodal_detail} if multimodal_note else {})}, indent=2) + "\n")
             with open(api("text_response.json"), "w",
                       encoding="utf-8") as fh:
                 fh.write(json.dumps(
@@ -2909,7 +3223,10 @@ def main(argv=None) -> int:
                      "model": call["model"], "usage": call["usage"],
                       **({"consensus": consensus_note,
                          "votes": consensus_votes_log}
-                        if consensus_note else {})},
+                        if consensus_note else {}),
+                      **({"multimodal": multimodal_note,
+                         "multimodal_detail": multimodal_detail}
+                        if multimodal_note else {})},
                     indent=2) + "\n")
             meta["diagnosed"] = True
             meta["text_latency_ms"] = call["latency_ms"]
@@ -2925,7 +3242,10 @@ def main(argv=None) -> int:
                  "salvaged": salvaged,
                  "patch_source_try": "withheld-triage",
                  "summary": "triage stop: diagnosis saved, patch withheld",
-                 **duplicate_info}})
+                 **duplicate_info},
+                 **({"multimodal": multimodal_note,
+                    "multimodal_detail": multimodal_detail}
+                   if multimodal_note else {})})
             with open(os.path.join(run_dir, "patch.diff"), "w",
                       encoding="utf-8") as fh:
                 fh.write("")
@@ -2953,6 +3273,10 @@ def main(argv=None) -> int:
             last_attempt["consensus"] = consensus_note
         if consensus_votes_log:
             last_attempt["votes"] = consensus_votes_log
+        if multimodal_note:
+            last_attempt["multimodal"] = multimodal_note
+        if multimodal_detail:
+            last_attempt["multimodal_detail"] = multimodal_detail
         if attempt + 1 > MAX_ATTEMPTS:
             # Ladder-attempt marker (attempts 1-3 entries stay untouched).
             last_attempt["ladder"] = True
@@ -3030,7 +3354,7 @@ def main(argv=None) -> int:
                  "case": args.case, "seed": args.seed,
                  "max_tokens": TEXT_MAX_TOKENS,
                  "attempt": attempt + 1,
-                 "loop_feedback": loop_feedback, **({"consensus": consensus_note} if consensus_note else {})}, indent=2) + "\n")
+                 "loop_feedback": loop_feedback, **({"consensus": consensus_note} if consensus_note else {}), **({"multimodal": multimodal_note, "multimodal_detail": multimodal_detail} if multimodal_note else {})}, indent=2) + "\n")
         with open(api("text_response.json"), "w", encoding="utf-8") as fh:
             fh.write(json.dumps(
                 {"raw": call["raw"], "content": call["content"],
@@ -3041,7 +3365,10 @@ def main(argv=None) -> int:
                  "request_id": call["request_id"],
                  "model": call["model"], "usage": call["usage"],
                  **({"consensus": consensus_note, "votes": consensus_votes_log}
-                    if consensus_note else {})},
+                    if consensus_note else {}),
+                 **({"multimodal": multimodal_note,
+                    "multimodal_detail": multimodal_detail}
+                    if multimodal_note else {})},
                 indent=2) + "\n")
         meta["text_latency_ms"] = call["latency_ms"]
         meta["text_request_id"] = call["request_id"]
