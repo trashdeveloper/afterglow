@@ -1,0 +1,33 @@
+# picorv32-fetch-decode: wave-5 TB-hardening case (eval/tb_kill_rate.md RECOMMENDATION).
+# Same picorv32 core as picorv32-fetch-misalign, but under the decoder-exercising
+# testbench sim/tb/picorv32-fetch-decode_tb.sv: boot ROM opens with
+# ADDI x5,x0,123 / ADDI x6,x5,1 and the oracle asserts the retired
+# immediates (x5==123, x6==124) on top of the fetch alignment / trap /
+# progress checks. anchor/bug is the RECORDED equivalent num_bump decode
+# fault (candidate 301, pool 1152): the live main-decoder rd slice
+# [11:7] -> [11:6] retires every nonzero-rd instruction to the wrong
+# register -- the NOP-only oracle stays GREEN (rd x0 unaffected) while
+# the retired-immediate oracle goes RED. Proved locally: old TB PASS
+# (board oracle_lines), new TB FAIL + "TRAP: decode ..." on the fault,
+# new TB PASS + fetch golden checksum on pristine
+# (see tests/test_fetch_decode_tb.py). Carries mutant_file/mutant_line
+# because the stripped anchor text occurs several times in picorv32.v
+# (main + compressed decoders): line-anchored inject would multi-fire,
+# so the loop fires the pinned line only (same convention as
+# sim/targets/mut-bigN-*.yaml, which this stem does NOT match, so the
+# kill-rate board is untouched).
+project: "picorv32"
+files: ["picorv32.v"]
+top: "tb_picorv32_fetch_decode"
+tb: "picorv32-fetch-decode_tb.sv"
+anchor: "decoded_rd <= mem_rdata_latched[11:7];"
+bug: "decoded_rd <= mem_rdata_latched[11:6];"
+gate: "decode alu-immediate retired-immediate rd-slice"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+vflags: ["-Wno-PINMISSING"]
+mutant_id: "fetch-decode-01"
+mutant_file: "picorv32.v"
+mutant_line: 882
+mutant_op: "num_bump"
+parent_case: "picorv32-fetch-decode"
