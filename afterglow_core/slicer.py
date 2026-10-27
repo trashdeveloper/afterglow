@@ -15,6 +15,11 @@ lines with ``file:line`` provenance, capped at 200 lines.
 - Port maps (``.port(sig)``) are treated as BIDIRECTIONAL edges: without
   port-direction analysis the conservative over-approx keeps the cone
   connected through instantiations (``adder_out <-> y``).
+- Declaration initializers (``wire done = a & b;``) are driver edges:
+  without them the 2nd BFS level through wire-defined signals (e.g.
+  ``wire mem_done`` in picorv32.v) is empty.
+- :func:`top1_localization` blames one ``file:line`` per cone, ranked
+  by driver-signal frequency with trace-anchor proximity tie-break.
 
 Cap: ``MAX_CONE_LINES = 200`` (parent spec). Depth default 3.
 """
@@ -36,6 +41,12 @@ _INST_RE = re.compile(
     r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s*(?:#\s*\([^;]*?\)\s*)?"
     r"([A-Za-z_][A-Za-z0-9_]*)\s*\(", re.MULTILINE)
 _IDENT_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+_DECL_INIT_RE = re.compile(
+    r"\b(?:wire|reg|logic)\b\s*(?:\[[^\]]*\]\s*)?(?:signed\s+)?"
+    r"([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([^;]+?);",
+    re.DOTALL)
+_SIZED_LITERAL_RE = re.compile(
+    r"[0-9][0-9_]*'[sS]?[bBdDhHoO][0-9a-fA-F_xXzZ?]+")
 
 _KEYWORDS = {
     "module", "endmodule", "input", "output", "inout", "wire", "reg",
@@ -61,7 +72,29 @@ def _is_unparsed_line(stripped: str) -> bool:
 
 
 def _idents(text: str) -> List[str]:
+    # Sized literals (8'h00, 32'd0, ...) are constants, not signals:
+    # strip them so fragments like ``h00`` never enter the cone.
+    text = _SIZED_LITERAL_RE.sub(" ", text)
     return [t for t in _IDENT_RE.findall(text) if t not in _KEYWORDS]
+
+
+def _strip_extra_declarators(rhs: str) -> str:
+    """Cut trailing ``, other = ...`` declarators from a declaration RHS.
+
+    ``wire a = x, b = y;`` declares two signals; the ``, b = y`` part is
+    NOT a driver of ``a``. Commas nested inside ``{}``/``[]``/``()``
+    (concatenations, slices, calls) are kept -- only a depth-0 comma
+    whose remainder contains ``=`` truncates the RHS.
+    """
+    depth = 0
+    for i, ch in enumerate(rhs):
+        if ch in "{[(":
+            depth += 1
+        elif ch in "}])":
+            depth = max(0, depth - 1)
+        elif ch == "," and depth == 0 and "=" in rhs[i + 1:]:
+            return rhs[:i]
+    return rhs
 
 
 def _read_lines(tree: str, rel: str) -> List[str]:
@@ -123,9 +156,13 @@ def parse_drivers(tree: str, rel: str) -> Dict[str, List[str]]:
     """Signal -> driving signals for one file (regex, over-approx).
 
     Covers ``assign lhs = rhs;``, nonblocking/blocking targets
-    (``q <= d;``) and bidirectional port-map edges. Generate/macro
-    lines are skipped here and counted by :func:`unparsed_count`.
-    Returns plain dict of sorted lists (JSON-safe).
+    (``q <= d;``), declaration initializers (``wire done = a & b;`` --
+    the form ``wire mem_done = resetn && ...`` takes in picorv32.v) and
+    bidirectional port-map edges. Generate/macro lines are skipped
+    here and counted by :func:`unparsed_count`. Only single-declarator
+    initializers are modeled (``wire a = x, b = y;`` keeps ``a``'s
+    edge; later comma declarators are skipped). Returns plain dict of
+    sorted lists (JSON-safe).
     """
     lines = _read_lines(tree, rel)
     text = "\n".join(lines)
@@ -147,6 +184,8 @@ def parse_drivers(tree: str, rel: str) -> Dict[str, List[str]]:
         if target in _KEYWORDS:
             continue
         _add(target, _idents(m.group(3)))
+    for m in _DECL_INIT_RE.finditer(text):
+        _add(m.group(1), _idents(_strip_extra_declarators(m.group(2))))
     for m in _PORT_RE.finditer(text):
         formal = m.group(1)
         actuals = _idents(m.group(2))
@@ -245,7 +284,8 @@ def backward_slice(tree: str, seed: str,
     mentioning the seed when no driver edges resolve, so the result is
     NEVER empty when the seed is mentioned anywhere. Report carries
     seed/resolved/sought/unparsed/lines/files for the pack provenance
-    header.
+    header, plus ``drivers`` (driver edges among seen signals) and
+    ``seen`` (BFS signal order, for :func:`top1_localization`).
     """
     files = list(rtl_files) if rtl_files is not None else list_rtl_files(tree)
     drivers_by_file: Dict[str, Dict[str, List[str]]] = {}
@@ -325,10 +365,75 @@ def backward_slice(tree: str, seed: str,
 
     files_touched = sorted({ln.split(":", 1)[0] for ln in out})
     resolved = sum(1 for s in seen if s in index)
+    drivers = sum(len(merged[s]) for s in seen if s in merged)
     report = {"seed": seed, "resolved": resolved, "sought": len(seen),
               "unparsed": unparsed, "lines": len(out),
-              "files": files_touched}
+              "files": files_touched, "drivers": drivers,
+              "seen": sorted(seen, key=lambda s: (seen[s], s))}
     return out[:max_lines], report
+
+
+def top1_localization(cone_lines: List[str], trace_block: str,
+                      driver_signals: List[str] | None = None) -> str:
+    """Blame ``file:line`` ranked by driver frequency + trace proximity.
+
+    Rank: each cone line scores the SUM of cone-wide mention frequencies
+    of the distinct driver signals it names (whole-word) -- the line
+    that shares vocabulary with the most cone lines wins. Tie-break:
+    trace-anchor proximity -- the line whose signals appear EARLIEST in
+    the failing anchor lines (``TRAP:``/``MISCLASS:``/``tohost:``, in
+    order) wins. Final tie-break: file, then line number. Returns
+    ``"rel:lineno"`` or ``""`` when the cone is empty (an abstention,
+    counted as a miss by the localization metric -- never a guess).
+    """
+    if not cone_lines:
+        return ""
+    sigs = [s for s in (driver_signals or []) if s]
+    freq: Dict[str, int] = {}
+    line_sigs: List[List[str]] = []
+    parsed: List[Tuple[str, int]] = []
+    for ln in cone_lines:
+        head = ln.split(":", 2)
+        if len(head) >= 2:
+            try:
+                parsed.append((head[0], int(head[1])))
+            except ValueError:
+                parsed.append((head[0], 10 ** 9))
+        else:
+            parsed.append((ln, 10 ** 9))
+        text = head[2] if len(head) >= 3 else ln
+        present = []
+        for sig in sigs:
+            if re.search(r"\b%s\b" % re.escape(sig), text):
+                if sig not in present:
+                    present.append(sig)
+        line_sigs.append(present)
+        for sig in present:
+            freq[sig] = freq.get(sig, 0) + 1
+    # Trace-anchor appearance order (first anchor line first).
+    order: Dict[str, int] = {}
+    for raw in (trace_block or "").splitlines():
+        stripped = raw.strip()
+        if (stripped.startswith("TRAP:") or stripped.startswith("MISCLASS:")
+                or stripped.startswith("tohost:")):
+            for ident in _idents(stripped):
+                if ident not in order:
+                    order[ident] = len(order)
+    missing = 10 ** 9
+
+    def _key(i: int) -> Tuple[int, int, str, int]:
+        present = line_sigs[i]
+        score = sum(freq[s] for s in present)
+        prox = min([order.get(s, missing) for s in present],
+                   default=missing)
+        fil, num = parsed[i]
+        return (-score, prox, fil, num)
+
+    best = min(range(len(cone_lines)), key=_key)
+    fil, num = parsed[best]
+    if num >= 10 ** 9:
+        return ""
+    return "%s:%d" % (fil, num)
 
 
 FALLBACK_HALF = 30

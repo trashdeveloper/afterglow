@@ -1713,6 +1713,7 @@ def assemble_harvest(trace_block: str, verdict_text: str, tree: str,
         "seed": seed,
         "cone_files": len(cone_report.get("files", [])),
         "cone_source": cone_source,
+        "cone_drivers": cone_report.get("drivers", 0),
         "harvest_lines": len(harvest_text.splitlines()),
         "harvest_tokens": harvest_pack.approx_tokens(harvest_text),
         "recall": recall_rows,
@@ -2047,6 +2048,7 @@ def main(argv=None) -> int:
                                 "fallback": "v2-context",
                                 "fingerprint": "",
                                 "cone_lines": 0, "cone_files": 0,
+                                "cone_drivers": 0,
                                 "pack_lines": 0, "pack_tokens": 0}
         elif "{{CONTEXT}}" in bundle["full_prompt"]:
             # prompt v2 (default): ground the model with the budgeted
