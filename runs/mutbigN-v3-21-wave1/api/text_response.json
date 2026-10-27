@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17d74-ad60-73aa-828c-4ceb2ea938f8",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Failing signal is TRAP: cpu trap asserted with tohost FAIL 0xdead during 256-word NOP sled where no illegal opcode is expected. Excerpt at picorv32.v:1446 shows decoder_trigger <= mem_do_rinst || mem_done, causing a second decoder firing on mem_done with stale rdata mis-decoded as illegal and breaking fetch alignment/progress (CYCLES=2009) via cpu at picosoc/picosoc.v:146. Removing || mem_done restores single trigger per fetch.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1446,4 +1446,4 @@\\n-\\t\\tdecoder_trigger <= mem_do_rinst || mem_done;\\n+\\t\\tdecoder_trigger <= mem_do_rinst;\\n \\t\\tdecoder_trigger_q <= decoder_trigger;\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n\", \"expected\": \"tohost PASS (no FAIL 0xdead, no TRAP: cpu trap asserted)\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793106160,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 6713,
+      "prompt_tokens": 2951,
+      "total_tokens": 9664,
+      "completion_tokens_details": {
+        "reasoning_tokens": 6449
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Failing signal is TRAP: cpu trap asserted with tohost FAIL 0xdead during 256-word NOP sled where no illegal opcode is expected. Excerpt at picorv32.v:1446 shows decoder_trigger <= mem_do_rinst || mem_done, causing a second decoder firing on mem_done with stale rdata mis-decoded as illegal and breaking fetch alignment/progress (CYCLES=2009) via cpu at picosoc/picosoc.v:146. Removing || mem_done restores single trigger per fetch.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1446,4 +1446,4 @@\\n-\\t\\tdecoder_trigger <= mem_do_rinst || mem_done;\\n+\\t\\tdecoder_trigger <= mem_do_rinst;\\n \\t\\tdecoder_trigger_q <= decoder_trigger;\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n\", \"expected\": \"tohost PASS (no FAIL 0xdead, no TRAP: cpu trap asserted)\"}",
+  "diagnosis": "Failing signal is TRAP: cpu trap asserted with tohost FAIL 0xdead during 256-word NOP sled where no illegal opcode is expected. Excerpt at picorv32.v:1446 shows decoder_trigger <= mem_do_rinst || mem_done, causing a second decoder firing on mem_done with stale rdata mis-decoded as illegal and breaking fetch alignment/progress (CYCLES=2009) via cpu at picosoc/picosoc.v:146. Removing || mem_done restores single trigger per fetch.",
+  "expected": "tohost PASS (no FAIL 0xdead, no TRAP: cpu trap asserted)",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 62862,
+  "request_id": "chatcmpl-01a17d74-ad60-73aa-828c-4ceb2ea938f8",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 6713,
+    "prompt_tokens": 2951,
+    "total_tokens": 9664,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6449
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

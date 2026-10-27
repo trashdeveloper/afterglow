@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17d7e-f012-77a5-bd88-d4c4c6d47662",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"TRAP asserted with tohost FAIL 0xdead on 256-word NOP slide where no illegal instruction should trap and PC should progress. CYCLES=2009 shows fetch never retired correctly. Root cause is line 1446 `decoder_trigger <= mem_do_rinst || mem_done` which triggers decode on request OR completion instead of qualified completion, latching invalid rdata as opcode and causing illegal-instruction trap per picosoc/picosoc.v:146-156 cpu mem connection and picosoc/picosoc.v:144 ENABLE_IRQ context; trace wins.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1446,3 +1446,3 @@\\n-\\t\\tdecoder_trigger <= mem_do_rinst || mem_done;\\n+\\t\\tdecoder_trigger <= mem_do_rinst && mem_done;\\n \\t\\tdecoder_trigger_q <= decoder_trigger;\\n \\t\\tdecoder_pseudo_trigger <= 0;\", \"expected\": \"tohost PASS with TRAP deasserted and fetch progress, checksum != c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793106833,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 7304,
+      "prompt_tokens": 2951,
+      "total_tokens": 10255,
+      "completion_tokens_details": {
+        "reasoning_tokens": 7011
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 2929
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"TRAP asserted with tohost FAIL 0xdead on 256-word NOP slide where no illegal instruction should trap and PC should progress. CYCLES=2009 shows fetch never retired correctly. Root cause is line 1446 `decoder_trigger <= mem_do_rinst || mem_done` which triggers decode on request OR completion instead of qualified completion, latching invalid rdata as opcode and causing illegal-instruction trap per picosoc/picosoc.v:146-156 cpu mem connection and picosoc/picosoc.v:144 ENABLE_IRQ context; trace wins.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1446,3 +1446,3 @@\\n-\\t\\tdecoder_trigger <= mem_do_rinst || mem_done;\\n+\\t\\tdecoder_trigger <= mem_do_rinst && mem_done;\\n \\t\\tdecoder_trigger_q <= decoder_trigger;\\n \\t\\tdecoder_pseudo_trigger <= 0;\", \"expected\": \"tohost PASS with TRAP deasserted and fetch progress, checksum != c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659\"}",
+  "diagnosis": "TRAP asserted with tohost FAIL 0xdead on 256-word NOP slide where no illegal instruction should trap and PC should progress. CYCLES=2009 shows fetch never retired correctly. Root cause is line 1446 `decoder_trigger <= mem_do_rinst || mem_done` which triggers decode on request OR completion instead of qualified completion, latching invalid rdata as opcode and causing illegal-instruction trap per picosoc/picosoc.v:146-156 cpu mem connection and picosoc/picosoc.v:144 ENABLE_IRQ context; trace wins.",
+  "expected": "tohost PASS with TRAP deasserted and fetch progress, checksum != c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 69887,
+  "request_id": "chatcmpl-01a17d7e-f012-77a5-bd88-d4c4c6d47662",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 7304,
+    "prompt_tokens": 2951,
+    "total_tokens": 10255,
+    "completion_tokens_details": {
+      "reasoning_tokens": 7011
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 2929
+    }
+  }
+}

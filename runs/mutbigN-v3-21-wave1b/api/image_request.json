@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-21\nFailing-trace sha256 (first 16 hex): 1f69d6825f31051c\nVerbatim diagnosis from the debug agent:\nTRAP asserted with tohost FAIL 0xdead on 256-word NOP slide where no illegal instruction should trap and PC should progress. CYCLES=2009 shows fetch never retired correctly. Root cause is line 1446 `decoder_trigger <= mem_do_rinst || mem_done` which triggers decode on request OR completion instead of qualified completion, latching invalid rdata as opcode and causing illegal-instruction trap per picosoc/picosoc.v:146-156 cpu mem connection and picosoc/picosoc.v:144 ENABLE_IRQ context; trace wins.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 1f69d6825f31051c in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "87bc4356b32307ef1ca1b1ebe26dc86a2425229bb7fbdf9e5afd7aa032b1c744",
+  "trace_sha256": "1f69d6825f31051c8c3c1cbb80afdd359b62be8e131865054735a7a65ba3a9ed",
+  "diagnosis_sha256": "2d5ff8e1c3b668ed0b16c9fd8ca4bff503e05735d8a99c2905414b9de72f0be6",
+  "case": "mut-bigN-21",
+  "attempt": 1
+}
