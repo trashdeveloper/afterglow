@@ -1,0 +1,3 @@
+# Afterglow frozen foundation pin (pre-window Weft reference, never copied).
+# Format: "<project> <git-url> <frozen-sha>" (mirrors targets.pin).
+picorv32 https://github.com/YosysHQ/picorv32.git ef203c2b0a3fb793280f5114941416c425c5b461

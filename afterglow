@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+"""`afterglow` CLI: proof-first RTL debug loop + dev-happiness helpers.
+
+Usage:
+  afterglow run --spec sim/targets/<id>.yaml [--triage|--stop-before-patch]
+      [--seed N] [--run-id ID] [--prompt v3|agent/prompts/vX.txt]
+      [--rtl path/in/tree] [--goals fix|fix+opt]
+  afterglow run --explain runs/<id>   (alias for `afterglow explain`)
+  afterglow explain runs/<id>         (human story of a finished bundle)
+  afterglow init [--force]             (checks + example spec scaffold)
+  afterglow --version
+
+The CLI loads (validates) the Task-1 CaseSpec from the --spec path
+first -- a missing file, a YAML missing required keys, or a blank
+oracle_pass fails fast with exit 1 (no model call, no bundle; blank
+markers match every log, so they are refused, mirroring
+afterglow_core.policy.check_diff's fail-closed gate) -- then dispatches
+to agent/loop.py, which drives RED -> COLLECT -> DIAGNOSE -> EXPLAIN ->
+PATCH -> RESIM -> VERIFY. Default is FULL-AUTO (diagnose -> patch ->
+resim -> verify end-to-end, exit 0 GREEN / 2 degraded-to-triage /
+1 RED); --triage (or --stop-before-patch) selects the old
+stop-before-PATCH behavior (diagnosis saved, patch withheld, exit 2).
+--auto is accepted for compatibility and also means auto. Any loud
+pre-patch failure in auto mode (API flake with no patch, guard
+reject with no patch ever applied, --triage withhold) degrades to
+a triage-style stop (exit 2, TRIAGE row), never a silent proceed;
+a patch applied but resim still RED stays RED (exit 1).
+
+--spec is in-tree-only: the path's stem must match
+sim/targets/<id>.yaml, because the loop's RED phase dispatches
+sim/sim.py --case <stem>. Unknown stems are rejected by the loop before
+any sim/model work.
+
+`afterglow explain runs/<id>` renders a FINISHED bundle as a human
+story (RED symptom -> verbatim diagnosis -> patch -> VERIFY checksums
+-> cost) from bundle files only -- missing files render as honest
+MISSING, never guessed. `afterglow run --explain runs/<id>` is the
+same renderer under the run subcommand.
+
+`afterglow init` checks the three things a first run needs (verilator
+on PATH, model key in env or .env, foundation.pin + targets.pin
+readable) with FAIL lines naming the exact fix, and scaffolds
+sim/targets/my-first-case.yaml from an in-tree example template
+(never overwrites without --force).
+"""
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+
+__version__ = "0.2.0"
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
+from afterglow_core.verilator import load_spec  # noqa: E402
+from agent import loop  # noqa: E402
+
+
+def build_parser() -> argparse.ArgumentParser:
+    ap = argparse.ArgumentParser(
+        prog="afterglow",
+        description="Afterglow proof-first RTL debug loop "
+                    "(run | explain | init).")
+    ap.add_argument("--version", action="version",
+                    version="afterglow %s" % __version__)
+    sub = ap.add_subparsers(dest="command", required=True)
+    run = sub.add_parser(
+        "run", help="run one --spec case through the agent loop, "
+                    "or render a bundle with --explain runs/<id>")
+    run.add_argument("--spec", default=None,
+                     help="CaseSpec YAML under sim/targets/ "
+                          "(in-tree only, e.g. "
+                          "sim/targets/uart-start-half.yaml)")
+    run.add_argument("--explain", default=None, metavar="RUN_DIR",
+                     help="render a finished bundle as a human story "
+                          "(alias for `afterglow explain RUN_DIR`); "
+                          "no sim or model calls, missing files "
+                          "render as MISSING")
+    run.add_argument("--seed", type=int, default=42)
+    run.add_argument("--run-id", default=None)
+    run.add_argument("--prompt", default=None,
+                     help="prompt template (default: agent/prompts/v2.txt; "
+                          "pass v3 for the harvest pack)")
+    run.add_argument("--rtl", default=None,
+                     help="override RTL file under repair (tree-relative)")
+    run.add_argument("--auto", action="store_true", default=False,
+                     help="attempt PATCH->RESIM->VERIFY (this is the "
+                          "default; flag kept for compatibility)")
+    run.add_argument("--triage", action="store_true", default=False,
+                     help="stop after DIAGNOSE+EXPLAIN with the diagnosis "
+                          "saved and the patch withheld (exit 2)")
+    run.add_argument("--stop-before-patch", dest="stop_before_patch",
+                     action="store_true", default=False,
+                     help="alias for --triage: stop before PATCH (exit 2)")
+    run.add_argument("--goals", default=None, choices=("fix", "fix+opt"),
+                     help="fix (default): fix-first flow only; fix+opt: "
+                          "after a GREEN fix, run ONE optimize pass that "
+                          "must reduce SIMULATED CYCLES with IDENTICAL "
+                          "checksum/tohost (rejected opt never ungreens)")
+    exp = sub.add_parser(
+        "explain", help="render a finished bundle as a human story: "
+                         "RED symptom -> diagnosis -> patch -> VERIFY -> cost")
+    exp.add_argument("run_dir", metavar="runs/<id>",
+                     help="finished bundle dir, e.g. runs/ablate-v2-uartdiv")
+    ini = sub.add_parser(
+        "init", help="check verilator + model key + pins, scaffold "
+                      "an example sim/targets/ spec",
+        description="Check the three things a first run needs "
+                    "(verilator on PATH, MODEL_API_KEY in env or .env, "
+                    "foundation.pin + targets.pin readable) with FAIL "
+                    "lines naming the exact fix, then scaffold "
+                    "sim/targets/my-first-case.yaml from a built-in "
+                    "example template (never overwrites without --force).")
+    ini.add_argument("--force", action="store_true", default=False,
+                     help="overwrite sim/targets/my-first-case.yaml "
+                          "if it already exists")
+    return ap
+
+
+def cmd_explain(run_dir: str) -> int:
+    from agent import explain as explain_mod
+    target = os.path.join(ROOT, run_dir) \
+        if not os.path.isabs(run_dir) and not os.path.exists(run_dir) \
+        else run_dir
+    if not os.path.isdir(target):
+        print("FATAL: bundle dir not found: %s "
+              "(expected a finished runs/<id>/ dir; MISSING, not guessed)"
+              % run_dir, file=sys.stderr)
+        return 1
+    print(explain_mod.render(target))
+    return 0
+
+
+def cmd_init(force: bool = False) -> int:
+    from afterglow_core import initenv
+    print("afterglow init: checking this machine for a first run")
+    results = []
+    results.append(initenv.check_verilator())
+    dotenv = initenv.read_dotenv(ROOT)
+    results.append(initenv.check_api_key(dict(os.environ), dotenv))
+    results.extend(initenv.check_pins(ROOT))
+    rc = 0
+    for res in results:
+        print(res["message"])
+        if res["status"] != "ok":
+            rc = 1
+    dest = initenv.scaffold_example(ROOT, force=force)
+    print("example spec: %s (from built-in template%s)" % (
+        os.path.relpath(dest, ROOT)
+        if dest.startswith(ROOT) else dest,
+        ", overwritten with --force" if force else ""))
+    print("next: afterglow run --spec %s"
+          % (os.path.relpath(dest, ROOT)
+             if dest.startswith(ROOT) else dest))
+    if rc != 0:
+        print("init: FAIL -- fix the FAIL line(s) above, then re-run "
+              "`afterglow init` (no traceback: each line names the fix).")
+    else:
+        print("init: ok -- this machine can attempt a first run.")
+    return rc
+
+
+def main(argv=None) -> int:
+    args = build_parser().parse_args(argv)
+    if args.command == "explain":
+        return cmd_explain(args.run_dir)
+    if args.command == "init":
+        return cmd_init(force=args.force)
+    if args.command == "run":
+        if args.explain:
+            return cmd_explain(args.explain)
+        if not args.spec:
+            print("FATAL: need --spec sim/targets/<id>.yaml "
+                  "(or --explain runs/<id> to render a bundle)",
+                  file=sys.stderr)
+            return 2
+        try:
+            spec = load_spec(args.spec)
+        except (OSError, ValueError, KeyError) as exc:
+            print("FATAL: cannot load --spec %r: %s" % (args.spec, exc),
+                  file=sys.stderr)
+            return 1
+        loop_argv = ["--spec", args.spec, "--seed", str(args.seed)]
+        if args.auto:
+            loop_argv.append("--auto")
+        if args.triage:
+            loop_argv.append("--triage")
+        if args.stop_before_patch:
+            loop_argv.append("--stop-before-patch")
+        if args.goals:
+            loop_argv += ["--goals", args.goals]
+        if args.run_id:
+            loop_argv += ["--run-id", args.run_id]
+        if args.prompt:
+            loop_argv += ["--prompt", args.prompt]
+        if args.rtl:
+            loop_argv += ["--rtl", args.rtl]
+        print("afterglow run: spec %s (case %s)" % (args.spec, spec.case_id),
+              flush=True)
+        return loop.main(loop_argv)
+    build_parser().print_help()
+    return 2
+
+
+if __name__ == "__main__":
+    sys.exit(main())

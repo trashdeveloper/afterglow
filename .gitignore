@@ -1,0 +1,10 @@
+# Build artifacts (never commit)
+__pycache__/
+*.pyc
+sim/obj_afterglow_*/
+*.o
+# Secrets (never commit)
+.env
+*key*.json
+# Work cache lives outside the repo
+runs/scratch/
