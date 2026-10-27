@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: uart-start-half\nFailing-trace sha256 (first 16 hex): 0be387be5e458dbd\nVerbatim diagnosis from the debug agent:\nrecv_buf_data sampled 0xd2 instead of expected 0xa5 (0xa5>>1|0x80), indicating a one-half-bit late shift with stop-bit captured. State 0 detects !ser_rx and clears recv_divcnt, but state 1 then waits for recv_divcnt > cfg_divider (full bit) before entering state 2. That full-bit start wait misaligns all default-state recv_pattern sampling to bit edges instead of bit centers.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 0be387be5e458dbd in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "4cbedcdf62172f5af8ca5158c7c1399b37ab4c7face40121f85be6d6b6e5f3d1",
+  "trace_sha256": "0be387be5e458dbdf4f9d21c1c25e64978d35c9ac76a2fb1477f3e0e6b386bcc",
+  "diagnosis_sha256": "9a4ef134052abda04111ae290ff259b22559fbfdab7464f78f62509fe483c094",
+  "case": "uart-start-half",
+  "attempt": 1
+}

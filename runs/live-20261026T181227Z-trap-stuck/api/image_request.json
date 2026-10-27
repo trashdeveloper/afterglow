@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: trap-stuck\nFailing-trace sha256 (first 16 hex): 1501a1b0c588ea56\nVerbatim diagnosis from the debug agent:\nTRAP stays asserted (TRAP: cpu trap asserted, tohost FAIL 0xdead, CYCLES=2009) instead of low during NOP fetch progress. Expected trap deasserted while launch_next_insn fetches NOPs. Root cause is line 1403 `trap <= 1;` unconditionally re-asserting trap each posedge clk, so trap can never clear.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 1501a1b0c588ea56 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "282aacd3f16cf37b47653728c2dbeda3ccd632cc5f648b6e79aff423ae548201",
+  "trace_sha256": "1501a1b0c588ea56165ed9816e56d021f992cd9de00889a8f62ce3672da83f4e",
+  "diagnosis_sha256": "9daa111144f19f226d98d15026697a8bb9ca9cd3bed70c8c935a3dc753ed0e94",
+  "case": "trap-stuck",
+  "attempt": 1
+}

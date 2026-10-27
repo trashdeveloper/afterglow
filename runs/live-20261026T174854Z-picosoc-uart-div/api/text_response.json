@@ -1,0 +1,53 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17955-4e04-709a-bf85-7c9c67546b69",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Loopback with divider 64 sent 0xa5 but recv_buf_data latched 0xe0, causing uart data mismatch trap and tohost FAIL 0xdead. States 10 and default in the excerpt compare recv_divcnt > (cfg_divider >> 4) (~4 cycles) instead of the full bit period cfg_divider (~64) used by the start-bit half-period check 2*recv_divcnt > cfg_divider, so RX advances ~16x too fast and samples the start bit. This shifts zeros with late data-bit ones into MSBs yielding 0xe0; fixing both compares to cfg_divider restores correct bit timing.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -89,14 +89,14 @@\\n \\t\\t\\t\\t10: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_buf_data <= recv_pattern;\\n \\t\\t\\t\\t\\t\\trecv_buf_valid <= 1;\\n \\t\\t\\t\\t\\t\\trecv_state <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n \\t\\t\\t\\tdefault: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_pattern <= {ser_rx, recv_pattern[7:1]};\\n \\t\\t\\t\\t\\t\\trecv_state <= recv_state + 1;\\n \\t\\t\\t\\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n\", \"expected\": \"tohost PASS (instead of FAIL 0xdead), no uart data mismatch trap, loopback shows got 0xa5 want 0xa5\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793036996,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 7628,
+      "prompt_tokens": 1149,
+      "total_tokens": 8777,
+      "completion_tokens_details": {
+        "reasoning_tokens": 7155
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Loopback with divider 64 sent 0xa5 but recv_buf_data latched 0xe0, causing uart data mismatch trap and tohost FAIL 0xdead. States 10 and default in the excerpt compare recv_divcnt > (cfg_divider >> 4) (~4 cycles) instead of the full bit period cfg_divider (~64) used by the start-bit half-period check 2*recv_divcnt > cfg_divider, so RX advances ~16x too fast and samples the start bit. This shifts zeros with late data-bit ones into MSBs yielding 0xe0; fixing both compares to cfg_divider restores correct bit timing.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -89,14 +89,14 @@\\n \\t\\t\\t\\t10: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_buf_data <= recv_pattern;\\n \\t\\t\\t\\t\\t\\trecv_buf_valid <= 1;\\n \\t\\t\\t\\t\\t\\trecv_state <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n \\t\\t\\t\\tdefault: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_pattern <= {ser_rx, recv_pattern[7:1]};\\n \\t\\t\\t\\t\\t\\trecv_state <= recv_state + 1;\\n \\t\\t\\t\\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n\", \"expected\": \"tohost PASS (instead of FAIL 0xdead), no uart data mismatch trap, loopback shows got 0xa5 want 0xa5\"}",
+  "diagnosis": "Loopback with divider 64 sent 0xa5 but recv_buf_data latched 0xe0, causing uart data mismatch trap and tohost FAIL 0xdead. States 10 and default in the excerpt compare recv_divcnt > (cfg_divider >> 4) (~4 cycles) instead of the full bit period cfg_divider (~64) used by the start-bit half-period check 2*recv_divcnt > cfg_divider, so RX advances ~16x too fast and samples the start bit. This shifts zeros with late data-bit ones into MSBs yielding 0xe0; fixing both compares to cfg_divider restores correct bit timing.",
+  "expected": "tohost PASS (instead of FAIL 0xdead), no uart data mismatch trap, loopback shows got 0xa5 want 0xa5",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "latency_ms": 61735,
+  "request_id": "chatcmpl-01a17955-4e04-709a-bf85-7c9c67546b69",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 7628,
+    "prompt_tokens": 1149,
+    "total_tokens": 8777,
+    "completion_tokens_details": {
+      "reasoning_tokens": 7155
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

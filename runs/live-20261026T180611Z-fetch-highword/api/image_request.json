@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: fetch-highword\nFailing-trace sha256 (first 16 hex): ce2595d726a094d5\nVerbatim diagnosis from the debug agent:\nFetch never issues a bus cycle so max_addr stays 0x00000000 and the test times out after 2009 cycles with TRAP: no progress. Expected mem_valid==1 on a new mem_do_prefetch/rinst/rdata request, but it stays 0. Root cause in excerpt line 584 is mem_valid <= mem_la_use_prefetched_high_word instead of its negation, contradicting the assert on line 598 that mem_valid == !mem_la_use_prefetched_high_word.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash ce2595d726a094d5 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "43dd88b7328d98079b6a4138278cb37d49aa238813477daf968fe96711274952",
+  "trace_sha256": "ce2595d726a094d5231ea79e35b7a3676051406d391e7d9a2b90493795ec0b77",
+  "diagnosis_sha256": "8c9ed596513ecf6050d84a2b389c28586563fda9c37f555f552bc6e2ef8f64e0",
+  "case": "fetch-highword",
+  "attempt": 3
+}

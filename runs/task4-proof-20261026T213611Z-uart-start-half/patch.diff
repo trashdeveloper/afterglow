@@ -1,0 +1,11 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -83,6 +83,6 @@
+ 				1: begin
+-					if (recv_divcnt > cfg_divider) begin
++					if (recv_divcnt > (cfg_divider >> 1)) begin
+ 						recv_state <= 2;
+ 						recv_divcnt <= 0;
+ 					end
+ 				end

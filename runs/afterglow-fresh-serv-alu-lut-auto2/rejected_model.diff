@@ -1,0 +1,7 @@
+diff --git a/rtl/serv_alu.v b/rtl/serv_alu.v
+--- a/rtl/serv_alu.v
++++ b/rtl/serv_alu.v
+@@ -42,2 +42,2 @@
+-    localparam [15:0] BOOL_LUT = 16'h8E96;//And, Or, =, xor
++    localparam [15:0] BOOL_LUT = 16'h8E06;//And, Or, 0, xor
+     wire result_bool = BOOL_LUT[{i_bool_op, i_rs1, i_op_b}];

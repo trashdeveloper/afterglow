@@ -1,0 +1,62 @@
+{
+  "run_id": "live-20261026T181133Z-fetch-highword",
+  "case_id": "fetch-highword",
+  "case": "fetch-highword",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-26T18:11:33Z",
+  "wall_end_utc": "2026-10-26T18:12:27Z",
+  "sim_seed": 42,
+  "prompt_file": "agent/prompts/v1.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "attempt": 1,
+      "text_latency_ms": 19982,
+      "text_request_id": "chatcmpl-01a17969-697e-75f3-90d2-379f000bfe24",
+      "diagnosis_chars": 424,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim"
+    }
+  ],
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "rtl_file": "picorv32.v",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+  "cycles_before": 2009,
+  "prompt_hash": "a33e9d03790a89ce89d4d12a7b53c72268fcccaed45861c132aa9fd413792056",
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 517,
+  "trace_sha256": "f0598affde498574858a251900e1f8bd5e9125bf82c748d0e1a99710fb7c08b1",
+  "image_latency_ms": 33034,
+  "image_request_id": "e230e19a-f21b-42e2-9da7-c7c16bb8a5a8",
+  "image_bytes": 1710783,
+  "text_latency_ms": 19982,
+  "text_request_id": "chatcmpl-01a17969-697e-75f3-90d2-379f000bfe24",
+  "api_usage": {
+    "completion_tokens": 2516,
+    "prompt_tokens": 1206,
+    "total_tokens": 3722,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2197
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "time_to_green_s": 53.5
+}

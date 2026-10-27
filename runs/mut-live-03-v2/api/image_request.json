@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pilot-03\nFailing-trace sha256 (first 16 hex): c1fda20aaadaf66c\nVerbatim diagnosis from the debug agent:\nLoopback test programs divider 64 then sends 0xa5 but traps on uart timeout with no byte received, so recv_buf_valid never asserted. Expected cfg_divider=64 but byte-0 write uses cfg_divider[ 7: 1] <= reg_div_di[ 7: 0], truncating the LSB and leaving bit0 stale. This mis-programmed divider in the excerpt breaks TX/RX bit timing so the loopback byte is never sampled.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash c1fda20aaadaf66c in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "f58207267ec3ebba4f15dbe0b26a4283926d92d443d019a8b140393074ba20d7",
+  "trace_sha256": "c1fda20aaadaf66c0320e50dc11b97107d223a665bfd37c7de25a27c55762934",
+  "diagnosis_sha256": "ea04926af7869ec256025f59ee7fb2e1f10ad6ae67ef5f48509f011e9b2262a2",
+  "case": "mut-pilot-03",
+  "attempt": 1
+}

@@ -1,0 +1,53 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17a25-3214-723b-85fa-19450f1ec97a",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"recv_buf_data sampled 0xd2 instead of expected 0xa5 (0xa5>>1|0x80), indicating a one-half-bit late shift with stop-bit captured. State 0 detects !ser_rx and clears recv_divcnt, but state 1 then waits for recv_divcnt > cfg_divider (full bit) before entering state 2. That full-bit start wait misaligns all default-state recv_pattern sampling to bit edges instead of bit centers.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -83,6 +83,6 @@\\n \\t\\t\\t\\t1: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 1)) begin\\n \\t\\t\\t\\t\\t\\trecv_state <= 2;\\n \\t\\t\\t\\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n\", \"expected\": \"tohost PASS (no FAIL 0xdead/TRAP), loopback send 0xa5 got 0xa5 with new checksum != 7ead7d9c1ebd862283bf0991c6a01fd4f7dad63f24f2be953b7f57e1f7edd073\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793050620,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 5834,
+      "prompt_tokens": 1144,
+      "total_tokens": 6978,
+      "completion_tokens_details": {
+        "reasoning_tokens": 5500
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"recv_buf_data sampled 0xd2 instead of expected 0xa5 (0xa5>>1|0x80), indicating a one-half-bit late shift with stop-bit captured. State 0 detects !ser_rx and clears recv_divcnt, but state 1 then waits for recv_divcnt > cfg_divider (full bit) before entering state 2. That full-bit start wait misaligns all default-state recv_pattern sampling to bit edges instead of bit centers.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -83,6 +83,6 @@\\n \\t\\t\\t\\t1: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 1)) begin\\n \\t\\t\\t\\t\\t\\trecv_state <= 2;\\n \\t\\t\\t\\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n\", \"expected\": \"tohost PASS (no FAIL 0xdead/TRAP), loopback send 0xa5 got 0xa5 with new checksum != 7ead7d9c1ebd862283bf0991c6a01fd4f7dad63f24f2be953b7f57e1f7edd073\"}",
+  "diagnosis": "recv_buf_data sampled 0xd2 instead of expected 0xa5 (0xa5>>1|0x80), indicating a one-half-bit late shift with stop-bit captured. State 0 detects !ser_rx and clears recv_divcnt, but state 1 then waits for recv_divcnt > cfg_divider (full bit) before entering state 2. That full-bit start wait misaligns all default-state recv_pattern sampling to bit edges instead of bit centers.",
+  "expected": "tohost PASS (no FAIL 0xdead/TRAP), loopback send 0xa5 got 0xa5 with new checksum != 7ead7d9c1ebd862283bf0991c6a01fd4f7dad63f24f2be953b7f57e1f7edd073",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "latency_ms": 48395,
+  "request_id": "chatcmpl-01a17a25-3214-723b-85fa-19450f1ec97a",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 5834,
+    "prompt_tokens": 1144,
+    "total_tokens": 6978,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5500
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

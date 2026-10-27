@@ -1,0 +1,9 @@
+{
+  "case": "picorv32-fetch-misalign",
+  "pass": false,
+  "tohost": "FAIL 0xdead",
+  "checksum": "a29998cd8e81501b64b44a66e009c12b297662db5ef5369b12ef3feae608e5d5",
+  "cycles": 2009,
+  "seed": 42,
+  "sim_time_utc": "2026-10-26T22:03:27Z"
+}

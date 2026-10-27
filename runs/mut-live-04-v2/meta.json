@@ -1,0 +1,90 @@
+{
+  "run_id": "mut-live-04-v2",
+  "case_id": "mut-pilot-04",
+  "case": "mut-pilot-04",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T01:27:42Z",
+  "wall_end_utc": "2026-10-27T01:28:35Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "attempt": 1,
+      "text_latency_ms": 31655,
+      "text_request_id": "chatcmpl-01a17af8-e2b2-7662-b9b9-eb0d84785144",
+      "diagnosis_chars": 278,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim"
+    }
+  ],
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-pilot-04.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mut-live-04-v2",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 42,
+    "before": "reg [7:0] recv_buf_data;",
+    "after": "reg [7:1] recv_buf_data;",
+    "seed": "42",
+    "op": "num_bump"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-pilot-04",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "8b2af01e67af322e16cfa4cad217f40b67f44caf77e903eb7705ced31eb7d9a3",
+  "cycles_before": 2652,
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 681,
+  "context_tokens": 147,
+  "context_dropped": "none",
+  "localization_top1": "picosoc/spiflash_tb.v",
+  "top1_is_true": false,
+  "trace_sha256": "c7f5c46bbf78b61a566484e57951e753eb370fc8c146c1ceccbc6eba6a306d9a",
+  "transport_retries": [],
+  "image_latency_ms": 21615,
+  "image_request_id": "1df031b2-72fa-43f2-a519-bb2a4529cbdc",
+  "image_bytes": 1455722,
+  "text_latency_ms": 31655,
+  "text_request_id": "chatcmpl-01a17af8-e2b2-7662-b9b9-eb0d84785144",
+  "api_usage": {
+    "completion_tokens": 3667,
+    "prompt_tokens": 1622,
+    "total_tokens": 5289,
+    "completion_tokens_details": {
+      "reasoning_tokens": 3397
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 53.8,
+  "est_usd": 0.06258,
+  "text_tokens": 5289,
+  "image_calls": 1
+}

@@ -1,0 +1,4 @@
+{
+  "error": "unparseable opt output: model output is not a JSON object: '{\"diagnosis\": \"The'",
+  "status": "FAILED"
+}

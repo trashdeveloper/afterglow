@@ -1,0 +1,53 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17b3e-340e-7215-acf8-a846d75df1cb",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Loopback read via reg_dat_do returned 0xff (~0) instead of 0xa5 because recv_buf_valid never asserted with recv_buf_data. Reset leaves recv_state in 1 so receiver starts in half-bit wait using recv_divcnt vs cfg_divider while ser_rx is idle high instead of waiting in state 0 for start. The false start consumes timing and the real start bit is missed, so no byte is framed.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -66,7 +66,7 @@\\n \\talways @(posedge clk) begin\\n \\t\\tif (!resetn) begin\\n-\\t\\t\\trecv_state <= 1;\\n+\\t\\t\\trecv_state <= 0;\\n \\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\trecv_pattern <= 0;\\n \\t\\t\\trecv_buf_data <= 0;\\n \\t\\t\\trecv_buf_valid <= 0;\\n\", \"expected\": \"tohost PASS (FAIL 0xdead cleared), uart loopback got 0xa5 want 0xa5\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793069036,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 4561,
+      "prompt_tokens": 1639,
+      "total_tokens": 6200,
+      "completion_tokens_details": {
+        "reasoning_tokens": 4281
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Loopback read via reg_dat_do returned 0xff (~0) instead of 0xa5 because recv_buf_valid never asserted with recv_buf_data. Reset leaves recv_state in 1 so receiver starts in half-bit wait using recv_divcnt vs cfg_divider while ser_rx is idle high instead of waiting in state 0 for start. The false start consumes timing and the real start bit is missed, so no byte is framed.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -66,7 +66,7 @@\\n \\talways @(posedge clk) begin\\n \\t\\tif (!resetn) begin\\n-\\t\\t\\trecv_state <= 1;\\n+\\t\\t\\trecv_state <= 0;\\n \\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\trecv_pattern <= 0;\\n \\t\\t\\trecv_buf_data <= 0;\\n \\t\\t\\trecv_buf_valid <= 0;\\n\", \"expected\": \"tohost PASS (FAIL 0xdead cleared), uart loopback got 0xa5 want 0xa5\"}",
+  "diagnosis": "Loopback read via reg_dat_do returned 0xff (~0) instead of 0xa5 because recv_buf_valid never asserted with recv_buf_data. Reset leaves recv_state in 1 so receiver starts in half-bit wait using recv_divcnt vs cfg_divider while ser_rx is idle high instead of waiting in state 0 for start. The false start consumes timing and the real start bit is missed, so no byte is framed.",
+  "expected": "tohost PASS (FAIL 0xdead cleared), uart loopback got 0xa5 want 0xa5",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "latency_ms": 35250,
+  "request_id": "chatcmpl-01a17b3e-340e-7215-acf8-a846d75df1cb",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 4561,
+    "prompt_tokens": 1639,
+    "total_tokens": 6200,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4281
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

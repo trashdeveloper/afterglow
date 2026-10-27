@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: pc-incr\nFailing-trace sha256 (first 16 hex): a868fe094e168b81\nVerbatim diagnosis from the debug agent:\nFetch never progresses (max_addr 0x00000000, TRAP no progress). reg_next_pc is assigned current_pc instead of advanced PC, so PC sticks at 0 and fetch repeats. Root cause in excerpt lines 1526-1527 is missing compressed-aware increment for sequential fetch.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash a868fe094e168b81 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "4107f21188131d34d9e7896e249a6906786f08a795b9c016e79c178178b48d3f",
+  "trace_sha256": "a868fe094e168b81b0dde0d02367922de5c49f404c7f4bc72aa09dfd57525eea",
+  "diagnosis_sha256": "8c2799ea1705134936fc6e293ca7ca05ca112e7297d7726f8924b23900f1cf5d",
+  "case": "pc-incr",
+  "attempt": 2
+}

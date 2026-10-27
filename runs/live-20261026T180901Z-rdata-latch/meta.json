@@ -1,0 +1,62 @@
+{
+  "run_id": "live-20261026T180901Z-rdata-latch",
+  "case_id": "rdata-latch",
+  "case": "rdata-latch",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-26T18:09:01Z",
+  "wall_end_utc": "2026-10-26T18:10:34Z",
+  "sim_seed": 42,
+  "prompt_file": "agent/prompts/v1.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "attempt": 1,
+      "text_latency_ms": 50824,
+      "text_request_id": "chatcmpl-01a17967-8dc7-7528-8353-5567812b99ce",
+      "diagnosis_chars": 327,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim"
+    }
+  ],
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "rtl_file": "picorv32.v",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+  "cycles_before": 2009,
+  "prompt_hash": "a33e9d03790a89ce89d4d12a7b53c72268fcccaed45861c132aa9fd413792056",
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 579,
+  "trace_sha256": "5c7151bf1059d18fd85244a82375b8ee3cabc3d37d8cb9e365e16848a9c9b1ba",
+  "image_latency_ms": 41677,
+  "image_request_id": "fff1a550-c4d2-49e8-a9f9-5d9a41cb44a4",
+  "image_bytes": 1324983,
+  "text_latency_ms": 50824,
+  "text_request_id": "chatcmpl-01a17967-8dc7-7528-8353-5567812b99ce",
+  "api_usage": {
+    "completion_tokens": 6020,
+    "prompt_tokens": 1457,
+    "total_tokens": 7477,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5647
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "time_to_green_s": 92.9
+}

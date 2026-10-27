@@ -1,0 +1,53 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17b01-e507-7235-b350-019fa2b787a5",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Loopback (divider 64) sent 0xa5 but got 0x25: TRAP: uart data mismatch got 0x25 want 0xa5 with tohost FAIL 0xdead. 0xa5=10100101 vs 0x25=00100101 is an 8-bit to 7-bit truncation / 1-bit right shift. Root cause is picosoc/simpleuart.v:42 `reg [7:1] recv_buf_data` fed from 8-bit recv_pattern and read via reg_dat_do path (picosoc/simpleuart.v:20, picosoc/picosoc.v:124, picosoc/picosoc.v:204), so 0xa5 b[6:0] becomes 0x25.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -39,6 +39,6 @@\\n \\treg [3:0] recv_state;\\n \\treg [31:0] recv_divcnt;\\n \\treg [7:0] recv_pattern;\\n-\\treg [7:1] recv_buf_data;\\n+\\treg [7:0] recv_buf_data;\\n \\treg recv_buf_valid;\\n \\n \\treg [9:0] send_pattern;\", \"expected\": \"tohost PASS (FAIL 0xdead cleared), TRAP gone, uart loopback 0xa5 matches\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793065084,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 3097,
+      "prompt_tokens": 2204,
+      "total_tokens": 5301,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2757
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Loopback (divider 64) sent 0xa5 but got 0x25: TRAP: uart data mismatch got 0x25 want 0xa5 with tohost FAIL 0xdead. 0xa5=10100101 vs 0x25=00100101 is an 8-bit to 7-bit truncation / 1-bit right shift. Root cause is picosoc/simpleuart.v:42 `reg [7:1] recv_buf_data` fed from 8-bit recv_pattern and read via reg_dat_do path (picosoc/simpleuart.v:20, picosoc/picosoc.v:124, picosoc/picosoc.v:204), so 0xa5 b[6:0] becomes 0x25.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -39,6 +39,6 @@\\n \\treg [3:0] recv_state;\\n \\treg [31:0] recv_divcnt;\\n \\treg [7:0] recv_pattern;\\n-\\treg [7:1] recv_buf_data;\\n+\\treg [7:0] recv_buf_data;\\n \\treg recv_buf_valid;\\n \\n \\treg [9:0] send_pattern;\", \"expected\": \"tohost PASS (FAIL 0xdead cleared), TRAP gone, uart loopback 0xa5 matches\"}",
+  "diagnosis": "Loopback (divider 64) sent 0xa5 but got 0x25: TRAP: uart data mismatch got 0x25 want 0xa5 with tohost FAIL 0xdead. 0xa5=10100101 vs 0x25=00100101 is an 8-bit to 7-bit truncation / 1-bit right shift. Root cause is picosoc/simpleuart.v:42 `reg [7:1] recv_buf_data` fed from 8-bit recv_pattern and read via reg_dat_do path (picosoc/simpleuart.v:20, picosoc/picosoc.v:124, picosoc/picosoc.v:204), so 0xa5 b[6:0] becomes 0x25.",
+  "expected": "tohost PASS (FAIL 0xdead cleared), TRAP gone, uart loopback 0xa5 matches",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "latency_ms": 24007,
+  "request_id": "chatcmpl-01a17b01-e507-7235-b350-019fa2b787a5",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 3097,
+    "prompt_tokens": 2204,
+    "total_tokens": 5301,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2757
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

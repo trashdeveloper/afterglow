@@ -1,0 +1,12 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -109,8 +109,6 @@
+ 	always @(posedge clk) begin
+-		if (reg_div_we)
+-			send_dummy <= 1;
+ 		send_divcnt <= send_divcnt + 1;
+ 		if (!resetn) begin
+ 			send_pattern <= ~0;
+ 			send_bitcnt <= 0;
+ 			send_divcnt <= 0;

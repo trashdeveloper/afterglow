@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: serv-alu-lut\nFailing-trace sha256 (first 16 hex): 2c1b4a13b4a48540\nVerbatim diagnosis from the debug agent:\no_rd/result_bool reads 1 for bo=01 with rs1==op_b (0,0 and 1,1) while trace expects 0, with differing inputs correctly 0. This matches XNOR truth table 1001. Root cause is BOOL_LUT=16'h8E96 whose bits [7:4]=4'b1001 implement '=' (XNOR) for reserved bo=01 encoding instead of zero.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 2c1b4a13b4a48540 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "4377d5acffe0b07e3dc9f669373de395d5d395981169e25f8dc0ecea29e0da94",
+  "trace_sha256": "2c1b4a13b4a48540e274fea87ffa9b3778ca5c5d05134bcdc999c277de47ed29",
+  "diagnosis_sha256": "dd32455e4beeb7052deed1182077697ef6773c9d1aaeb1bb334f22a2156e41c8",
+  "case": "serv-alu-lut",
+  "attempt": 1
+}

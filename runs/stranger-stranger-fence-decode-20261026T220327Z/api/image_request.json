@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: rdata-latch\nFailing-trace sha256 (first 16 hex): 0b016762d0fc1901\nVerbatim diagnosis from the debug agent:\nTrace window shows only tohost FAIL 0xdead with cpu trap asserted at CYCLES=2009 and no per-cycle rdata values, so exact data mismatch is unclear from logs. Excerpt line 384 selects stale mem_rdata_q on mem_xfer instead of live mem_rdata, so mem_rdata_latched_noshuffle/mem_rdata_latched captures the previous word. Wrong fetch word causes mis-decode/trap and FAIL in the NOP fetch test.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 0b016762d0fc1901 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "0cd22f0844b057259d5d3b9e4d0f2ca05f437c91cfe91e09a55ed6b94d65d022",
+  "trace_sha256": "0b016762d0fc1901e430be2145b36959521df1aec84f4a5cfd4fbb0a36fd64a9",
+  "diagnosis_sha256": "4d0b0ea4ce10d73c47d824d546aba1989a23391fa8129d15a319cdbf71c7ae74",
+  "case": "rdata-latch",
+  "attempt": 1
+}

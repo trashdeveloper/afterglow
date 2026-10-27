@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: picosoc-uart-div\nFailing-trace sha256 (first 16 hex): 8183ccc1937eaeb4\nVerbatim diagnosis from the debug agent:\nLoopback sent 0xa5 but recv_buf_data latched 0xe0, causing TRAP uart data mismatch. RX start half-bit in state 1 waits 2*recv_divcnt > cfg_divider (half bit), but states default/10 advance when recv_divcnt > (cfg_divider >> 4), i.e. 1/16 of a bit period, so recv_pattern shifts ser_rx 16x too fast and samples wrong bit positions.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 8183ccc1937eaeb4 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "22d6b3847bc4b634bccd35d789cd8aaea1ee0d1619ecfba070ee07c1b1ff4039",
+  "trace_sha256": "8183ccc1937eaeb46c869e947280a29b3929f5537f3e42779b8eaa1275a88447",
+  "diagnosis_sha256": "b3394956a5c5a98fe7255707c12f7017bcbaf8dabdb5b439faf8b8a9f0b19490",
+  "case": "picosoc-uart-div",
+  "attempt": 1
+}

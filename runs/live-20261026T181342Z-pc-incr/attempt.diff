@@ -1,0 +1,8 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1526,3 +1526,3 @@
+ 				reg_pc <= current_pc;
+-				reg_next_pc <= current_pc;
++				reg_next_pc <= current_pc + (compressed_instr ? 32'd2 : 32'd4);
+ 				latched_store <= 0;

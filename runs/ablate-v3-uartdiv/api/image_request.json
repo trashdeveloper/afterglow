@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: picosoc-uart-div\nFailing-trace sha256 (first 16 hex): f575450f35b4d617\nVerbatim diagnosis from the debug agent:\nLoopback with divider 64 sent 0xa5 but recv_buf_data returned 0xe0, causing TRAP: uart data mismatch got 0xe0 want 0xa5 and tohost FAIL 0xdead. Root cause in picosoc/simpleuart.v:90 and :97 is bit timing compare `recv_divcnt > (cfg_divider >> 4)` sampling at 1/16 bit period versus half-bit start reference `2*recv_divcnt > cfg_divider` at :84. Fix restores full `cfg_divider` period for data/stop sampling.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash f575450f35b4d617 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "3deccbe4ec9bd2758187a372ca9701ca758bd7959e980ed9e03c8dd7927bf9bc",
+  "trace_sha256": "f575450f35b4d6174661f7e475123250b990be4bdc33c16b3371e4a59cbd9794",
+  "diagnosis_sha256": "0a301f7d22e8457bedab60ee093bc59e05986a4974aafe933c55247dbbedc7f5",
+  "case": "picosoc-uart-div",
+  "attempt": 1
+}

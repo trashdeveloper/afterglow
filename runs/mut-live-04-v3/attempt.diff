@@ -1,0 +1,12 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -39,6 +39,6 @@
+ 	reg [3:0] recv_state;
+ 	reg [31:0] recv_divcnt;
+ 	reg [7:0] recv_pattern;
+-	reg [7:1] recv_buf_data;
++	reg [7:0] recv_buf_data;
+ 	reg recv_buf_valid;
+ 
+ 	reg [9:0] send_pattern;

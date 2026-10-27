@@ -1,0 +1,102 @@
+{
+  "run_id": "mut-live-05-v2-rerun",
+  "case_id": "mut-pilot-05",
+  "case": "mut-pilot-05",
+  "mode": "live",
+  "status": "green",
+  "retries": 1,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T01:39:44Z",
+  "wall_end_utc": "2026-10-27T01:45:38Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 4,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "attempt": 1,
+      "text_latency_ms": 29813,
+      "text_request_id": "chatcmpl-01a17b04-fdd5-7795-8c93-2ffc239f57b8",
+      "diagnosis_chars": 332,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)"
+    },
+    {
+      "attempt": 2,
+      "text_latency_ms": 51448,
+      "text_request_id": "chatcmpl-01a17b08-9ddc-76ff-ac91-df403e29902b",
+      "diagnosis_chars": 395,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim"
+    }
+  ],
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-pilot-05.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mut-live-05-v2-rerun",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 120,
+    "before": "send_pattern <= ~0;",
+    "after": "send_pattern <= ~1;",
+    "seed": "42",
+    "op": "num_bump"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-pilot-05",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+  "cycles_before": 2024,
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 684,
+  "context_tokens": 147,
+  "context_dropped": "none",
+  "localization_top1": "picosoc/spiflash_tb.v",
+  "top1_is_true": false,
+  "trace_sha256": "7f8d4d377117c98710a76bffb33b9fafa324eca74bb7993a4ca36529a93dbbb8",
+  "transport_retries": [
+    9.613198379567493,
+    21.55855726306639
+  ],
+  "image_latency_ms": 12245,
+  "image_request_id": "7c2da5d4-f605-489c-8c38-fe05343b1edd",
+  "image_bytes": 1376320,
+  "text_latency_ms": 51448,
+  "text_request_id": "chatcmpl-01a17b08-9ddc-76ff-ac91-df403e29902b",
+  "api_usage": {
+    "completion_tokens": 7127,
+    "prompt_tokens": 1630,
+    "total_tokens": 8757,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6807
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 1521
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 353.2,
+  "est_usd": 0.090276,
+  "text_tokens": 8757,
+  "image_calls": 1
+}

@@ -1,0 +1,53 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17ae8-0826-7058-b771-27e3b551da15",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Loopback with divider 64 sent 0xa5 but recv_buf_data returned 0xe0, causing TRAP: uart data mismatch got 0xe0 want 0xa5 and tohost FAIL 0xdead. Root cause in picosoc/simpleuart.v:90 and :97 is bit timing compare `recv_divcnt > (cfg_divider >> 4)` sampling at 1/16 bit period versus half-bit start reference `2*recv_divcnt > cfg_divider` at :84. Fix restores full `cfg_divider` period for data/stop sampling.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -89,14 +89,14 @@\\n \\t\\t\\t\\t10: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_buf_data <= recv_pattern;\\n \\t\\t\\t\\t\\t\\trecv_buf_valid <= 1;\\n \\t\\t\\t\\t\\t\\trecv_state <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n \\t\\t\\t\\tdefault: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_pattern <= {ser_rx, recv_pattern[7:1]};\\n \\t\\t\\t\\t\\t\\trecv_state <= recv_state + 1;\\n \\t\\t\\t\\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n\", \"expected\": \"tohost PASS (no TRAP, uart loopback 0xa5 matches, FAIL 0xdead cleared)\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793063389,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 4120,
+      "prompt_tokens": 2022,
+      "total_tokens": 6142,
+      "completion_tokens_details": {
+        "reasoning_tokens": 3668
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Loopback with divider 64 sent 0xa5 but recv_buf_data returned 0xe0, causing TRAP: uart data mismatch got 0xe0 want 0xa5 and tohost FAIL 0xdead. Root cause in picosoc/simpleuart.v:90 and :97 is bit timing compare `recv_divcnt > (cfg_divider >> 4)` sampling at 1/16 bit period versus half-bit start reference `2*recv_divcnt > cfg_divider` at :84. Fix restores full `cfg_divider` period for data/stop sampling.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -89,14 +89,14 @@\\n \\t\\t\\t\\t10: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_buf_data <= recv_pattern;\\n \\t\\t\\t\\t\\t\\trecv_buf_valid <= 1;\\n \\t\\t\\t\\t\\t\\trecv_state <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n \\t\\t\\t\\tdefault: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_pattern <= {ser_rx, recv_pattern[7:1]};\\n \\t\\t\\t\\t\\t\\trecv_state <= recv_state + 1;\\n \\t\\t\\t\\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n\", \"expected\": \"tohost PASS (no TRAP, uart loopback 0xa5 matches, FAIL 0xdead cleared)\"}",
+  "diagnosis": "Loopback with divider 64 sent 0xa5 but recv_buf_data returned 0xe0, causing TRAP: uart data mismatch got 0xe0 want 0xa5 and tohost FAIL 0xdead. Root cause in picosoc/simpleuart.v:90 and :97 is bit timing compare `recv_divcnt > (cfg_divider >> 4)` sampling at 1/16 bit period versus half-bit start reference `2*recv_divcnt > cfg_divider` at :84. Fix restores full `cfg_divider` period for data/stop sampling.",
+  "expected": "tohost PASS (no TRAP, uart loopback 0xa5 matches, FAIL 0xdead cleared)",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "latency_ms": 32107,
+  "request_id": "chatcmpl-01a17ae8-0826-7058-b771-27e3b551da15",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 4120,
+    "prompt_tokens": 2022,
+    "total_tokens": 6142,
+    "completion_tokens_details": {
+      "reasoning_tokens": 3668
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

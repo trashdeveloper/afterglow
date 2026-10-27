@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pilot-04\nFailing-trace sha256 (first 16 hex): e3653268187128a6\nVerbatim diagnosis from the debug agent:\nLoopback (divider 64) sent 0xa5 but got 0x25: TRAP: uart data mismatch got 0x25 want 0xa5 with tohost FAIL 0xdead. 0xa5=10100101 vs 0x25=00100101 is an 8-bit to 7-bit truncation / 1-bit right shift. Root cause is picosoc/simpleuart.v:42 `reg [7:1] recv_buf_data` fed from 8-bit recv_pattern and read via reg_dat_do path (picosoc/simpleuart.v:20, picosoc/picosoc.v:124, picosoc/picosoc.v:204), so 0xa5 b[6:0] becomes 0x25.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash e3653268187128a6 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "e0785c970e21b5d39e743979bf398124b7e9e6b09fa88d676d1ff64ca75360b7",
+  "trace_sha256": "e3653268187128a657e9effd39e475eb6f026391a1c6fb6bc8b3d52a6657f36d",
+  "diagnosis_sha256": "c70a88e7e018d4967bf1f017d74f6b7475f6f4f44f602668708db2173e0b0281",
+  "case": "mut-pilot-04",
+  "attempt": 1
+}

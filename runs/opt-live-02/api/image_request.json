@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pilot-02\nFailing-trace sha256 (first 16 hex): 185f5926fed1da6e\nVerbatim diagnosis from the debug agent:\nLoopback read via reg_dat_do returned 0xff (~0) instead of 0xa5 because recv_buf_valid never asserted with recv_buf_data. Reset leaves recv_state in 1 so receiver starts in half-bit wait using recv_divcnt vs cfg_divider while ser_rx is idle high instead of waiting in state 0 for start. The false start consumes timing and the real start bit is missed, so no byte is framed.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 185f5926fed1da6e in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "1e6e84c5249cfe00526e718eb873c87804987a8154f4503a83d96f4f3f85fc1b",
+  "trace_sha256": "185f5926fed1da6eb2c0865717ade5051bd480d612357aedea2a973f70549636",
+  "diagnosis_sha256": "5475ca18793e8b19ca1ad9df975ac83f83fbbc96848a8ca24ebcce28047b077d",
+  "case": "mut-pilot-02",
+  "attempt": 1
+}

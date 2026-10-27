@@ -1,0 +1,4 @@
+{
+  "error": "live text call returned EMPTY content (latency 64027ms, request chatcmpl-01a17b44-6677-700c-98e8-9e218a945770); refusing to invent a diagnosis",
+  "status": "FAILED"
+}

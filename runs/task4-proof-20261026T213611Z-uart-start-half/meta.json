@@ -1,0 +1,66 @@
+{
+  "run_id": "task4-proof-20261026T213611Z-uart-start-half",
+  "case_id": "uart-start-half",
+  "case": "uart-start-half",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-26T21:36:11Z",
+  "wall_end_utc": "2026-10-26T21:37:20Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v1.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "attempt": 1,
+      "text_latency_ms": 48395,
+      "text_request_id": "chatcmpl-01a17a25-3214-723b-85fa-19450f1ec97a",
+      "diagnosis_chars": 377,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim"
+    }
+  ],
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/uart-start-half.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "uart-start-half",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "7ead7d9c1ebd862283bf0991c6a01fd4f7dad63f24f2be953b7f57e1f7edd073",
+  "cycles_before": 2684,
+  "prompt_hash": "a33e9d03790a89ce89d4d12a7b53c72268fcccaed45861c132aa9fd413792056",
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 497,
+  "trace_sha256": "0be387be5e458dbdf4f9d21c1c25e64978d35c9ac76a2fb1477f3e0e6b386bcc",
+  "image_latency_ms": 19935,
+  "image_request_id": "cadfb970-c993-4acd-8a74-7f6f0af01a7c",
+  "image_bytes": 1500824,
+  "text_latency_ms": 48395,
+  "text_request_id": "chatcmpl-01a17a25-3214-723b-85fa-19450f1ec97a",
+  "api_usage": {
+    "completion_tokens": 5834,
+    "prompt_tokens": 1144,
+    "total_tokens": 6978,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5500
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 68.8
+}

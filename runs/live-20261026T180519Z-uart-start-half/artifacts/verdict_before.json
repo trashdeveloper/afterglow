@@ -1,0 +1,9 @@
+{
+  "case": "uart-start-half",
+  "pass": false,
+  "tohost": "FAIL 0xdead",
+  "checksum": "7ead7d9c1ebd862283bf0991c6a01fd4f7dad63f24f2be953b7f57e1f7edd073",
+  "cycles": 2684,
+  "seed": 42,
+  "sim_time_utc": "2026-10-26T18:05:19Z"
+}

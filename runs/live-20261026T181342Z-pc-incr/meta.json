@@ -1,0 +1,72 @@
+{
+  "run_id": "live-20261026T181342Z-pc-incr",
+  "case_id": "pc-incr",
+  "case": "pc-incr",
+  "mode": "live",
+  "status": "green",
+  "retries": 1,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-26T18:13:42Z",
+  "wall_end_utc": "2026-10-26T18:16:33Z",
+  "sim_seed": 42,
+  "prompt_file": "agent/prompts/v1.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 4,
+  "patch_source": "canonical-bootstrap-gated",
+  "explain": "ok",
+  "attempts": [
+    {
+      "attempt": 1,
+      "text_latency_ms": 49062,
+      "text_request_id": "chatcmpl-01a1796b-d2f9-711b-a7ac-c7ca16559832",
+      "diagnosis_chars": 401,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)"
+    },
+    {
+      "attempt": 2,
+      "text_latency_ms": 59421,
+      "text_request_id": "chatcmpl-01a1796d-393e-7686-a43f-04c154820c28",
+      "diagnosis_chars": 257,
+      "guard_ok": true,
+      "patch_source_try": "canonical-bootstrap-gated",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picorv32.v\\nHunk #1 FAILED at 1526.\\n1 out of 1 hunk FAILED\\n']; applied via canonical-bootstrap-gated",
+      "gate_signal": "incr"
+    }
+  ],
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "rtl_file": "picorv32.v",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+  "cycles_before": 2009,
+  "prompt_hash": "a33e9d03790a89ce89d4d12a7b53c72268fcccaed45861c132aa9fd413792056",
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 539,
+  "trace_sha256": "a868fe094e168b81b0dde0d02367922de5c49f404c7f4bc72aa09dfd57525eea",
+  "image_latency_ms": 28804,
+  "image_request_id": "7bfc2c43-100c-4b96-8d1e-628113b93811",
+  "image_bytes": 1436610,
+  "text_latency_ms": 59421,
+  "text_request_id": "chatcmpl-01a1796d-393e-7686-a43f-04c154820c28",
+  "api_usage": {
+    "completion_tokens": 6439,
+    "prompt_tokens": 1338,
+    "total_tokens": 7777,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6216
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "time_to_green_s": 170.9
+}

@@ -1,0 +1,91 @@
+{
+  "run_id": "mut-live-05-v2",
+  "case_id": "mut-pilot-05",
+  "case": "mut-pilot-05",
+  "mode": "live",
+  "status": "red",
+  "retries": 1,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T01:28:35Z",
+  "wall_end_utc": "2026-10-27T01:34:58Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": false,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "attempt": 1,
+      "text_latency_ms": 46301,
+      "text_request_id": "chatcmpl-01a17afb-12c0-7794-b7d3-b489d32c81c7",
+      "diagnosis_chars": 412,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)"
+    }
+  ],
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-pilot-05.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mut-live-05-v2",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 120,
+    "before": "send_pattern <= ~0;",
+    "after": "send_pattern <= ~1;",
+    "seed": "42",
+    "op": "num_bump"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-pilot-05",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+  "cycles_before": 2024,
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 684,
+  "context_tokens": 147,
+  "context_dropped": "none",
+  "localization_top1": "picosoc/spiflash_tb.v",
+  "top1_is_true": false,
+  "trace_sha256": "d36f17644755dba02b19f0475ff5be88c681acb87277f090a6c146ae071524bd",
+  "transport_retries": [],
+  "image_latency_ms": 30017,
+  "image_request_id": "0d9eea88-eb45-485f-af8d-1215b7dd76c9",
+  "image_bytes": 1646636,
+  "text_latency_ms": 46301,
+  "text_request_id": "chatcmpl-01a17afb-12c0-7794-b7d3-b489d32c81c7",
+  "api_usage": {
+    "completion_tokens": 5746,
+    "prompt_tokens": 1573,
+    "total_tokens": 7319,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5433
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "FAIL 0xdead",
+  "checksum_after": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+  "cycles_after": 2024,
+  "error": "live text API failed after 3 attempts: live text call returned EMPTY content (latency 65129ms, request chatcmpl-01a17aff-0e8a-756f-99b8-eac2ae3fd327); refusing to invent a diagnosis (no heuristic fallback)",
+  "time_to_green_s": 382.4,
+  "est_usd": 0.079114,
+  "text_tokens": 7319,
+  "image_calls": 1
+}

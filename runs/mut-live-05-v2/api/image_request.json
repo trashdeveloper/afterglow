@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pilot-05\nFailing-trace sha256 (first 16 hex): d36f17644755dba0\nVerbatim diagnosis from the debug agent:\nLoopback read got 0xff (all-ones idle) instead of 0xa5, triggering FAIL 0xdead TRAP uart data mismatch. After reset TX is busy with the 15-bit power-on dummy (send_dummy=1, send_bitcnt=15). The extra `if (reg_div_we) send_dummy <= 1` re-arms send_dummy on divider programming, so when the first dummy ends a second dummy starts and blocks `reg_dat_we && !send_bitcnt`, dropping 0xa5 and leaving ser_tx idle at 1.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash d36f17644755dba0 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "f4cbbc05faf659a45267fd754f490cb83391d0c0f8a8f4bab8dc560c2d7ac5b4",
+  "trace_sha256": "d36f17644755dba02b19f0475ff5be88c681acb87277f090a6c146ae071524bd",
+  "diagnosis_sha256": "0da720322ad9fe1c46fba66cb625dd44b49b76a3620601649e7e159a90fc6845",
+  "case": "mut-pilot-05",
+  "attempt": 1
+}

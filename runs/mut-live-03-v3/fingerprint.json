@@ -1,0 +1,12 @@
+{
+  "fingerprint": "bf263cfe722478d447eda314288bdbea85be5874e177a35cafb50f67fc9c1e8e",
+  "trap_line": "TRAP: uart timeout, no byte received",
+  "oracle_sig": "FAIL 0xdead",
+  "signals": [
+    "byte",
+    "received",
+    "timeout",
+    "uart",
+    "xdead"
+  ]
+}

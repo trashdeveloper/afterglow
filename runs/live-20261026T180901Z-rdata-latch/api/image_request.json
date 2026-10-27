@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: rdata-latch\nFailing-trace sha256 (first 16 hex): 5c7151bf1059d18f\nVerbatim diagnosis from the debug agent:\nFetch fails with TRAP and FAIL 0xdead because mem_rdata_latched decodes stale data as illegal. During mem_xfer line 384 selects mem_rdata_q (previous cycle) instead of live mem_rdata, and when idle selects live mem_rdata instead of held q. Root cause is inverted ternary branches on (mem_xfer || LATCHED_MEM_RDATA) at line 384.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 5c7151bf1059d18f in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "79521ea95659888fc0cc26031405434bcae974886054cb1c89220b9b7ac9c723",
+  "trace_sha256": "5c7151bf1059d18fd85244a82375b8ee3cabc3d37d8cb9e365e16848a9c9b1ba",
+  "diagnosis_sha256": "c1aa7c1942cda09abc0d62555efee0b8d8843e0e91dd504ade66e585dd8dbe84",
+  "case": "rdata-latch",
+  "attempt": 1
+}

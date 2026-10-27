@@ -1,0 +1,9 @@
+{
+  "case": "mut-pilot-05",
+  "pass": false,
+  "tohost": "FAIL 0xdead",
+  "checksum": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+  "cycles": 2024,
+  "seed": 42,
+  "sim_time_utc": "2026-10-27T01:28:35Z"
+}

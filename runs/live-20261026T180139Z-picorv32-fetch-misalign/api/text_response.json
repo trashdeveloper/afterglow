@@ -1,0 +1,35 @@
+{
+  "error": "no successful text call",
+  "attempts": [
+    {
+      "attempt": 1,
+      "text_latency_ms": 18543,
+      "text_request_id": "chatcmpl-01a17960-51a8-7151-a627-7977df1a7e90",
+      "diagnosis_chars": 282,
+      "guard_ok": false,
+      "patch_source_try": "canonical-bootstrap-gated",
+      "summary": "guard_ok=False applied=False reasons=['/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f/picorv32.v: unbalanced module/endmodule (9 vs 8)']; bootstrap REJECTED: ['/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f/picorv32.v: unbalanced module/endmodule (9 vs 8)']",
+      "gate_signal": "fetch"
+    },
+    {
+      "attempt": 2,
+      "text_latency_ms": 38843,
+      "text_request_id": "chatcmpl-01a17961-42b2-70cd-8fd5-bde43249235b",
+      "diagnosis_chars": 310,
+      "guard_ok": false,
+      "patch_source_try": "canonical-bootstrap-gated",
+      "summary": "guard_ok=False applied=False reasons=['/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f/picorv32.v: unbalanced module/endmodule (9 vs 8)']; bootstrap REJECTED: ['/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f/picorv32.v: unbalanced module/endmodule (9 vs 8)']",
+      "gate_signal": "fetch"
+    },
+    {
+      "attempt": 3,
+      "text_latency_ms": 35847,
+      "text_request_id": "chatcmpl-01a17962-0e24-7341-b38c-1fd2af6523d4",
+      "diagnosis_chars": 312,
+      "guard_ok": false,
+      "patch_source_try": "canonical-bootstrap-gated",
+      "summary": "guard_ok=False applied=False reasons=['/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f/picorv32.v: unbalanced module/endmodule (9 vs 8)']; bootstrap REJECTED: ['/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f/picorv32.v: unbalanced module/endmodule (9 vs 8)']",
+      "gate_signal": "fetch"
+    }
+  ]
+}
