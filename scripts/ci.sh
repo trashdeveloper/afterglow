@@ -14,7 +14,9 @@ fail() { printf 'FAIL: %s\n' "$*"; FAIL=1; }
 # 1. git window check: only PLAN.md + AGENTS.md may predate Oct 27 2026.
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   if git rev-parse HEAD >/dev/null 2>&1; then
-    PREFILES="$(git log --before="2026-10-27" --name-only --pretty=format: -- . \
+    # NOTE: bare --before="2026-10-27" matches the whole day in approxidate,
+    # false-positiving window commits. Pin to midnight UTC explicitly.
+    PREFILES="$(git log --before="2026-10-27 00:00:00 +0000" --name-only --pretty=format: -- . \
       | sort -u | grep -v -e '^$' -e '^PLAN\.md$' -e '^AGENTS\.md$' || true)"
     if [ -n "$PREFILES" ]; then
       fail "pre-window files present (only PLAN.md + AGENTS.md allowed): $PREFILES"
