@@ -40,7 +40,7 @@ CASES_PATH = os.path.join(ROOT, "eval", "cases.yaml")
 RUNS_DIR = os.path.join(ROOT, "runs")
 RESULTS_PATH = os.path.join(ROOT, "eval", "results.md")
 
-LOCKED_IDS = ("priv-tap-misclass", "stuck-pending", "linux-uart-divisor")
+LOCKED_IDS = ("picosoc-uart-div", "picorv32-fetch-misalign", "uart-tx-div")
 
 
 def load_cases(path: str):
@@ -218,8 +218,8 @@ def main() -> int:
                 {"id": cid, "tier": "locked" if cid in LOCKED_IDS else "stress",
                  "budget_s": "?"}
                 for cid in list(LOCKED_IDS) + [
-                    "uart-baud-2x", "csr-misa-mask", "timer-cmp-stuck",
-                    "fetch-misalign", "plic-prio-invert",
+                    "uart-start-half", "fetch-highword", "rdata-latch",
+                    "trap-stuck", "pc-incr",
                 ]
             ]
         runs = load_runs(RUNS_DIR) if os.path.isdir(RUNS_DIR) else []
