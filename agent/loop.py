@@ -605,6 +605,58 @@ def repair_diff_paths(diff_text: str, tree: str) -> tuple:
     return "\n".join(out) + "\n", True, mapping
 
 
+def normalize_hunk_counts(diff_text: str) -> tuple:
+    """Recompute @@ -a,b +c,d @@ counts from hunk bodies.
+
+    The model is often semantically right but writes wrong hunk counts
+    (e.g. -379,4 for a 6-line hunk), which `patch` rejects as malformed.
+    This recomputes b = context+removed, d = context+added per hunk and
+    rewrites the header ONLY when the counts differ. Content lines are
+    never touched, added, or removed -- so a diff that would not apply
+    still does not apply; only header arithmetic is fixed.
+
+    Returns (diff_text, changed_flag). Non-hunk lines pass through
+    untouched; unparseable headers are left alone (fail-closed downstream).
+    """
+    import re
+    lines = diff_text.splitlines(keepends=True)
+    out = []
+    changed = False
+    i = 0
+    hdr = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(.*)$")
+    while i < len(lines):
+        m = hdr.match(lines[i].rstrip("\n"))
+        if not m:
+            out.append(lines[i])
+            i += 1
+            continue
+        body = []
+        j = i + 1
+        while j < len(lines):
+            raw = lines[j].rstrip("\n")
+            if raw.startswith("@@ ") or raw.startswith("diff --git ") \
+                    or raw.startswith("--- ") or raw.startswith("+++ ") \
+                    or raw.startswith("Index: "):
+                break
+            if raw[:1] in (" ", "-", "+", "\\"):
+                body.append(lines[j])
+                j += 1
+            else:
+                break
+        old_n = sum(1 for b in body if b[:1] in (" ", "-"))
+        new_n = sum(1 for b in body if b[:1] in (" ", "+"))
+        old_s, old_c, new_s, new_c, tail = m.groups()
+        want = "@@ -%s,%d +%s,%d @@%s\n" % (old_s, old_n, new_s, new_n, tail)
+        if want != lines[i]:
+            changed = True
+            out.append(want)
+        else:
+            out.append(lines[i])
+        out.extend(body)
+        i = j
+    return "".join(out), changed
+
+
 def patch_dry_run(tree: str, diff_path: str) -> tuple:
     proc = subprocess.run(
         ["patch", "-p1", "--dry-run", "--force", "-i", diff_path],
@@ -657,8 +709,30 @@ def try_apply_diff(diff_text: str, tree: str, tmp_path: str,
             return out
         out["patch_lines"] = info2.get("patch_lines", out["patch_lines"])
         out["files"] = info2.get("files", out["files"])
+    diff_text3, counts_fixed = normalize_hunk_counts(
+        diff_text2 if repaired else diff_text)
+    out["counts_normalized"] = counts_fixed
+    if counts_fixed:
+        if spec is not None:
+            ok3, reasons3, info3 = policy_check_diff(diff_text3, spec, tree)
+        else:
+            ok3, reasons3, info3 = guard.check(diff_text3, rtl_root=tree)
+        if not ok3:
+            out["guard_ok"] = False
+            out["reasons"] = ["hunk-normalize broke guard: %s" % reasons3]
+            return out
+        out["patch_lines"] = info3.get("patch_lines", out["patch_lines"])
+        out["files"] = info3.get("files", out["files"])
+    final_text = diff_text3 if counts_fixed else (diff_text2 if repaired
+                                                       else diff_text)
+    # Mechanical framing: patch(1) rejects a diff whose last line is not
+    # newline-terminated ("malformed patch"). Termination is not content --
+    # no line is added, removed, or altered -- so this cannot invent a fix;
+    # a non-matching diff still fails the dry-run on content.
+    if not final_text.endswith("\n"):
+        final_text += "\n"
     with open(tmp_path, "w", encoding="utf-8") as fh:
-        fh.write(diff_text2 if repaired else diff_text)
+        fh.write(final_text)
     rc, log = patch_dry_run(tree, tmp_path)
     out["dry_run_log"] = log
     if rc != 0:
@@ -678,7 +752,7 @@ def try_apply_diff(diff_text: str, tree: str, tmp_path: str,
         if not ok_lint:
             out["reasons"] = ["post-apply lint failed: %s" % why]
             return out
-    out["applied_diff"] = diff_text2 if repaired else diff_text
+    out["applied_diff"] = final_text
     out["applied"] = True
     return out
 

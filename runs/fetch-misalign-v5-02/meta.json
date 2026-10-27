@@ -1,0 +1,127 @@
+{
+  "run_id": "fetch-misalign-v5-02",
+  "case_id": "picorv32-fetch-misalign",
+  "case": "picorv32-fetch-misalign",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T23:56:41Z",
+  "wall_end_utc": "2026-10-27T23:57:14Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 18229,
+      "text_request_id": "chatcmpl-01a17fcb-b88c-7212-b34c-98891abb309b",
+      "diagnosis_chars": 327,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/picorv32-fetch-misalign.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "picorv32-fetch-misalign",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "a29998cd8e81501b64b44a66e009c12b297662db5ef5369b12ef3feae608e5d5",
+  "cycles_before": 2009,
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 16,
+    "pack_tokens": 55,
+    "sections": [
+      "fingerprint",
+      "verdict"
+    ],
+    "dropped": [
+      "cone_slice"
+    ],
+    "fingerprint": "636e125d7951bc82075f3001dd69892df90b60572c888ac15a0eef64d1afdf44",
+    "cone_lines": 200,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "addr",
+    "cone_files": 20,
+    "cone_source": "static",
+    "cone_drivers": 97,
+    "harvest_lines": 20,
+    "harvest_tokens": 100,
+    "recall": [
+      [
+        "mutbigN-v3-05",
+        0.1111
+      ],
+      [
+        "mutbigN-v3-07",
+        0.1111
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 1,
+    "status": "ok"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 72,
+  "prompt_tokens": 780,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "3c9bd6c2cb700a5d1247e48362615cba800f5b7977ccc093dcbb1b2afc207028",
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "image_latency_ms": 13965,
+  "image_request_id": "206d6475-df84-4d4f-9b29-3717364124db",
+  "image_bytes": 1311237,
+  "text_latency_ms": 18229,
+  "text_request_id": "chatcmpl-01a17fcb-b88c-7212-b34c-98891abb309b",
+  "api_usage": {
+    "completion_tokens": 2419,
+    "prompt_tokens": 1989,
+    "total_tokens": 4408,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2128
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "time_to_green_s": 33.1,
+  "est_usd": 0.05333,
+  "text_tokens": 4408,
+  "image_calls": 1
+}
