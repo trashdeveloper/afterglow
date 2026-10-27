@@ -204,6 +204,97 @@ def unparsed_count(tree: str, rel: str) -> int:
     return n
 
 
+def rtl_signal_vocab(tree: str,
+                     rtl_files: List[str] | None = None) -> set:
+    """Driven-signal vocabulary for the target files (RTL-aware seeding).
+
+    Union of :func:`parse_drivers` keys across ``rtl_files`` (the same
+    driver parser the slicer walks, so the vocab SPEAKS RTL). Keys are
+    driven net/reg names in original RTL casing. Files that fail to
+    read contribute nothing (never raises for a missing file).
+    """
+    vocab: set = set()
+    for rel in (list(rtl_files) if rtl_files is not None
+                else list_rtl_files(tree)):
+        try:
+            drivers = parse_drivers(tree, rel)
+        except OSError:
+            continue
+        vocab.update(drivers.keys())
+    return vocab
+
+
+def filter_tokens_to_rtl(tokens: List[str] | None,
+                         vocab: set | None) -> Tuple[List[str], int]:
+    """Keep only tokens that exist in the RTL vocab (case-insensitive).
+
+    Returns (kept_in_rtl_casing, dropped_count) preserving input order.
+    Comparison is lowercase (the trace lowercases, RTL keeps case);
+    kept entries use the vocab's original casing so the slicer seeds
+    exact RTL names. Non-signal words (``progress``/``asserted``) drop
+    out BEFORE slicing; the caller logs the dropped count.
+    """
+    lower_to_rtl: Dict[str, str] = {}
+    for v in (vocab or ()):
+        lower_to_rtl.setdefault(str(v).lower(), str(v))
+    kept: List[str] = []
+    for tok in (tokens or []):
+        low = str(tok).lower()
+        if low in lower_to_rtl:
+            kept.append(lower_to_rtl[low])
+    dropped = len(list(tokens or [])) - len(kept)
+    return kept, dropped
+
+
+def spec_anchor_signals(anchor_text: str) -> List[str]:
+    """Signal names on the spec anchor line, in appearance order.
+
+    Uses the slicer's own identifier splitter (keywords and sized
+    literals excluded), deduped preserving order. For mutant cases the
+    anchor is the pristine mutant-line context KNOWN via the spec, so
+    these signals SPEAK RTL; trivial anchors (``0: begin``) yield [].
+    """
+    out: List[str] = []
+    for tok in _idents(anchor_text or ""):
+        if tok not in out:
+            out.append(tok)
+    return out
+
+
+def rank_seed_candidates(trace_signals: List[str] | None,
+                         anchor_signals: List[str] | None,
+                         vocab: set | None) -> List[Tuple[str, str]]:
+    """Ordered (seed, source) candidates: spec-anchor first.
+
+    1. in-RTL verdict/spec-anchor signals (anchor appearance order),
+    2. in-RTL trace tokens (trace order),
+    3. raw fallback (first trace token verbatim, may miss RTL).
+    Returns [] only when BOTH inputs are empty (caller abstains); the
+    caller tries each candidate's cone and abstains when every cone is
+    empty. Sources are ``spec-anchor``/``trace-in-rtl``/``raw-fallback``.
+    """
+    lower_to_rtl: Dict[str, str] = {}
+    for v in (vocab or ()):
+        lower_to_rtl.setdefault(str(v).lower(), str(v))
+    ranked: List[Tuple[str, str]] = []
+    seen: set = set()
+    for tok in (anchor_signals or []):
+        low = str(tok).lower()
+        if low in lower_to_rtl and low not in seen:
+            seen.add(low)
+            ranked.append((lower_to_rtl[low], "spec-anchor"))
+    for tok in (trace_signals or []):
+        low = str(tok).lower()
+        if low in lower_to_rtl and low not in seen:
+            seen.add(low)
+            ranked.append((lower_to_rtl[low], "trace-in-rtl"))
+    if not ranked and trace_signals:
+        raw = str(trace_signals[0])
+        if raw:
+            ranked.append((raw, "raw-fallback"))
+    return ranked
+
+
 def build_module_graph(tree: str,
                        rtl_files: List[str] | None = None) -> Dict[str, List[str]]:
     """Module -> instantiated children (instantiation scan, stdlib).

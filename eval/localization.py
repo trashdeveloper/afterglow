@@ -105,28 +105,64 @@ def locate_bug(tree: str, rel: str, bug: str) -> tuple:
 
 def score_case(case_id: str, spec: dict, truth: tuple,
                trace: str) -> dict:
-    """Slice + blame one case. Returns a JSON-safe row dict."""
+    """Slice + blame one case. Returns a JSON-safe row dict.
+
+    RTL-aware seeding (wave-4): the RTL-signal vocab for the case's
+    target files (driven names via ``slicer.parse_drivers``) filters
+    trace tokens down to ones that actually exist in RTL (dropped
+    count logged); candidates rank in-RTL spec-anchor signals first
+    (mutant-line context KNOWN via the spec anchor; board cases use
+    the same anchor text plus the trace verdict's named signals),
+    then in-RTL trace tokens, then the raw fallback. Each candidate's
+    cone is tried in order; the first non-empty cone wins, else the
+    case abstains (empty cone, never a guess).
+    """
     truth_file, truth_line = truth
-    sigs = fingerprint.extract_signals(trace or "")
-    seed = sigs[0] if sigs else anchor_seed(spec.get("anchor", ""))
-    seed_note = "trace" if sigs else "anchor-fallback"
     tree = slicer.resolve_pinned_tree(spec.get("project", "picorv32"))
-    cone, report = slicer.backward_slice(
-        tree, seed, list(spec.get("files", [])), max_depth=2)
-    top1 = slicer.top1_localization(cone, trace, report.get("seen", [seed]))
+    files = list(spec.get("files", []))
+    vocab = slicer.rtl_signal_vocab(tree, files)
+    sigs = fingerprint.extract_signals(trace or "")
+    anchor_sigs = slicer.spec_anchor_signals(spec.get("anchor", ""))
+    _kept_trace, dropped = slicer.filter_tokens_to_rtl(sigs, vocab)
+    ranked = slicer.rank_seed_candidates(sigs, anchor_sigs, vocab)
+    cone: list = []
+    report: dict = {"drivers": 0, "seen": []}
+    seed = ""
+    seed_note = "abstain"
+    for cand, source in ranked:
+        c, rep = slicer.backward_slice(tree, cand, files, max_depth=2)
+        if c:
+            cone, report = c, rep
+            seed, seed_note = cand, source
+            break
+    if not cone and ranked:
+        # Every candidate's cone was empty: report the first candidate
+        # as the attempted seed (raw fallback may itself miss RTL).
+        seed, seed_note = ranked[0]
+        if seed_note != "raw-fallback":
+            seed_note = "abstain-empty-cone"
+        cone, report = [], {"drivers": 0, "seen": [seed] if seed else []}
+    if not ranked:
+        seed, seed_note = "", "abstain"
+    top1 = slicer.top1_localization(
+        cone, trace, report.get("seen", [seed] if seed else []))
     want = "%s:%d" % (truth_file, truth_line) if truth_line else ""
     hit = bool(want) and top1 == want
     if not cone:
-        reason = "empty static cone (seed %r absent from RTL)" % seed
+        reason = ("empty static cone (seed %r [%s] absent from RTL, "
+                  "dropped %d non-RTL trace tokens)"
+                  % (seed, seed_note, dropped))
     elif not hit:
-        reason = ("blamed %s, truth %s (seed %r, cone %d lines)"
-                  % (top1 or "abstain", want, seed, len(cone)))
+        reason = ("blamed %s, truth %s (seed %r [%s], cone %d lines, "
+                  "dropped %d non-RTL tokens)"
+                  % (top1 or "abstain", want, seed, seed_note,
+                     len(cone), dropped))
     else:
         reason = ""
     return {"case": case_id, "truth": want, "seed": seed,
             "seed_from": seed_note, "cone_lines": len(cone),
             "drivers": report.get("drivers", 0), "top1": top1,
-            "hit": hit, "reason": reason}
+            "hit": hit, "reason": reason, "dropped": dropped}
 
 
 def collect() -> list:
@@ -160,16 +196,21 @@ def render(rows: list) -> str:
     stamp = (datetime.datetime.now(datetime.timezone.utc)
              .strftime("%Y-%m-%d %H:%M:%SZ"))
     out = []
-    out.append("# Static-cone top-1 localization (wave-3)")
+    out.append("# Static-cone top-1 localization (wave-4)")
     out.append("")
     out.append("Generated: %s (UTC) by `eval/localization.py` via "
                "`tests/test_localization.py`. No API, no sim, no "
                "threshold -- measured, not gamed." % stamp)
     out.append("")
-    out.append("Method: seed = `fingerprint.extract_signals(trace)[0]` "
-               "(production seed path; `anchor-fallback` only when the "
-               "trace yields no signals); cone = "
-               "`backward_slice(max_depth=2)`; blame = "
+    out.append("Method: RTL-aware seeding -- vocab = driven net/reg names "
+               "via `slicer.parse_drivers` on the case files; trace "
+               "tokens NOT in RTL drop out BEFORE slicing (dropped count "
+               "logged per row); candidates rank in-RTL spec-anchor "
+               "signals first (mutant-line context KNOWN via the spec "
+               "anchor; board cases use the same anchor text plus the "
+               "trace verdict's named signals), then in-RTL trace tokens, "
+               "then raw fallback; first non-empty cone wins, else "
+               "abstain; cone = `backward_slice(max_depth=2)`; blame = "
                "`top1_localization` (driver-frequency rank, trace-anchor "
                "proximity tie-break). Hit = EXACT `file:line` match.")
     out.append("")
