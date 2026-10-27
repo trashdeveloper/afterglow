@@ -1,0 +1,9 @@
+{
+  "model": "muse-image-1.0",
+  "request_id": "412710b7-3787-4baf-85bb-25399807756e",
+  "latency_ms": 37469,
+  "bytes": 1518884,
+  "sha256": "7c3c1386e8c09d67428726b5619dc343370c7180708f66a6099a954684d034d3",
+  "transport": "b64_json",
+  "raw_note": "b64 payload replaced by sha256+bytes; explain.png is the provenance artifact"
+}

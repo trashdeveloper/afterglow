@@ -1,0 +1,20 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -401,7 +401,7 @@
+ 	always @* begin
+ 		(* full_case *)
+ 		case (mem_wordsize)
+-			0: begin
++			2: begin
+ 				mem_la_wdata = reg_op2;
+ 				mem_la_wstrb = 4'b1111;
+ 				mem_rdata_word = mem_rdata;
+@@ -414,7 +414,7 @@
+ 				endcase
+ 			end
+-			2: begin
++			0: begin
+ 				mem_la_wdata = {4{reg_op2[7:0]}};
+ 				mem_la_wstrb = 4'b0001 << reg_op1[1:0];
+ 				case (reg_op1[1:0])

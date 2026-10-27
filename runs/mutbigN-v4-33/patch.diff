@@ -1,0 +1,9 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -45,4 +45,4 @@
+ 	reg [9:0] send_pattern;
+-	reg [2:0] send_bitcnt;
++	reg [3:0] send_bitcnt;
+ 	reg [31:0] send_divcnt;
+ 	reg send_dummy;

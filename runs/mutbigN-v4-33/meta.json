@@ -1,0 +1,133 @@
+{
+  "run_id": "mutbigN-v4-33",
+  "case_id": "mut-bigN-33",
+  "case": "mut-bigN-33",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T16:02:15Z",
+  "wall_end_utc": "2026-10-27T16:03:14Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 37166,
+      "text_request_id": "chatcmpl-01a17e19-a757-76d7-a8cb-2c93a69b4f94",
+      "diagnosis_chars": 459,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-33.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutbigN-v4-33",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 46,
+    "before": "reg [3:0] send_bitcnt;",
+    "after": "reg [2:0] send_bitcnt;",
+    "seed": "1234",
+    "op": "num_bump"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-bigN-33",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "b6e0169fb7c409f1a6e23cdf77f846d41e48405df0444f0d3c56f6ec28770cef",
+  "cycles_before": 2652,
+  "red_baseline_tree_sha256": "24b2e9e56a31969db6c5d44d9cd6ca2f33d8cd369db9bb85bfd7693b0ec7dd76",
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 36,
+    "pack_tokens": 180,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "14148b094fec62584d2af3c5eaf3ad5e1de9e70034805763630aef5ebfeefcfc",
+    "cone_lines": 18,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "uart",
+    "cone_files": 2,
+    "cone_source": "static",
+    "cone_drivers": 0,
+    "harvest_lines": 40,
+    "harvest_tokens": 233,
+    "recall": [
+      [
+        "ablate-v3-uartdiv",
+        0.6
+      ],
+      [
+        "mut-live-02-v3",
+        0.6
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 1,
+    "status": "ok"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 816,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "ca47463ef64676d6facb0ace65e4dacc84bfe06d496739713f6992c9a20071bb",
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "image_latency_ms": 20982,
+  "image_request_id": "664a52bb-8aad-4cda-8ea8-4fa67f99eaf2",
+  "image_bytes": 1458505,
+  "text_latency_ms": 37166,
+  "text_request_id": "chatcmpl-01a17e19-a757-76d7-a8cb-2c93a69b4f94",
+  "api_usage": {
+    "completion_tokens": 4462,
+    "prompt_tokens": 2226,
+    "total_tokens": 6688,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4161
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 58.7,
+  "est_usd": 0.070148,
+  "text_tokens": 6688,
+  "image_calls": 1
+}

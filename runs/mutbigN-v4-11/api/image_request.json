@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-11\nFailing-trace sha256 (first 16 hex): 1d652946505f09de\nVerbatim diagnosis from the debug agent:\nFetch progress signal max_addr stuck at 0x00000000 with TRAP: no progress vs expected sequential advance through 256-word NOP mem; tohost FAIL 0xdead confirms zero fetch. CONE_SLICE is empty so trace wins. Root cause in excerpt at picorv32.v:1450 `do_waitirq <= 1` forces wait-for-IRQ stall every cycle, blocking decode/fetch; default must be 0 like surrounding decoder_pseudo_trigger/trace_valid defaults.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 1d652946505f09de in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "5ec74a4c7238b8007e84691ab72741a358b83f72053033fa0b311443d17989e1",
+  "trace_sha256": "1d652946505f09decb193e81a71ced54464a260d0d4417bcda63ab9fec7fefb7",
+  "diagnosis_sha256": "9796deec2cabaf597768ae226f6ed6c46a3a89535fb35b80b929fc7879cb404e",
+  "case": "mut-bigN-11",
+  "attempt": 1
+}

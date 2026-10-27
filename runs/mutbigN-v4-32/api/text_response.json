@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17e18-c0fa-71ae-a77b-da40ceafbbfa",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"256-word NOP (ADDI x0,x0,0, opcode 0010011) fetch traps with `TRAP: cpu trap asserted` and `FAIL 0xdead` instead of advancing. Expected `is_alu_reg_imm` to assert for opcode 0010011, but picorv32.v:877 compares to 7'b1010011 so it never asserts. Root cause is wrong opcode constant for `is_alu_reg_imm`, leaving all OP-IMM/NOP undecodable and causing illegal-instruction trap.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -874,6 +874,6 @@\\n \\t\\t\\tis_beq_bne_blt_bge_bltu_bgeu <= mem_rdata_latched[6:0] == 7'b1100011;\\n \\t\\t\\tis_lb_lh_lw_lbu_lhu          <= mem_rdata_latched[6:0] == 7'b0000011;\\n \\t\\t\\tis_sb_sh_sw                  <= mem_rdata_latched[6:0] == 7'b0100011;\\n-\\t\\t\\tis_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b1010011;\\n+\\t\\t\\tis_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;\\n \\t\\t\\tis_alu_reg_reg               <= mem_rdata_latched[6:0] == 7'b0110011;\\n\", \"expected\": \"tohost PASS (FAIL 0xdead cleared) with no TRAP: cpu trap asserted\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793116913,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 3363,
+      "prompt_tokens": 3448,
+      "total_tokens": 6811,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2975
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"256-word NOP (ADDI x0,x0,0, opcode 0010011) fetch traps with `TRAP: cpu trap asserted` and `FAIL 0xdead` instead of advancing. Expected `is_alu_reg_imm` to assert for opcode 0010011, but picorv32.v:877 compares to 7'b1010011 so it never asserts. Root cause is wrong opcode constant for `is_alu_reg_imm`, leaving all OP-IMM/NOP undecodable and causing illegal-instruction trap.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -874,6 +874,6 @@\\n \\t\\t\\tis_beq_bne_blt_bge_bltu_bgeu <= mem_rdata_latched[6:0] == 7'b1100011;\\n \\t\\t\\tis_lb_lh_lw_lbu_lhu          <= mem_rdata_latched[6:0] == 7'b0000011;\\n \\t\\t\\tis_sb_sh_sw                  <= mem_rdata_latched[6:0] == 7'b0100011;\\n-\\t\\t\\tis_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b1010011;\\n+\\t\\t\\tis_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;\\n \\t\\t\\tis_alu_reg_reg               <= mem_rdata_latched[6:0] == 7'b0110011;\\n\", \"expected\": \"tohost PASS (FAIL 0xdead cleared) with no TRAP: cpu trap asserted\"}",
+  "diagnosis": "256-word NOP (ADDI x0,x0,0, opcode 0010011) fetch traps with `TRAP: cpu trap asserted` and `FAIL 0xdead` instead of advancing. Expected `is_alu_reg_imm` to assert for opcode 0010011, but picorv32.v:877 compares to 7'b1010011 so it never asserts. Root cause is wrong opcode constant for `is_alu_reg_imm`, leaving all OP-IMM/NOP undecodable and causing illegal-instruction trap.",
+  "expected": "tohost PASS (FAIL 0xdead cleared) with no TRAP: cpu trap asserted",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 30784,
+  "request_id": "chatcmpl-01a17e18-c0fa-71ae-a77b-da40ceafbbfa",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 3363,
+    "prompt_tokens": 3448,
+    "total_tokens": 6811,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2975
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

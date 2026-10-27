@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-02\nFailing-trace sha256 (first 16 hex): d8813c0a5d66b9cd\nVerbatim diagnosis from the debug agent:\nFetch TB reports TRAP: no progress max_addr=0x00000000 vs expected sequential NOP fetch progress beyond 0x0. mem_done at picorv32.v:376-377 is stuck-high because `resetn && (...) || (!mem_la_firstword || ...)` is true whenever !mem_la_firstword, so it asserts without mem_xfer/mem_state. Root cause is `||` instead of `&&` gating the compressed-firstword completion term, letting fetch retire without data and never advance PC.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash d8813c0a5d66b9cd in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "d2533004dafeac1cd22563510f126476520a991b47b6623a379f7414e8b875bb",
+  "trace_sha256": "d8813c0a5d66b9cdfc3cad6564a521d9936aeeee4df0b21aa2bf4bef69ae80bd",
+  "diagnosis_sha256": "a1743bd067384482879ca0d9ebd8705817e52d7e177a41298321f1b002f8c807",
+  "case": "mut-bigN-02",
+  "attempt": 1
+}

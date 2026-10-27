@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-21\nFailing-trace sha256 (first 16 hex): 6b6cc0e1a8eae424\nVerbatim diagnosis from the debug agent:\n256-word NOP fetch expects aligned progress with no trap but trace shows TRAP: cpu trap asserted with tohost FAIL 0xdead vs expected PASS/no-trap. Trace window is sparse/unclear (only CYCLES=2009, no PC/opcode), so exact mis-decode cycle cannot be pinned. Root cause in excerpt picorv32.v:1446 `decoder_trigger <= mem_do_rinst || mem_done` spuriously re-triggers decoder on mem_done, corrupting fetch alignment and causing illegal trap; grounding picosoc/picosoc.v:146 cpu with picosoc/picosoc.v:149-155 mem_valid/mem_ready path, trace wins.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 6b6cc0e1a8eae424 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "6b01aebb9c6d823ef12d788aba77e2b0ee33cb6d26dbee365e00bd0ef1e1a691",
+  "trace_sha256": "6b6cc0e1a8eae424ceaa188794c3b258b4e3bbb93c25b6183873849e5ba089a1",
+  "diagnosis_sha256": "3466839fbc7269828b4492e0e125d408078790681d630dd4deb27f2f56cc3289",
+  "case": "mut-bigN-21",
+  "attempt": 2
+}

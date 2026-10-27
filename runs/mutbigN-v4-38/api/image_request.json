@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-38\nFailing-trace sha256 (first 16 hex): b41bb25ec4cb825d\nVerbatim diagnosis from the debug agent:\nLoopback with divider 64 sends 0xa5 but receives 0xf0, causing TRAP: uart data mismatch got 0xf0 want 0xa5 and tohost FAIL 0xdead. Root cause is TX shifter at excerpt line 131 `send_pattern <= {1'b0, send_pattern[9:1]};` shifting 0 instead of idle 1, so the 15-cycle reset dummy and post-byte idle drive ser_tx low creating a false start that mis-frames the receiver for the simpleuart instance (picosoc/picosoc.v:190, picosoc/picosoc.v:201, picosoc/simpleuart.v:20). Changing the fill to 1'b1 restores idle-high and correct framing so 0xa5 is received intact.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash b41bb25ec4cb825d in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "96eaf4f96997180476659f7069e3dce6d7947b04c35657b082d164e48b3bfadd",
+  "trace_sha256": "b41bb25ec4cb825dc22a0e6d20f67d3c4155cf242b632301e6017f6ec8be1e21",
+  "diagnosis_sha256": "693b8a63c59ca79963311406add1e628b5c9c2579d09d84a359748c3d3ecf48c",
+  "case": "mut-bigN-38",
+  "attempt": 1
+}

@@ -1,0 +1,133 @@
+{
+  "run_id": "mutbigN-v4-16",
+  "case_id": "mut-bigN-16",
+  "case": "mut-bigN-16",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T15:25:53Z",
+  "wall_end_utc": "2026-10-27T15:26:56Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 50276,
+      "text_request_id": "chatcmpl-01a17df8-8fb6-7067-b5ab-be38b5f9625f",
+      "diagnosis_chars": 434,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-16.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutbigN-v4-16",
+  "mutant_record": {
+    "file": "picorv32.v",
+    "line": 1498,
+    "before": "case (1'b1)",
+    "after": "case (1'b0)",
+    "seed": "1234",
+    "op": "constant_flip"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "mut-bigN-16",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "9bf5d2591144696f56ca014343e1655f97020c36292daceaf3f26e732301574d",
+  "cycles_before": 2009,
+  "red_baseline_tree_sha256": "2d4038dafa41ebf23a8b5d45e2fb97b7dbb335265892497236b4bb094b5d5bb7",
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 19,
+    "pack_tokens": 74,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "2080fe820d70f7aabd40f10fc9a76d0727e41350f42697222e617b4b652251ca",
+    "cone_lines": 0,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "max_addr",
+    "cone_files": 0,
+    "cone_source": "empty",
+    "cone_drivers": 0,
+    "harvest_lines": 23,
+    "harvest_tokens": 119,
+    "recall": [
+      [
+        "mutbigN-v3-43",
+        1.0
+      ],
+      [
+        "mutbigN-v3-01",
+        0.6
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 2,
+    "status": "ok"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 719,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "edbfa9074360f270673eec90585a025150b2df8547cfa02e61e5b1e5aa812e70",
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "image_latency_ms": 12079,
+  "image_request_id": "696aa771-33cf-4db5-949f-c842ad27c882",
+  "image_bytes": 1426622,
+  "text_latency_ms": 50276,
+  "text_request_id": "chatcmpl-01a17df8-8fb6-7067-b5ab-be38b5f9625f",
+  "api_usage": {
+    "completion_tokens": 4888,
+    "prompt_tokens": 1785,
+    "total_tokens": 6673,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4638
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "time_to_green_s": 62.9,
+  "est_usd": 0.072674,
+  "text_tokens": 6673,
+  "image_calls": 1
+}

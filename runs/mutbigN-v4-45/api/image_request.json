@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-45\nFailing-trace sha256 (first 16 hex): 1923e358cb3431cd\nVerbatim diagnosis from the debug agent:\nLoopback UART failed with TRAP: uart data mismatch got 0xfc want 0xa5 and tohost FAIL 0xdead via simpleuart instance at picosoc/picosoc.v:190 of module at picosoc/simpleuart.v:20. TX shifter at excerpt line 131 uses {1'b1, send_pattern[9:2]} which drops bit[1] each baud tick and mis-sizes the 10-bit frame loaded at line 126, corrupting ser_tx. Correct right-shift with idle-1 fill is {1'b1, send_pattern[9:1]} to preserve start/data/stop bits.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 1923e358cb3431cd in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "65b843a0cfbede9e17032da86cb778834b34a443cd18fb551c8bc52ced877940",
+  "trace_sha256": "1923e358cb3431cd68308557e02dac024d0f63f22eb65263078e5032c953edbe",
+  "diagnosis_sha256": "55eb8b0b8d0e6f31d5314785c8d5b54698c7df0f277e28946633b14c738d0a64",
+  "case": "mut-bigN-45",
+  "attempt": 1
+}

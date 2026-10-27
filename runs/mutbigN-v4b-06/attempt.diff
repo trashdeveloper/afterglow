@@ -1,0 +1,11 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -390,7 +390,7 @@
+ 	always @(posedge clk) begin
+ 		if (!resetn) begin
+-			mem_la_firstword_reg <= 0;
++			mem_la_firstword_reg <= 1;
+ 			last_mem_valid <= 0;
+ 		end else begin
+ 			if (!last_mem_valid)

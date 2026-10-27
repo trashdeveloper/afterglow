@@ -1,0 +1,8 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1057,3 +1057,3 @@
+-			instr_addi  <= is_alu_reg_imm && mem_rdata_q[14:12] != 3'b000;
++			instr_addi  <= is_alu_reg_imm && mem_rdata_q[14:12] == 3'b000;
+ 			instr_slti  <= is_alu_reg_imm && mem_rdata_q[14:12] == 3'b010;
+ 			instr_sltiu <= is_alu_reg_imm && mem_rdata_q[14:12] == 3'b011;

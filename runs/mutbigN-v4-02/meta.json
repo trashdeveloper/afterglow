@@ -1,0 +1,138 @@
+{
+  "run_id": "mutbigN-v4-02",
+  "case_id": "mut-bigN-02",
+  "case": "mut-bigN-02",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T14:25:28Z",
+  "wall_end_utc": "2026-10-27T14:35:00Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 48769,
+      "text_request_id": "chatcmpl-01a17dc8-ed1e-7439-a339-53f27a68a8cc",
+      "diagnosis_chars": 427,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-02.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutbigN-v4-02",
+  "mutant_record": {
+    "file": "picorv32.v",
+    "line": 376,
+    "before": "wire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) || (&mem_state && mem_do_rinst)) &&",
+    "after": "wire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) || (&mem_state && mem_do_rinst)) ||",
+    "seed": "1234",
+    "op": "logic_swap"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "mut-bigN-02",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+  "cycles_before": 2009,
+  "red_baseline_tree_sha256": "97c972a9d06f6dee7f84df33cb398a40efb8696f6fc998e73a9e7c75ac76d298",
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 19,
+    "pack_tokens": 74,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "938a85fe28aaaf8b96f8867985008bad95bae23b0ef98dea0406753390994e81",
+    "cone_lines": 0,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "max_addr",
+    "cone_files": 0,
+    "cone_source": "empty",
+    "cone_drivers": 0,
+    "harvest_lines": 23,
+    "harvest_tokens": 119,
+    "recall": [
+      [
+        "mutbigN-v3-01",
+        1.0
+      ],
+      [
+        "mutbigN-v3-03",
+        1.0
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 2,
+    "status": "ok"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 795,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "d8813c0a5d66b9cdfc3cad6564a521d9936aeeee4df0b21aa2bf4bef69ae80bd",
+  "attempts_consumed": 1,
+  "transport_retries": [
+    5.019335036174171,
+    22.31424211126189,
+    6.556991419908389,
+    29.078369033913845
+  ],
+  "transport_failures": 1,
+  "image_latency_ms": 17249,
+  "image_request_id": "4214a388-b15c-4370-bbee-92d0b98f256a",
+  "image_bytes": 1724428,
+  "text_latency_ms": 48769,
+  "text_request_id": "chatcmpl-01a17dc8-ed1e-7439-a339-53f27a68a8cc",
+  "api_usage": {
+    "completion_tokens": 4771,
+    "prompt_tokens": 2048,
+    "total_tokens": 6819,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4426
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 2033
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "time_to_green_s": 571.2,
+  "est_usd": 0.072264,
+  "text_tokens": 6819,
+  "image_calls": 1
+}

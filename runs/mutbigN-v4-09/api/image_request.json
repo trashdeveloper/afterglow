@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-09\nFailing-trace sha256 (first 16 hex): 73e9dbc7e90dc08c\nVerbatim diagnosis from the debug agent:\nTrace shows TRAP: cpu trap asserted with tohost FAIL 0xdead on legal NOP (instr_addi) where instr_trap should be 0. CONE_SLICE picosoc/picosoc.v:146 only shows cpu instantiation with coverage 0/1 resolved, so trace wins per grounding rule. Root cause in excerpt line 679 is `assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) || !{...}` using OR, which forces trap=1 whenever the enable is set regardless of decode.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 73e9dbc7e90dc08c in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "ac98b666c4f459ff392a9f086affd0e13e9ca02c2c7c2c6d6c9f02ba6926ee61",
+  "trace_sha256": "73e9dbc7e90dc08cb14ab65b752d77cee59bf1c7c1afae72fb45d9d03cce65c5",
+  "diagnosis_sha256": "2ec564c12c1496ab96cf044bf1507ec53707090e8352f296cd56e75cb4b07d82",
+  "case": "mut-bigN-09",
+  "attempt": 1
+}

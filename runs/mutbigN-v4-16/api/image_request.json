@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-16\nFailing-trace sha256 (first 16 hex): edbfa9074360f270\nVerbatim diagnosis from the debug agent:\nFetch TB reports TRAP: no progress max_addr=0x00000004 with tohost FAIL 0xdead instead of advancing through 256 NOPs. Excerpt picorv32.v:1498 uses case (1'b0) so zero-valued guards match, causing the ENABLE_IRQ and branch/store arms to fire when false and forcing current_pc to PROGADDR_IRQ/wrong target. That spurious redirect stalls PC at low addresses, explaining max_addr 0x4 and dead 2009 cycles; correct selector is case (1'b1).\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash edbfa9074360f270 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "907fba95b479792b958edb15a31ed10b4ae3881dbb256e4c7b9b31d81ffbe3b4",
+  "trace_sha256": "edbfa9074360f270673eec90585a025150b2df8547cfa02e61e5b1e5aa812e70",
+  "diagnosis_sha256": "d776f5027d516d43110ebef56a77c05c59dc6d0cf58dfbf1f015c41b2e0a4be6",
+  "case": "mut-bigN-16",
+  "attempt": 1
+}

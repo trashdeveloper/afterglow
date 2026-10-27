@@ -1,0 +1,133 @@
+{
+  "run_id": "mutbigN-v4-07",
+  "case_id": "mut-bigN-07",
+  "case": "mut-bigN-07",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T14:54:59Z",
+  "wall_end_utc": "2026-10-27T14:56:27Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 35703,
+      "text_request_id": "chatcmpl-01a17ddc-0ab3-749e-ae42-a656244ca384",
+      "diagnosis_chars": 533,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-07.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutbigN-v4-07",
+  "mutant_record": {
+    "file": "picorv32.v",
+    "line": 877,
+    "before": "is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;",
+    "after": "is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0011011;",
+    "seed": "1234",
+    "op": "constant_flip"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "mut-bigN-07",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+  "cycles_before": 2009,
+  "red_baseline_tree_sha256": "18b2e4a1db48bea22fa628c03ea6a20f6bcd99ac2a50cecea7ccd8e757f520be",
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 79,
+    "pack_tokens": 308,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "d52ca6bb4e446a3edfed66d96bace0902aae1d58d3df04abdc934f249c056cfc",
+    "cone_lines": 61,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "asserted",
+    "cone_files": 1,
+    "cone_source": "fallback-window",
+    "cone_drivers": 0,
+    "harvest_lines": 83,
+    "harvest_tokens": 353,
+    "recall": [
+      [
+        "mutbigN-v3-05",
+        1.0
+      ],
+      [
+        "mutbigN-v3-09",
+        1.0
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 1,
+    "status": "ok"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 1016,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "a43d75f76956f31d120ea863fec6b669284734d91ff6094c33cac6ed8030a443",
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "image_latency_ms": 52172,
+  "image_request_id": "4502f0eb-0963-41a5-b90b-bf697822db93",
+  "image_bytes": 1368699,
+  "text_latency_ms": 35703,
+  "text_request_id": "chatcmpl-01a17ddc-0ab3-749e-ae42-a656244ca384",
+  "api_usage": {
+    "completion_tokens": 3732,
+    "prompt_tokens": 3448,
+    "total_tokens": 7180,
+    "completion_tokens_details": {
+      "reasoning_tokens": 3285
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "time_to_green_s": 88.5,
+  "est_usd": 0.066752,
+  "text_tokens": 7180,
+  "image_calls": 1
+}

@@ -1,0 +1,10 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -123,9 +123,9 @@
+ 			end else
+ 			if (reg_dat_we && !send_bitcnt) begin
+-				send_pattern <= {1'b1, reg_dat_di[7:0], 1'b1};
++				send_pattern <= {1'b1, reg_dat_di[7:0], 1'b0};
+ 				send_bitcnt <= 10;
+ 				send_divcnt <= 0;

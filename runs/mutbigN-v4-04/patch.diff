@@ -1,0 +1,10 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -566,5 +566,5 @@
+ 		if (!resetn || trap) begin
+ 			if (!resetn)
+-				mem_state <= 1;
++				mem_state <= 0;
+ 			if (!resetn || mem_ready)
+ 				mem_valid <= 0;

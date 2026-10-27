@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-30\nFailing-trace sha256 (first 16 hex): 135985a57e64dfcf\nVerbatim diagnosis from the debug agent:\nWith COMPRESSED_ISA enabled (picosoc/picosoc.v:139) the 256-word NOP fetch test traps with `TRAP: cpu trap asserted` / `FAIL 0xdead` instead of progressing. At picorv32.v:388 `mem_rdata_latched` for `mem_la_firstword` selects `mem_rdata_latched_noshuffle[31:16]` (0x0000 illegal) instead of `[15:0]` (0x0013 NOP low-half) per picorv32.v:386-387 shuffle context. This mis-shuffle injects illegal 0x0000 on aligned fetches and causes the trap.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 135985a57e64dfcf in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "f9f4d1a22177ed5f9d1d188e30cd74ed3e5850439fcb2f419adb28d6c36441f6",
+  "trace_sha256": "135985a57e64dfcf170f3640e392fa1942f787e99fe1cb5de8a18144b59c9239",
+  "diagnosis_sha256": "7b0bad2615e922f072591bc985705b998ddf04580a64d1b9d3ed2901da061301",
+  "case": "mut-bigN-30",
+  "attempt": 1
+}

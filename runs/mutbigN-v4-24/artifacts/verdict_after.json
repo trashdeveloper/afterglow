@@ -1,0 +1,9 @@
+{
+  "case": "mut-bigN-24",
+  "pass": true,
+  "tohost": "PASS",
+  "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles": 2009,
+  "seed": 42,
+  "sim_time_utc": "2026-10-27T15:47:12Z"
+}

@@ -1,0 +1,12 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -889,7 +889,7 @@
+ 			if (mem_rdata_latched[6:0] == 7'b0001011 && mem_rdata_latched[31:25] == 7'b0000010 && ENABLE_IRQ)
+ 				decoded_rs1 <= ENABLE_IRQ_QREGS ? irqregs_offset : 3; // instr_retirq
+ 
+-			compressed_instr <= 1;
++			compressed_instr <= 0;
+ 			if (COMPRESSED_ISA && mem_rdata_latched[1:0] != 2'b11) begin
+ 				compressed_instr <= 1;
+ 				decoded_rd <= 0;

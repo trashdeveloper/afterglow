@@ -1,0 +1,8 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1497,3 +1497,3 @@
+ 				(* parallel_case *)
+-				case (1'b0)
++				case (1'b1)
+ 					latched_branch: begin

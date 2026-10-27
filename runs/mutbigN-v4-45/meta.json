@@ -1,0 +1,133 @@
+{
+  "run_id": "mutbigN-v4-45",
+  "case_id": "mut-bigN-45",
+  "case": "mut-bigN-45",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T16:13:09Z",
+  "wall_end_utc": "2026-10-27T16:14:27Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 43253,
+      "text_request_id": "chatcmpl-01a17e23-ba77-72b5-a331-6928dc926778",
+      "diagnosis_chars": 445,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-45.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutbigN-v4-45",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 131,
+    "before": "send_pattern <= {1'b1, send_pattern[9:1]};",
+    "after": "send_pattern <= {1'b1, send_pattern[9:2]};",
+    "seed": "1234",
+    "op": "num_bump"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-bigN-45",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "81da732e94fc072e4bfde6dbde0f87fc64d6bd1ce2626374b0f08525d89d43af",
+  "cycles_before": 2652,
+  "red_baseline_tree_sha256": "a53cc5a48652400a0c59f88b0fa925be646dd9766e0f44043328b0702e924d66",
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 36,
+    "pack_tokens": 180,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "7ee79c1b47af4b2ba89eee6c10786505ecbc8093bc261eea337fdf3cc2d65c06",
+    "cone_lines": 18,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "uart",
+    "cone_files": 2,
+    "cone_source": "static",
+    "cone_drivers": 0,
+    "harvest_lines": 40,
+    "harvest_tokens": 233,
+    "recall": [
+      [
+        "ablate-v3-uartdiv",
+        0.6
+      ],
+      [
+        "mut-live-02-v3",
+        0.6
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 1,
+    "status": "ok"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 818,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "1923e358cb3431cd68308557e02dac024d0f63f22eb65263078e5032c953edbe",
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "image_latency_ms": 34164,
+  "image_request_id": "55605149-5dc0-4926-afd4-c4006ecc4b25",
+  "image_bytes": 1370367,
+  "text_latency_ms": 43253,
+  "text_request_id": "chatcmpl-01a17e23-ba77-72b5-a331-6928dc926778",
+  "api_usage": {
+    "completion_tokens": 4377,
+    "prompt_tokens": 2157,
+    "total_tokens": 6534,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4056
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 77.9,
+  "est_usd": 0.06933,
+  "text_tokens": 6534,
+  "image_calls": 1
+}

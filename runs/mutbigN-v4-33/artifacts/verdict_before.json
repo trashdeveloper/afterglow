@@ -1,0 +1,9 @@
+{
+  "case": "mut-bigN-33",
+  "pass": false,
+  "tohost": "FAIL 0xdead",
+  "checksum": "b6e0169fb7c409f1a6e23cdf77f846d41e48405df0444f0d3c56f6ec28770cef",
+  "cycles": 2652,
+  "seed": 42,
+  "sim_time_utc": "2026-10-27T16:02:15Z"
+}

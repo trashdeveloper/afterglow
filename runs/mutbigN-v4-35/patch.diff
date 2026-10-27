@@ -1,0 +1,11 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -77,7 +77,7 @@
+ 			case (recv_state)
+ 				0: begin
+ 					if (!ser_rx)
+-						recv_state <= 0;
++						recv_state <= 1;
+ 					recv_divcnt <= 0;
+ 				end

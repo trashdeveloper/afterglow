@@ -1,0 +1,10 @@
+{
+  "fingerprint": "d52ca6bb4e446a3edfed66d96bace0902aae1d58d3df04abdc934f249c056cfc",
+  "trap_line": "TRAP: cpu trap asserted",
+  "oracle_sig": "FAIL 0xdead",
+  "signals": [
+    "asserted",
+    "cpu",
+    "xdead"
+  ]
+}

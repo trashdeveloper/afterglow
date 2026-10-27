@@ -1,0 +1,133 @@
+{
+  "run_id": "mutbigN-v4-27",
+  "case_id": "mut-bigN-27",
+  "case": "mut-bigN-27",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T15:50:18Z",
+  "wall_end_utc": "2026-10-27T15:50:55Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 22319,
+      "text_request_id": "chatcmpl-01a17e0e-7b34-7005-9a14-2887ed60f663",
+      "diagnosis_chars": 377,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-27.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutbigN-v4-27",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 74,
+    "before": "recv_divcnt <= recv_divcnt + 1;",
+    "after": "recv_divcnt <= recv_divcnt + 0;",
+    "seed": "1234",
+    "op": "num_bump"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-bigN-27",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+  "cycles_before": 22023,
+  "red_baseline_tree_sha256": "152a49c26e22f631f18e700943023b22bdd04a8d43559ae6e6626f4633f85a36",
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 65,
+    "pack_tokens": 310,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "bf263cfe722478d447eda314288bdbea85be5874e177a35cafb50f67fc9c1e8e",
+    "cone_lines": 47,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "byte",
+    "cone_files": 4,
+    "cone_source": "static",
+    "cone_drivers": 0,
+    "harvest_lines": 69,
+    "harvest_tokens": 359,
+    "recall": [
+      [
+        "mut-live-01-v3",
+        1.0
+      ],
+      [
+        "mut-live-03-v3",
+        1.0
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 0,
+    "status": "ok"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 66,
+  "prompt_tokens": 949,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "13aee43435042174d524cf9ed44de1cf2483d0f8556f3b3fe20610177ffee711",
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "image_latency_ms": 14886,
+  "image_request_id": "13a886a4-e992-4aeb-9f5f-d012a40a3cbe",
+  "image_bytes": 1233824,
+  "text_latency_ms": 22319,
+  "text_request_id": "chatcmpl-01a17e0e-7b34-7005-9a14-2887ed60f663",
+  "api_usage": {
+    "completion_tokens": 2314,
+    "prompt_tokens": 2569,
+    "total_tokens": 4883,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2012
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 37.7,
+  "est_usd": 0.05365,
+  "text_tokens": 4883,
+  "image_calls": 1
+}

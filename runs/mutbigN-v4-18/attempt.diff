@@ -1,0 +1,10 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -874,5 +874,5 @@
+ 			is_beq_bne_blt_bge_bltu_bgeu <= mem_rdata_latched[6:0] == 7'b1100011;
+ 			is_lb_lh_lw_lbu_lhu          <= mem_rdata_latched[6:0] == 7'b0000011;
+ 			is_sb_sh_sw                  <= mem_rdata_latched[6:0] == 7'b0100011;
+-			is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010001;
++			is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;
+ 			is_alu_reg_reg               <= mem_rdata_latched[6:0] == 7'b0110011;

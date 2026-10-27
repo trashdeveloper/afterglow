@@ -1,0 +1,143 @@
+{
+  "run_id": "mutbigN-v4b-06",
+  "case_id": "mut-bigN-06",
+  "case": "mut-bigN-06",
+  "mode": "live",
+  "status": "red",
+  "retries": 1,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-27T16:14:46Z",
+  "wall_end_utc": "2026-10-27T16:33:48Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": false,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 54640,
+      "text_request_id": "chatcmpl-01a17e29-4c70-7179-adb6-f2b82e8cd38c",
+      "diagnosis_chars": 395,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": true,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": true,
+  "ladder_used": false,
+  "ladder_reason": "transport-failures-present (3 transport failures; flakes never unlock the ladder)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-06.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutbigN-v4b-06",
+  "mutant_record": {
+    "file": "picorv32.v",
+    "line": 582,
+    "before": "0: begin",
+    "after": "1: begin",
+    "seed": "1234",
+    "op": "num_bump"
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "mut-bigN-06",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+  "cycles_before": 2009,
+  "red_baseline_tree_sha256": "11b653625e1b9374e856e013817fe62f40e6131eeff68ec95763aed985145757",
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 19,
+    "pack_tokens": 74,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "938a85fe28aaaf8b96f8867985008bad95bae23b0ef98dea0406753390994e81",
+    "cone_lines": 0,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "max_addr",
+    "cone_files": 0,
+    "cone_source": "empty",
+    "cone_drivers": 0,
+    "harvest_lines": 23,
+    "harvest_tokens": 119,
+    "recall": [
+      [
+        "mutbigN-v3-01",
+        1.0
+      ],
+      [
+        "mutbigN-v3-02",
+        1.0
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 0,
+    "status": "ok"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 706,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "4c9e2ecf8110620261f2169336700460f61f6e554d14b9cbe77b22c2f25b601e",
+  "attempts_consumed": 1,
+  "transport_retries": [
+    6.118727947382938,
+    23.87050758657255,
+    5.678405339490751,
+    28.363355578972836,
+    6.412215831520549,
+    21.974888763796727,
+    9.08219486597639,
+    15.578949279449334
+  ],
+  "transport_failures": 3,
+  "image_latency_ms": 22800,
+  "image_request_id": "4f18979f-2662-4bcf-8ebc-d8539728e17e",
+  "image_bytes": 1262787,
+  "text_latency_ms": 54640,
+  "text_request_id": "chatcmpl-01a17e29-4c70-7179-adb6-f2b82e8cd38c",
+  "api_usage": {
+    "completion_tokens": 5926,
+    "prompt_tokens": 1780,
+    "total_tokens": 7706,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5608
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "FAIL 0xdead",
+  "checksum_after": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+  "cycles_after": 2009,
+  "error": "live text API failed after 3 transport failures (1 diagnostic attempts completed): live text call returned EMPTY content (latency 86936ms, request chatcmpl-01a17e35-f77c-750a-928b-1a6b19fb09f7); refusing to invent a diagnosis (no heuristic fallback)",
+  "time_to_green_s": 1141.7,
+  "est_usd": 0.080968,
+  "text_tokens": 7706,
+  "image_calls": 1
+}

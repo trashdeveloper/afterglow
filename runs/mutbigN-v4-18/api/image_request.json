@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-18\nFailing-trace sha256 (first 16 hex): 54f4005256c1bf49\nVerbatim diagnosis from the debug agent:\nTrace shows 256-word NOP fetch test ending in TRAP: cpu trap asserted with tohost FAIL 0xdead at CYCLES=2009. NOP is ADDI x0,x0,0 with opcode 7'b0010011, but picorv32.v:877 compares is_alu_reg_imm to 7'b0010001 so decode never asserts and CPU traps as illegal. CONE_SLICE is fallback-window (picosoc/picosoc.v:146 cpu instantiation, picosoc/picosoc.v:127 mem_ready) with no decode refs, so trace+excerpt win and root cause is the single-bit opcode typo at picorv32.v:877.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 54f4005256c1bf49 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "7de96bcc19c80934aaf8cb5c5c57b9cf95bb177ee83debb18915f6c740d5db99",
+  "trace_sha256": "54f4005256c1bf491364b648979bd67e87f7cfcd4dcb001a734caf096e0aba6a",
+  "diagnosis_sha256": "12d30c09056230fffffa97eb058540da26672eccad5690556c5d10768f126e78",
+  "case": "mut-bigN-18",
+  "attempt": 1
+}

@@ -1,0 +1,8 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1583,3 +1583,3 @@
+ 				(* parallel_case *)
+-				case (1'b0)
++				case (1'b1)
+ 					(CATCH_ILLINSN || WITH_PCPI) && instr_trap: begin

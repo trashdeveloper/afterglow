@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-40\nFailing-trace sha256 (first 16 hex): c744c48f1a132227\nVerbatim diagnosis from the debug agent:\nFetch test uses 256 32-bit NOPs (mem_rdata_latched[1:0]==2'b11) expecting compressed_instr==0 and 4-byte advance with no trap. Excerpt defaults compressed_instr<=1 at line 892 and re-asserts <=1 at line 894, so 32-bit instructions are misclassified as compressed. This causes 2-byte stepping, misaligned fetches, and TRAP: cpu trap asserted / FAIL 0xdead.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash c744c48f1a132227 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "5970f19b326f6732435fa932b2c1f73e31ea6a776411f72feb77cda54538f272",
+  "trace_sha256": "c744c48f1a132227c03ee1fa4913519723122f175e519f6b9246b6511240ae7d",
+  "diagnosis_sha256": "77234d63531347ac8c9306ce246949bc81751222eb89504b54f1bb46e6e869f1",
+  "case": "mut-bigN-40",
+  "attempt": 1
+}

@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17e22-47df-724d-a94c-82e320ce624a",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Fetch makes no progress with max_addr=0x00000004 and TRAP: no progress vs expected sequential progress through 256-word NOP mem. is_beq_bne_blt_bge_bltu_bgeu is 1 for NOPs vs expected 0, misclassifying every non-branch as a branch and corrupting is_compare/next-PC. Root cause at picorv32.v:874 which uses != 7'b1100011 instead of == 7'b1100011 for branch-opcode decode; CONE_SLICE empty so trace wins.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -874,4 +874,4 @@\\n-\\t\\t\\tis_beq_bne_blt_bge_bltu_bgeu <= mem_rdata_latched[6:0] != 7'b1100011;\\n+\\t\\t\\tis_beq_bne_blt_bge_bltu_bgeu <= mem_rdata_latched[6:0] == 7'b1100011;\\n \\t\\t\\tis_lb_lh_lw_lbu_lhu          <= mem_rdata_latched[6:0] == 7'b0000011;\\n \\t\\t\\tis_sb_sh_sw                  <= mem_rdata_latched[6:0] == 7'b0100011;\\n \\t\\t\\tis_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;\", \"expected\": \"tohost PASS (not FAIL 0xdead), no TRAP: no progress, max_addr advances beyond 0x00000004\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793117538,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 3246,
+      "prompt_tokens": 2197,
+      "total_tokens": 5443,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2870
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Fetch makes no progress with max_addr=0x00000004 and TRAP: no progress vs expected sequential progress through 256-word NOP mem. is_beq_bne_blt_bge_bltu_bgeu is 1 for NOPs vs expected 0, misclassifying every non-branch as a branch and corrupting is_compare/next-PC. Root cause at picorv32.v:874 which uses != 7'b1100011 instead of == 7'b1100011 for branch-opcode decode; CONE_SLICE empty so trace wins.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -874,4 +874,4 @@\\n-\\t\\t\\tis_beq_bne_blt_bge_bltu_bgeu <= mem_rdata_latched[6:0] != 7'b1100011;\\n+\\t\\t\\tis_beq_bne_blt_bge_bltu_bgeu <= mem_rdata_latched[6:0] == 7'b1100011;\\n \\t\\t\\tis_lb_lh_lw_lbu_lhu          <= mem_rdata_latched[6:0] == 7'b0000011;\\n \\t\\t\\tis_sb_sh_sw                  <= mem_rdata_latched[6:0] == 7'b0100011;\\n \\t\\t\\tis_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;\", \"expected\": \"tohost PASS (not FAIL 0xdead), no TRAP: no progress, max_addr advances beyond 0x00000004\"}",
+  "diagnosis": "Fetch makes no progress with max_addr=0x00000004 and TRAP: no progress vs expected sequential progress through 256-word NOP mem. is_beq_bne_blt_bge_bltu_bgeu is 1 for NOPs vs expected 0, misclassifying every non-branch as a branch and corrupting is_compare/next-PC. Root cause at picorv32.v:874 which uses != 7'b1100011 instead of == 7'b1100011 for branch-opcode decode; CONE_SLICE empty so trace wins.",
+  "expected": "tohost PASS (not FAIL 0xdead), no TRAP: no progress, max_addr advances beyond 0x00000004",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 27580,
+  "request_id": "chatcmpl-01a17e22-47df-724d-a94c-82e320ce624a",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 3246,
+    "prompt_tokens": 2197,
+    "total_tokens": 5443,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2870
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,12 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1446,7 +1446,7 @@
+ 		decoder_trigger <= mem_do_rinst || mem_done;
+ 		decoder_trigger_q <= decoder_trigger;
+ 		decoder_pseudo_trigger <= 0;
+ 		decoder_pseudo_trigger_q <= decoder_pseudo_trigger;
+ 		do_waitirq <= 0;
+ 
+ 		trace_valid <= 0;
++ 		decoder_trigger <= mem_do_rinst;
