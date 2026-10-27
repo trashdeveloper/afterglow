@@ -1,0 +1,2676 @@
+{
+  "seed": 42,
+  "mutants": [
+    {
+      "mutant_id": "mut-bigN-01",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "logic_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-02",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "logic_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-03",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "logic_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-04",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-05",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "constant_flip"
+    },
+    {
+      "mutant_id": "mut-bigN-06",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-07",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "constant_flip"
+    },
+    {
+      "mutant_id": "mut-bigN-08",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-09",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "logic_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-10",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-11",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-12",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-13",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-14",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "constant_flip"
+    },
+    {
+      "mutant_id": "mut-bigN-15",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-16",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "constant_flip"
+    },
+    {
+      "mutant_id": "mut-bigN-17",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "logic_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-18",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "constant_flip"
+    },
+    {
+      "mutant_id": "mut-bigN-19",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "logic_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-20",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-21",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "logic_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-22",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-23",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "constant_flip"
+    },
+    {
+      "mutant_id": "mut-bigN-24",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "logic_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-25",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-26",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "logic_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-27",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-28",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "constant_flip"
+    },
+    {
+      "mutant_id": "mut-bigN-29",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-30",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "logic_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-31",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "constant_flip"
+    },
+    {
+      "mutant_id": "mut-bigN-32",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "constant_flip"
+    },
+    {
+      "mutant_id": "mut-bigN-33",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-34",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-35",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-36",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-37",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-38",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "constant_flip"
+    },
+    {
+      "mutant_id": "mut-bigN-39",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "cmp_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-40",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-41",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-bigN-42",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "logic_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-43",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "cmp_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-44",
+      "parent_case": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "mutant_file": "picorv32.v",
+      "mutant_op": "cmp_swap"
+    },
+    {
+      "mutant_id": "mut-bigN-45",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-pilot-01",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-pilot-02",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-pilot-03",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-pilot-04",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    },
+    {
+      "mutant_id": "mut-pilot-05",
+      "parent_case": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "mutant_file": "picosoc/simpleuart.v",
+      "mutant_op": "num_bump"
+    }
+  ],
+  "harnesses": {
+    "fetch": {
+      "stem": "picorv32-fetch-misalign",
+      "tb": "picorv32-fetch_tb.sv",
+      "project": "picorv32",
+      "files": [
+        "picorv32.v"
+      ],
+      "top": "tb_picorv32_fetch"
+    },
+    "uart": {
+      "stem": "picosoc-uart-div",
+      "tb": "picosoc-uart-div_tb.sv",
+      "project": "picorv32",
+      "files": [
+        "picosoc/simpleuart.v"
+      ],
+      "top": "tb_picosoc_uart"
+    },
+    "decode": {
+      "stem": "picorv32-fetch-decode",
+      "tb": "picorv32-fetch-decode_tb.sv",
+      "project": "picorv32",
+      "files": [
+        "picorv32.v"
+      ],
+      "top": "tb_picorv32_fetch_decode"
+    },
+    "serv": {
+      "stem": "serv-alu-lut",
+      "tb": "serv-alu-lut_tb.sv",
+      "project": "serv",
+      "files": [
+        "rtl/serv_alu.v"
+      ],
+      "top": "tb_serv_alu"
+    }
+  },
+  "baselines": {
+    "fetch": {
+      "pass": true,
+      "tohost": "PASS",
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "cycles": 2009,
+      "build_s": 0.2,
+      "run_s": 0.0,
+      "total_s": 0.2
+    },
+    "uart": {
+      "pass": true,
+      "tohost": "PASS",
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "cycles": 2652,
+      "build_s": 0.1,
+      "run_s": 0.0,
+      "total_s": 0.1
+    },
+    "decode": {
+      "pass": true,
+      "tohost": "PASS",
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "cycles": 2009,
+      "build_s": 0.1,
+      "run_s": 0.0,
+      "total_s": 0.1
+    },
+    "serv": {
+      "pass": true,
+      "tohost": "PASS",
+      "checksum": "b028b1819a27c7c25a0f35f0416adc6b11b8397bf873b993fb7495fde58f7276",
+      "cycles": 24,
+      "build_s": 0.1,
+      "run_s": 0.0,
+      "total_s": 0.1
+    }
+  },
+  "cells": [
+    {
+      "mutant_id": "mut-bigN-01",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "e786e5c9e644a8c59162fafd0b4d90ce6b2940e23f30cc9b39463a2fb06741da",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x00000000 x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-01",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-01",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-01",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-02",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "e786e5c9e644a8c59162fafd0b4d90ce6b2940e23f30cc9b39463a2fb06741da",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x00000000 x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-02",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-02",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-02",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-03",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "e786e5c9e644a8c59162fafd0b4d90ce6b2940e23f30cc9b39463a2fb06741da",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x00000000 x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-03",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-03",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-03",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-04",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "e786e5c9e644a8c59162fafd0b4d90ce6b2940e23f30cc9b39463a2fb06741da",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x00000000 x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-04",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-04",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-04",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-05",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-05",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-05",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-05",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-06",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "e786e5c9e644a8c59162fafd0b4d90ce6b2940e23f30cc9b39463a2fb06741da",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x00000000 x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-06",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-06",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-06",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-07",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-07",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-07",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-07",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-08",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-08",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-08",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-08",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 22023,
+      "checksum": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart timeout, no byte received"
+    },
+    {
+      "mutant_id": "mut-bigN-09",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-09",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-09",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-09",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-10",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "b0b74d4ae27f9c3dbdb52f2d7de472594878facf9c277a67d30f849ea60e516a",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x0000007b x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-10",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-10",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-10",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-11",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "e786e5c9e644a8c59162fafd0b4d90ce6b2940e23f30cc9b39463a2fb06741da",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x00000000 x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-11",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-11",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-11",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-12",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-12",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-12",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-12",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2024,
+      "checksum": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart data mismatch got 0xff want 0xa5"
+    },
+    {
+      "mutant_id": "mut-bigN-13",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "b0b74d4ae27f9c3dbdb52f2d7de472594878facf9c277a67d30f849ea60e516a",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x0000007b x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-13",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-13",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-13",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-14",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-14",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-14",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-14",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2784,
+      "checksum": "7d14ca6bc103c3e2eeed06f49d56ff4c4175e9a4e83eec9e4b8cd0839ddbb4d0",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart data mismatch got 0xe9 want 0xa5"
+    },
+    {
+      "mutant_id": "mut-bigN-15",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-15",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-15",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-15",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 22023,
+      "checksum": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart timeout, no byte received"
+    },
+    {
+      "mutant_id": "mut-bigN-16",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-16",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "9bf5d2591144696f56ca014343e1655f97020c36292daceaf3f26e732301574d",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000004"
+    },
+    {
+      "mutant_id": "mut-bigN-16",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-16",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-17",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "b0b74d4ae27f9c3dbdb52f2d7de472594878facf9c277a67d30f849ea60e516a",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x0000007b x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-17",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-17",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-17",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-18",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-18",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-18",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-18",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-19",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "b0b74d4ae27f9c3dbdb52f2d7de472594878facf9c277a67d30f849ea60e516a",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x0000007b x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-19",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-19",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-19",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-20",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "e786e5c9e644a8c59162fafd0b4d90ce6b2940e23f30cc9b39463a2fb06741da",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x00000000 x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-20",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-20",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-20",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-21",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-21",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-21",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-21",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-22",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-22",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-22",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-22",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 22023,
+      "checksum": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart timeout, no byte received"
+    },
+    {
+      "mutant_id": "mut-bigN-23",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-23",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-23",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-23",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-24",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-24",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-24",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-24",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-25",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "b0b74d4ae27f9c3dbdb52f2d7de472594878facf9c277a67d30f849ea60e516a",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x0000007b x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-25",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-25",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-25",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-26",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "e786e5c9e644a8c59162fafd0b4d90ce6b2940e23f30cc9b39463a2fb06741da",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x00000000 x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-26",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-26",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-26",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-27",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-27",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-27",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-27",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 22023,
+      "checksum": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart timeout, no byte received"
+    },
+    {
+      "mutant_id": "mut-bigN-28",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-28",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-28",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-28",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-29",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-29",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-29",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-29",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2684,
+      "checksum": "7ead7d9c1ebd862283bf0991c6a01fd4f7dad63f24f2be953b7f57e1f7edd073",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart data mismatch got 0xd2 want 0xa5"
+    },
+    {
+      "mutant_id": "mut-bigN-30",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-30",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-30",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-30",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-31",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-31",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-31",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-31",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-32",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-32",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-32",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-32",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-33",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-33",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-33",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-33",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2652,
+      "checksum": "b6e0169fb7c409f1a6e23cdf77f846d41e48405df0444f0d3c56f6ec28770cef",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart data mismatch got 0x01 want 0xa5"
+    },
+    {
+      "mutant_id": "mut-bigN-34",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-34",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-34",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-34",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2024,
+      "checksum": "1a01e3dd7554c28fc4f88add55dab14e0af721c0bb643827dbea0abf6c429e3c",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart data mismatch got 0x00 want 0xa5"
+    },
+    {
+      "mutant_id": "mut-bigN-35",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-35",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-35",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-35",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 22023,
+      "checksum": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart timeout, no byte received"
+    },
+    {
+      "mutant_id": "mut-bigN-36",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-36",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-36",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-36",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 22023,
+      "checksum": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart timeout, no byte received"
+    },
+    {
+      "mutant_id": "mut-bigN-37",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-37",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-37",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-37",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2652,
+      "checksum": "dbb50cbb61b3704d4ab04bba47dd54874597339897bb0d0354152efa03feeb20",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart data mismatch got 0x00 want 0xa5"
+    },
+    {
+      "mutant_id": "mut-bigN-38",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-38",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-38",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-38",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2024,
+      "checksum": "7f1f8653d81beffbf56c64348d4b664a9ffa3b217fbca29ca6a0e86da0c3cbf9",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart data mismatch got 0xf0 want 0xa5"
+    },
+    {
+      "mutant_id": "mut-bigN-39",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-39",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-39",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-39",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-40",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-40",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-40",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-40",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-41",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-41",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-41",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-41",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 22023,
+      "checksum": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart timeout, no byte received"
+    },
+    {
+      "mutant_id": "mut-bigN-42",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "e786e5c9e644a8c59162fafd0b4d90ce6b2940e23f30cc9b39463a2fb06741da",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x00000000 x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-42",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-42",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-42",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-43",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "e786e5c9e644a8c59162fafd0b4d90ce6b2940e23f30cc9b39463a2fb06741da",
+      "runtime_s": 0.2,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: decode retired-immediate mismatch x5=0x00000000 x6=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-43",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "9bf5d2591144696f56ca014343e1655f97020c36292daceaf3f26e732301574d",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000004"
+    },
+    {
+      "mutant_id": "mut-bigN-43",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-43",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-44",
+      "tb": "decode",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: cpu trap asserted"
+    },
+    {
+      "mutant_id": "mut-bigN-44",
+      "tb": "fetch",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2009,
+      "checksum": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: no progress max_addr=0x00000000"
+    },
+    {
+      "mutant_id": "mut-bigN-44",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picorv32.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-44",
+      "tb": "uart",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2652,
+      "checksum": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-45",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-45",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-bigN-45",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-bigN-45",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2652,
+      "checksum": "81da732e94fc072e4bfde6dbde0f87fc64d6bd1ce2626374b0f08525d89d43af",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart data mismatch got 0xfc want 0xa5"
+    },
+    {
+      "mutant_id": "mut-pilot-01",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-pilot-01",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-pilot-01",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-pilot-01",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 22023,
+      "checksum": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart timeout, no byte received"
+    },
+    {
+      "mutant_id": "mut-pilot-02",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-pilot-02",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-pilot-02",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-pilot-02",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2024,
+      "checksum": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart data mismatch got 0xff want 0xa5"
+    },
+    {
+      "mutant_id": "mut-pilot-03",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-pilot-03",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-pilot-03",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-pilot-03",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 22023,
+      "checksum": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart timeout, no byte received"
+    },
+    {
+      "mutant_id": "mut-pilot-04",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-pilot-04",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-pilot-04",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-pilot-04",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2652,
+      "checksum": "8b2af01e67af322e16cfa4cad217f40b67f44caf77e903eb7705ced31eb7d9a3",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart data mismatch got 0x25 want 0xa5"
+    },
+    {
+      "mutant_id": "mut-pilot-05",
+      "tb": "decode",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-pilot-05",
+      "tb": "fetch",
+      "verdict": "survived",
+      "tohost": "PASS",
+      "cycles": 2009,
+      "checksum": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "fault file outside TB build; pristine-baseline verdict reused (identical sources)"
+    },
+    {
+      "mutant_id": "mut-pilot-05",
+      "tb": "serv",
+      "verdict": "error",
+      "tohost": null,
+      "cycles": null,
+      "checksum": null,
+      "runtime_s": 0.0,
+      "built": false,
+      "note": "cross-project: mutant file picosoc/simpleuart.v not in serv tree (no build attempted; error != killed)"
+    },
+    {
+      "mutant_id": "mut-pilot-05",
+      "tb": "uart",
+      "verdict": "killed",
+      "tohost": "FAIL 0xdead",
+      "cycles": 2024,
+      "checksum": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+      "runtime_s": 0.1,
+      "built": true,
+      "note": "oracle absent (RED); TRAP: uart data mismatch got 0xff want 0xa5"
+    }
+  ],
+  "counts": {
+    "fetch": {
+      "killed": 30,
+      "survived": 20,
+      "timeout": 0,
+      "error": 0,
+      "equiv_reuse": 20,
+      "live": 30
+    },
+    "uart": {
+      "killed": 20,
+      "survived": 30,
+      "timeout": 0,
+      "error": 0,
+      "equiv_reuse": 30,
+      "live": 20
+    },
+    "decode": {
+      "killed": 30,
+      "survived": 20,
+      "timeout": 0,
+      "error": 0,
+      "equiv_reuse": 20,
+      "live": 30
+    },
+    "serv": {
+      "killed": 0,
+      "survived": 0,
+      "timeout": 0,
+      "error": 50,
+      "equiv_reuse": 0,
+      "live": 0
+    }
+  },
+  "total": {
+    "killed": 80,
+    "survived": 70,
+    "timeout": 0,
+    "error": 50,
+    "rate": 0.5333333333333333
+  },
+  "classification_changed": [],
+  "wall_s": 11.7
+}
