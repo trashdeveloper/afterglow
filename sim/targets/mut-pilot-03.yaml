@@ -1,0 +1,30 @@
+# SANCTIONED mutant spec mut-pilot-03 (big-N pilot, seed 42).
+# In-tree so the loop's in-tree-only --spec rule is UNCHANGED: the stem
+# mut-pilot-03 exists here, and RED still dispatches through the loop.
+# Firing rule: agent/loop.py --spec ONLY (line-targeted apply at
+# mutant_line in a runs/scratch copy of the pinned pristine tree).
+# sim/sim.py REFUSES this stem: its inject is line-anchored; mutant
+# stems must fire line-targeted so the fault is exactly single-point.
+# Fault provenance: eval/mutate.py num_bump on picosoc/simpleuart.v:59
+# (divider part-select 7:0 -> 7:1); historical tree
+# /tmp/mutpilot/cand-05 is PROVENANCE ONLY -- firing never reads it, it
+# rebuilds byte-identically from anchor/bug+line (see FIRING.md).
+# Parent TB/oracle: picosoc-uart-div. Red = oracle absent, green = patch
+# restores oracle match.
+project: "picorv32"
+files: [picosoc/simpleuart.v]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+vflags: ["-Wno-WIDTH"]
+anchor: "if (reg_div_we[0]) cfg_divider[ 7: 0] <= reg_div_di[ 7: 0];"
+bug: "if (reg_div_we[0]) cfg_divider[ 7: 1] <= reg_div_di[ 7: 0];"
+gate: "mutant pilot divider part select"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-pilot-03"
+mutant_seed: 42
+mutant_op: "num_bump"
+mutant_file: "picosoc/simpleuart.v"
+mutant_line: 59
+parent_case: "picosoc-uart-div"
+mutant_tree: "/tmp/mutpilot/cand-05"

@@ -1,0 +1,17 @@
+# mutant mut-pilot-04 (num_bump picosoc/simpleuart.v:42, seed 42; parent TB/oracle: picosoc-uart-div)
+# red = mutant fails oracle; green = afterglow patch restores it.
+project: "picorv32"
+files: [picosoc/simpleuart.v]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+vflags: ["-Wno-WIDTH"]
+anchor: "reg [7:0] recv_buf_data;"
+bug: "reg [7:1] recv_buf_data;"
+gate: "mutant pilot recv buffer width"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-pilot-04"
+mutant_seed: 42
+mutant_op: "num_bump"
+parent_case: "picosoc-uart-div"
+mutant_tree: "/tmp/mutpilot/cand-11"

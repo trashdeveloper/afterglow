@@ -1,0 +1,11 @@
+# pc-incr: next-PC increment bug freezes the program counter
+project: "picorv32"
+files: ["picorv32.v"]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+anchor: "reg_next_pc <= current_pc + (compressed_instr ? 2 : 4);"
+bug: "reg_next_pc <= current_pc;"
+gate: "pc incr pc next progress"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+vflags: ["-Wno-PINMISSING"]

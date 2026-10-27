@@ -1,0 +1,11 @@
+# rdata-latch: latched read-data mux bug feeds stale data to decoder
+project: "picorv32"
+files: ["picorv32.v"]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+anchor: "assign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata : mem_rdata_q;"
+bug: "assign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata;"
+gate: "rdata latch mem decoder stale"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+vflags: ["-Wno-PINMISSING"]

@@ -1,0 +1,43 @@
+# Afterglow eval cases: 8 total, all REAL Verilator on pinned picorv32.
+# NEVER write "8/10". Locked 3 must be 3/3 green; stress 5 may carry 2 reds.
+# Ids match sim/targets/<id>.yaml exactly — no stub names, no mapping drift.
+- id: picosoc-uart-div
+  tier: locked
+  budget_s: 120
+  inject: "RX recv_divcnt > cfg_divider -> >>4 (16x early)"
+  oracle: "tohost PASS loopback 0xA5 + CYCLES ~2000"
+- id: picorv32-fetch-misalign
+  tier: locked
+  budget_s: 120
+  inject: "mem_la_addr LSB 2'b00 -> 2'b10 (every fetch +2)"
+  oracle: "tohost PASS aligned fetch + CYCLES"
+- id: uart-tx-div
+  tier: locked
+  budget_s: 120
+  inject: "TX send_divcnt > cfg_divider -> >>4"
+  oracle: "tohost PASS loopback 0xA5"
+- id: uart-start-half
+  tier: stress
+  budget_s: 120
+  inject: "RX start half 2*recv_divcnt -> recv_divcnt (late sample)"
+  oracle: "tohost PASS loopback 0xA5"
+- id: fetch-highword
+  tier: stress
+  budget_s: 120
+  inject: "mem_valid <= !prefetched -> prefetched (stall invert)"
+  oracle: "tohost PASS fetch progress"
+- id: rdata-latch
+  tier: stress
+  budget_s: 120
+  inject: "rdata latch mux mem_rdata/mem_rdata_q swapped"
+  oracle: "tohost PASS decoder clean"
+- id: trap-stuck
+  tier: stress
+  budget_s: 120
+  inject: "trap <= 0 -> 1 (stuck high)"
+  oracle: "tohost PASS trap clean"
+- id: pc-incr
+  tier: stress
+  budget_s: 120
+  inject: "reg_next_pc <= pc+2/4 -> pc (freeze)"
+  oracle: "tohost PASS pc advances"

@@ -1,0 +1,14 @@
+# Afterglow example CaseSpec (written by `afterglow init`).
+# Same fault family as sim/targets/picosoc-uart-div.yaml: RX baud
+# divisor 16x early. Rename this file and edit anchor/bug/files for
+# your own RTL; every key below is required (see
+# afterglow_core/verilator.py load_spec -- blank oracle_pass is refused).
+project: "picorv32"
+files: ["picosoc/simpleuart.v"]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+anchor: "if (recv_divcnt > cfg_divider) begin"
+bug: "if (recv_divcnt > (cfg_divider >> 4)) begin"
+gate: "divider baud uart divisor"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"

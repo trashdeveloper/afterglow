@@ -1,0 +1,20 @@
+# mutant mut-bigN-34 (num_bump picosoc/simpleuart.v:72, draw seed 1234; parent TB/oracle: picosoc-uart-div)
+# red = mutant fails oracle; green = afterglow patch restores it.
+
+project: "picorv32"
+files: [picosoc/simpleuart.v]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+vflags: [-Wno-WIDTH]
+anchor: recv_buf_valid <= 0;
+bug: recv_buf_valid <= 1;
+gate: "divider baud uart divisor mutant mut-bigN-34"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-bigN-34"
+mutant_seed: 1234
+mutant_op: "num_bump"
+mutant_file: "picosoc/simpleuart.v"
+mutant_line: 72
+parent_case: "picosoc-uart-div"
+mutant_tree: "/tmp/mutboard/kept/mut-bigN-34"

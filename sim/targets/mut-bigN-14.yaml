@@ -1,0 +1,20 @@
+# mutant mut-bigN-14 (constant_flip picosoc/simpleuart.v:126, draw seed 1234; parent TB/oracle: picosoc-uart-div)
+# red = mutant fails oracle; green = afterglow patch restores it.
+
+project: "picorv32"
+files: [picosoc/simpleuart.v]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+vflags: [-Wno-WIDTH]
+anchor: send_pattern <= {1'b1, reg_dat_di[7:0], 1'b0};
+bug: send_pattern <= {1'b1, reg_dat_di[7:0], 1'b1};
+gate: "divider baud uart divisor mutant mut-bigN-14"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-bigN-14"
+mutant_seed: 1234
+mutant_op: "constant_flip"
+mutant_file: "picosoc/simpleuart.v"
+mutant_line: 126
+parent_case: "picosoc-uart-div"
+mutant_tree: "/tmp/mutboard/kept/mut-bigN-14"

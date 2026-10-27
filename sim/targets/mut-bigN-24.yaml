@@ -1,0 +1,20 @@
+# mutant mut-bigN-24 (logic_swap picorv32.v:376, draw seed 1234; parent TB/oracle: picorv32-fetch-misalign)
+# red = mutant fails oracle; green = afterglow patch restores it.
+
+project: "picorv32"
+files: [picorv32.v]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+vflags: [-Wno-PINMISSING]
+anchor: wire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) || (&mem_state && mem_do_rinst)) &&
+bug: wire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) || (&mem_state || mem_do_rinst)) &&
+gate: "fetch misalign addr pc mutant mut-bigN-24"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-bigN-24"
+mutant_seed: 1234
+mutant_op: "logic_swap"
+mutant_file: "picorv32.v"
+mutant_line: 376
+parent_case: "picorv32-fetch-misalign"
+mutant_tree: "/tmp/mutboard/kept/mut-bigN-24"

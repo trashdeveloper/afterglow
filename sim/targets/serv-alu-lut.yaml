@@ -1,0 +1,18 @@
+# serv-alu-lut: SERV ALU BOOL-LUT bug (Task 6 fresh design).
+# Fresh design: olofk/serv (bit-serial RISC-V CPU -- a different CPU
+# design, never touched by this framework: NOT picorv32, NOT
+# simpleuart/picosoc). Pinned to the post-fix commit of a REAL upstream
+# fix: 727bb40a8784c50b081abdcfd784a5bc7c34e40e ("Simplify control
+# logic for bool ops", 2021-03-14, Olof Kindgren), which corrected
+# BOOL_LUT 16'h8E96 -> 16'h8E06 (bool_op 01 gave rs1==op_b instead of
+# 0, corrupting shift passthrough). anchor = fixed line, bug = pre-fix
+# line. TB drives the LUT rows directly (see sim/tb/serv-alu-lut_tb.sv).
+project: "serv"
+files: ["rtl/serv_alu.v"]
+top: "tb_serv_alu"
+tb: "serv-alu-lut_tb.sv"
+anchor: "localparam [15:0] BOOL_LUT = 16'h8E06;//And, Or, 0, xor"
+bug: "localparam [15:0] BOOL_LUT = 16'h8E96;//And, Or, =, xor"
+gate: "bool lut alu shift buf"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"

@@ -1,0 +1,91 @@
+# Afterglow stranger-bug set (Task 5): >=3 REAL upstream RTL bugs.
+#
+# Each entry is a genuine open-source fix commit from YosysHQ/picorv32,
+# verified 2026-10-26 against a full local clone (see shas below): the
+# fixed lines are still present verbatim in the pinned tree
+# (targets.pin picorv32 ef203c2b0a3fb793280f5114941416c425c5b461).
+#
+# QUARANTINE: ground_truth_fix below is evidence for the judge only. It
+# is NEVER fed to the agent loop -- the loop sees the RED trace alone
+# (same rule as eval/cases.yaml: no fix leaks into prompts). Live runs
+# MUST use --run-id stranger-<id>-* so eval/stranger_score.py can
+# attribute bundles to stranger entries by run-id prefix.
+#
+# RUNNABLE PROXY (honest limitation): our minimal TBs execute a NOP
+# sled (tb_picorv32_fetch: no jumps/branches/compressed/fence; the uart
+# TB does loopback only), so a one-line revert of these historical
+# fixes cannot go RED under the current harnesses. Each entry therefore
+# names a local_spec: the closest SAME-FILE / SAME-SUBSYSTEM in-tree
+# inject the loop actually runs. The unseen-fix claim is scoped to the
+# bug class, not the literal pre-fix tree; full pre-fix-tree
+# reproduction is future work (Task 6 acceptance). Reds stay visible:
+# entries with no stranger-* runs board as UNRUN, never green.
+#
+# BASELINES: manual_baseline_hours are WORKFORCE ESTIMATES (per the
+# design spec: "baselines are my estimates"), not measurements. Each
+# rationale says what the hours cover; the loop's time-to-green (from
+# run bundles) is compared against them by eval/stranger_score.py.
+
+- id: stranger-jalr-lsb
+  repo: "https://github.com/YosysHQ/picorv32.git"
+  commit: "bb9ebeb9e37bc6103f527b434a13d9b4889a796b"
+  upstream_author: "Clifford Wolf"
+  upstream_date: "2017-05-18"
+  upstream_subject: "Fixed jalr, c_jalr, and c_jr insns (bug discovered by riscv-formal)"
+  file: "picorv32.v"
+  bug_desc: "Jump-target LSB not cleared: next_pc/current_pc took raw reg_out on jalr/c_jalr/c_jr, so an odd return address misaligned the next fetch instead of trapping cleanly."
+  ground_truth_fix: |
+    diff --git a/picorv32.v b/picorv32.v (bb9ebeb, 2 lines)
+    - assign next_pc = latched_store && latched_branch ? reg_out : reg_next_pc;
+    + assign next_pc = latched_store && latched_branch ? reg_out & ~1 : reg_next_pc;
+    - current_pc = latched_store ? (latched_stalu ? alu_out_q : reg_out) : reg_next_pc;
+    + current_pc = latched_store ? (latched_stalu ? alu_out_q : reg_out) & ~1 : reg_next_pc;
+    Pinned-tree anchors verified: picorv32.v:1213 and picorv32.v:1500 carry the `& ~1` fix.
+  manual_baseline_hours: "6"
+  baseline_rationale: "Formal-found jump bug: reproduce under riscv-formal, triage jump-target LSB in waveforms, patch both sites, re-verify formal + sim across configs."
+  baseline_source: "workforce estimate 2026-10-26 (not measured)"
+  local_spec: "sim/targets/picorv32-fetch-misalign.yaml"
+  proxy_rationale: "Same file (picorv32.v), same fetch/PC subsystem: odd jump target corrupts fetch alignment; closest runnable proxy is the fetch-misalign inject."
+  quarantine: "ground_truth_fix never enters loop prompts; loop sees RED trace only"
+
+- id: stranger-misalign-catch
+  repo: "https://github.com/YosysHQ/picorv32.git"
+  commit: "54a8e4b311e207fa1d07226627dbf9dea6c13836"
+  upstream_author: "Clifford Wolf"
+  upstream_date: "2016-11-29"
+  upstream_subject: "Fixed catching jumps to misaligned insn"
+  file: "picorv32.v"
+  bug_desc: "CATCH_MISALIGN path dropped the target mask: reg_out carried the raw (possibly odd) rs1 and the PC-clear ran unconditionally, so misaligned jumps were neither caught nor handled."
+  ground_truth_fix: |
+    diff --git a/picorv32.v b/picorv32.v (54a8e4b, core hunk)
+    - reg_out <= cpuregs_rs1;
+    + reg_out <= CATCH_MISALIGN ? (cpuregs_rs1 & 32'h fffffffe) : cpuregs_rs1;
+    plus: reg_pc/reg_next_pc LSB clearing gated on (!CATCH_MISALIGN).
+    Pinned-tree anchor verified: picorv32.v:1673 carries the masked reg_out line.
+  manual_baseline_hours: "4"
+  baseline_rationale: "CATCH_MISALIGN interaction: reproduce misaligned-jump trap failure, trace PC vs reg_out masking, gate the fix, re-sim across ISA configs."
+  baseline_source: "workforce estimate 2026-10-26 (not measured)"
+  local_spec: "sim/targets/picorv32-fetch-misalign.yaml"
+  proxy_rationale: "Same file (picorv32.v), same fetch/PC subsystem: misaligned-target handling; closest runnable proxy is the fetch-misalign inject."
+  quarantine: "ground_truth_fix never enters loop prompts; loop sees RED trace only"
+
+- id: stranger-fence-decode
+  repo: "https://github.com/YosysHQ/picorv32.git"
+  commit: "29102c00a82ffd08f1e0b3c9cbac1c95c17f573b"
+  upstream_author: "Flavien Solt"
+  upstream_date: "2023-02-20"
+  upstream_subject: "Bugfix: decode fence instruction"
+  file: "picorv32.v"
+  bug_desc: "Missing decoder case: FENCE (opcode 0001111) had no instr_fence term, so fence instructions fell through to the illegal-instruction trap path."
+  ground_truth_fix: |
+    diff --git a/picorv32.v b/picorv32.v (29102c0: new instr_fence decode)
+    + reg instr_rdcycle, ..., instr_ecall_ebreak, instr_fence;
+    + instr_fence <= (mem_rdata_q[6:0] == 7'b0001111 && !mem_rdata_q[14:12]);
+    + instr_fence <= 0; (decoder reset) plus case-list and ascii entries.
+    Pinned-tree anchor verified: picorv32.v:1088 carries the instr_fence decode line.
+  manual_baseline_hours: "2"
+  baseline_rationale: "Small decode addition: spot the missing fence row in the decoder table, add instr_fence + reset + ascii entries, re-sim."
+  baseline_source: "workforce estimate 2026-10-26 (not measured)"
+  local_spec: "sim/targets/rdata-latch.yaml"
+  proxy_rationale: "Same file (picorv32.v), decode path: missing/wrong decode term; closest runnable proxy is the rdata-latch decoder-family inject."
+  quarantine: "ground_truth_fix never enters loop prompts; loop sees RED trace only"

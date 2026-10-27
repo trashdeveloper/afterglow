@@ -1,0 +1,11 @@
+# uart-tx-div: TX baud divisor bug (eval: uart-baud-2x family)
+project: "picorv32"
+files: ["picosoc/simpleuart.v"]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+anchor: "if (send_divcnt > cfg_divider && send_bitcnt) begin"
+bug: "if (send_divcnt > (cfg_divider >> 4) && send_bitcnt) begin"
+gate: "divider baud uart tx send"
+vflags: ["-Wno-WIDTH"]
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"

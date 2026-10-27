@@ -1,0 +1,17 @@
+# mutant mut-pilot-03 (num_bump picosoc/simpleuart.v:59, seed 42; parent TB/oracle: picosoc-uart-div)
+# red = mutant fails oracle; green = afterglow patch restores it.
+project: "picorv32"
+files: [picosoc/simpleuart.v]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+vflags: ["-Wno-WIDTH"]
+anchor: "if (reg_div_we[0]) cfg_divider[ 7: 0] <= reg_div_di[ 7: 0];"
+bug: "if (reg_div_we[0]) cfg_divider[ 7: 1] <= reg_div_di[ 7: 0];"
+gate: "mutant pilot divider part select"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-pilot-03"
+mutant_seed: 42
+mutant_op: "num_bump"
+parent_case: "picosoc-uart-div"
+mutant_tree: "/tmp/mutpilot/cand-05"

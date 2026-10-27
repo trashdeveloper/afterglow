@@ -1,0 +1,11 @@
+# picosoc-uart-div: RX baud divisor bug (locked eval board: linux-uart-divisor family)
+project: "picorv32"
+files: ["picosoc/simpleuart.v"]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+anchor: "if (recv_divcnt > cfg_divider) begin"
+bug: "if (recv_divcnt > (cfg_divider >> 4)) begin"
+gate: "divider baud uart divisor"
+vflags: ["-Wno-WIDTH"]
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"

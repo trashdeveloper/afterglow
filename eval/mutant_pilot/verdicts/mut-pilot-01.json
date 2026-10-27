@@ -1,0 +1,11 @@
+{
+  "candidate": 2,
+  "pass": false,
+  "oracle_lines": [
+    "tohost: FAIL 0xdead",
+    "TRAP: uart timeout, no byte received",
+    "CYCLES=22023"
+  ],
+  "rc": 0,
+  "mutant_id": "mut-pilot-01"
+}

@@ -1,0 +1,33 @@
+# SANCTIONED mutant spec mut-pilot-02 (big-N pilot, seed 42).
+# In-tree so the loop's in-tree-only --spec rule is UNCHANGED: the stem
+# mut-pilot-02 exists here, and RED still dispatches through the loop.
+# Firing rule: agent/loop.py --spec ONLY (line-targeted apply at
+# mutant_line in a runs/scratch copy of the pinned pristine tree).
+# sim/sim.py REFUSES this stem: its inject is line-anchored (replaces
+# EVERY anchor match) and would silently mis-fire here -- the anchor
+# "recv_state <= 0;" occurs TWICE in pristine simpleuart.v (lines 68,
+# 93); only line 68 is the fault. A line-anchored inject would build a
+# DOUBLE fault, the wrong distribution for fix-rate stats.
+# Fault provenance: eval/mutate.py num_bump on picosoc/simpleuart.v:68
+# (before "recv_state <= 0;", after "recv_state <= 1;"); historical tree
+# /tmp/mutpilot/cand-04 is PROVENANCE ONLY -- firing never reads it, it
+# rebuilds byte-identically from anchor/bug+line (see FIRING.md).
+# Parent TB/oracle: picosoc-uart-div. Red = oracle absent, green = patch
+# restores oracle match.
+project: "picorv32"
+files: [picosoc/simpleuart.v]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+vflags: ["-Wno-WIDTH"]
+anchor: "recv_state <= 0;"
+bug: "recv_state <= 1;"
+gate: "mutant pilot recv state reset"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-pilot-02"
+mutant_seed: 42
+mutant_op: "num_bump"
+mutant_file: "picosoc/simpleuart.v"
+mutant_line: 68
+parent_case: "picosoc-uart-div"
+mutant_tree: "/tmp/mutpilot/cand-04"

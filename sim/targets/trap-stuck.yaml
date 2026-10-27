@@ -1,0 +1,11 @@
+# trap-stuck: trap output stuck high bug
+project: "picorv32"
+files: ["picorv32.v"]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+anchor: "trap <= 0;"
+bug: "trap <= 1;"
+gate: "trap stuck output"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+vflags: ["-Wno-PINMISSING"]

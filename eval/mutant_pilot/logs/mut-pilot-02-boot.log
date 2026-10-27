@@ -1,0 +1,9 @@
+- tb_picosoc_uart seed 42
+- divider 64 loopback send 0xa5
+tohost: FAIL 0xdead
+TRAP: uart data mismatch got 0xff want 0xa5
+CYCLES=2024
+- /home/tuncay/afterglow/sim/tb/picosoc-uart-div_tb.sv:86: Verilog $finish
+- S i m u l a t i o n   R e p o r t: Verilator 5.052 2026-09-05
+- Verilator: $finish at 20ns; walltime 0.000 s; speed 42.848 us/s
+- Verilator: cpu 0.000 s on 1 threads; allocated 4 MB

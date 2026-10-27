@@ -1,0 +1,11 @@
+# uart-start-half: RX start-bit half-period sampling bug
+project: "picorv32"
+files: ["picosoc/simpleuart.v"]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+anchor: "if (2*recv_divcnt > cfg_divider) begin"
+bug: "if (recv_divcnt > cfg_divider) begin"
+gate: "divider baud uart start half sample"
+vflags: ["-Wno-WIDTH"]
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"

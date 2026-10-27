@@ -1,0 +1,11 @@
+# fetch-highword: prefetched-high-word gate bug stalls instruction fetch
+project: "picorv32"
+files: ["picorv32.v"]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+anchor: "mem_valid <= !mem_la_use_prefetched_high_word;"
+bug: "mem_valid <= mem_la_use_prefetched_high_word;"
+gate: "fetch highword prefetch mem_valid stall"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+vflags: ["-Wno-PINMISSING"]

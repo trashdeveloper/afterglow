@@ -1,0 +1,11 @@
+{
+  "candidate": 11,
+  "pass": false,
+  "oracle_lines": [
+    "tohost: FAIL 0xdead",
+    "TRAP: uart data mismatch got 0x25 want 0xa5",
+    "CYCLES=2652"
+  ],
+  "rc": 0,
+  "mutant_id": "mut-pilot-04"
+}
