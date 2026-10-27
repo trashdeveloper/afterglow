@@ -103,5 +103,42 @@ else
   fail "no versioned prompts in agent/prompts/"
 fi
 
+# 7. Eval board green: score.py regenerates locked 3/3 + full 8/8 from runs/ only.
+if python3 eval/score.py >/dev/null 2>&1; then
+  pass "eval/score.py green (locked 3/3, full 8/8 from runs/ bundles)"
+else
+  fail "eval/score.py not green"
+fi
+
+# 8. Bundle completeness: every locked board row's bundle holds all 13 proof files.
+python3 - <<'EOF'
+import re, os, sys
+rows = open("eval/results.md").read()
+run_ids = re.findall(r"\|\s*(?:picosoc-uart-div|picorv32-fetch-misalign|uart-tx-div|uart-start-half|fetch-highword|rdata-latch|trap-stuck|pc-incr)\s*\|\s*locked\s*\|\s*GREEN\s*\|\s*(\S+)", rows)
+assert len(run_ids) >= 3, f"fewer than 3 locked GREEN rows: {run_ids}"
+required = ["artifacts/input_trace.txt", "artifacts/boot.log",
+  "artifacts/boot_after.log", "artifacts/verdict_before.json",
+  "artifacts/verdict_after.json", "api/text_request.json",
+  "api/text_response.json", "api/image_request.json",
+  "api/image_response.json", "explain.png", "patch.diff",
+  "report.md", "meta.json"]
+missing = []
+for rid in run_ids:
+    for f in required:
+        p = os.path.join("runs", rid, f)
+        if not os.path.isfile(p) or os.path.getsize(p) == 0:
+            missing.append(p)
+if missing:
+    sys.exit("incomplete bundles:\n" + "\n".join(missing))
+print(f"bundle completeness OK: {len(run_ids)} locked bundles x 13 files")
+EOF
+if [ $? -ne 0 ]; then fail "bundle completeness check failed"; else pass "locked bundles complete (13 files each)"; fi
+
+# 9. Repro contract probe (no API needed): --help exits 0, unknown flag exits 2.
+if ./repro/run.sh --help >/dev/null 2>&1; then pass "repro --help exit 0"; else fail "repro --help contract broken"; fi
+if ./repro/run.sh --bogus-flag >/dev/null 2>&1; then fail "repro unknown-flag should exit 2"; else
+  if [ $? -eq 2 ]; then pass "repro unknown-flag exit 2"; else fail "repro unknown-flag exit $? (want 2)"; fi
+fi
+
 if [ "$FAIL" -eq 0 ]; then say "CI GATE: ALL PASS"; else say "CI GATE: RED"; fi
 exit "$FAIL"
