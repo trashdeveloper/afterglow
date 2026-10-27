@@ -124,6 +124,16 @@ STRATEGY_CHANGE_DIRECTIVE = (
     "qualitatively different repair class \u2014 e.g. if prior patches edited "
     "combinational logic, consider sequential/reset/enable logic, and vice versa.")
 
+# Consensus-diagnosis pilot (opt-in --consensus): per attempt, request up
+# to 3 INDEPENDENT diagnoses (same prompt, fresh calls; transport flakes
+# retried inside call_text_with_backoff and never counted as votes) and
+# PATCH only on 2-of-3 agreement. Agreement = same target file AND
+# overlapping line window (+/- CONSENSUS_WINDOW_LINES). Cost discipline
+# reuses the ladder cost chain (ladder_cost_ok vs LADDER_COST_CAP_USD);
+# over cap degrades to single-diagnosis with OFF-cost-cap logged.
+CONSENSUS_WINDOW_LINES = 10
+CONSENSUS_VOTES = 3
+
 # Full-auto-by-default loop mode: every run attempts PATCH->RESIM->VERIFY
 # (mode "live", exit 0/1) unless --triage / --stop-before-patch selects
 # the old stop-before-PATCH behavior (mode "triage", exit 2). --auto is
@@ -1225,6 +1235,14 @@ def parse_args(argv=None):
                          "pass that must reduce SIMULATED CYCLES with "
                          "IDENTICAL checksum/tohost (rejected opt never "
                          "ungreens the fix)")
+    ap.add_argument("--consensus", action="store_true", default=False,
+                    help="consensus-diagnosis pilot (opt-in): per attempt, "
+                         "request up to 3 independent diagnoses and PATCH "
+                         "only on 2-of-3 agreement (same file + overlapping "
+                         "+/-10-line window). Splits consume the attempt "
+                         "with no patch/resim. Over the $0.50 cost cap it "
+                         "degrades to single-diagnosis. Default OFF keeps "
+                         "the proven single path byte-identical.")
     return ap.parse_args(argv)
 
 
@@ -1689,6 +1707,117 @@ def ladder_eligible(prior_attempts, attempts_consumed: int,
         return False, ("prior-attempts-lack-diversity "
                         "(STRATEGY-CHANGE claims distinct directions)")
     return True, "unlocked-3-signal-RED"
+
+
+def consensus_file_lines(diff_text: str) -> dict:
+    """Map each diff target file to its sorted touched NEW-file lines.
+
+    Same hunk walk as direction_key (``+++ b/<path>`` headers anchor the
+    file, ``@@ -a,b +c,d @@`` anchors the new-file cursor, ``+`` lines
+    record the cursor, ``-`` lines record the deletion site without
+    advancing). Empty/unparseable diffs yield {} (never agree).
+    """
+    out: dict = {}
+    cur: str | None = None
+    new_lineno = 0
+    for ln in (diff_text or "").splitlines():
+        if ln.startswith("+++ "):
+            path = ln[4:].strip()
+            if path.startswith("b/"):
+                path = path[2:]
+            if path in ("/dev/null", "dev/null"):
+                cur = None
+                continue
+            cur = path or "unknown"
+            out.setdefault(cur, set())
+            continue
+        if ln.startswith("--- "):
+            if cur is None:
+                path = ln[4:].strip()
+                if path.startswith("a/"):
+                    path = path[2:]
+                if path not in ("/dev/null", "dev/null"):
+                    cur = path or "unknown"
+                    out.setdefault(cur, set())
+            continue
+        if ln.startswith("@@"):
+            m = re.search(r"\+(\d+)(?:,(\d+))?", ln)
+            if m:
+                new_lineno = int(m.group(1))
+            continue
+        if cur is None:
+            continue
+        if ln.startswith("+") and not ln.startswith("+++"):
+            out[cur].add(new_lineno)
+            new_lineno += 1
+        elif ln.startswith("-") and not ln.startswith("---"):
+            out[cur].add(new_lineno)
+        else:
+            new_lineno += 1  # context line advances the new-file cursor
+    return {k: sorted(v) for k, v in out.items() if v}
+
+
+def consensus_agree(diff_a: str, diff_b: str,
+                    window: int = CONSENSUS_WINDOW_LINES) -> bool:
+    """Agreement predicate: same target file AND overlapping line window.
+
+    True iff the two diffs share at least one target file with a touched
+    line within +/- window of each other. Empty/unparseable diffs (no
+    file->lines map) never agree.
+    """
+    fa = consensus_file_lines(diff_a)
+    fb = consensus_file_lines(diff_b)
+    if not fa or not fb:
+        return False
+    for path, lines_a in fa.items():
+        lines_b = fb.get(path)
+        if not lines_b:
+            continue
+        for la in lines_a:
+            for lb in lines_b:
+                if abs(int(la) - int(lb)) <= int(window):
+                    return True
+    return False
+
+
+def consensus_summarize(diff_text: str) -> str:
+    """Compact per-vote locator: '<file>:<first-line> ...' (or '(empty)')."""
+    mapping = consensus_file_lines(diff_text)
+    if not mapping:
+        return "(empty)"
+    return " ".join("%s:%s" % (path, lines[0])
+                     for path, lines in sorted(mapping.items()))
+
+
+def consensus_majority(diffs: list) -> tuple:
+    """2-of-3 agreement verdict over vote diffs. Returns (status, winner, note).
+
+    status is "unanimous" (3-0, every pair agrees), "majority" (exactly
+    one agreeing pair -- the 2-1 case -- or 2 agreeing votes when a flake
+    was excluded), or "split" (no pair agrees, or fewer than 2 usable
+    votes). winner is the index into diffs of the majority diagnosis
+    (first vote of the first agreeing pair: pairs checked in order
+    (0,1), (0,2), (1,2)); unanimous winners are vote 0). Never raises:
+    unparseable input reads as disagreement, never as agreement.
+    """
+    items = list(diffs or [])
+    if len(items) < 2:
+        return ("split", -1, "split: fewer than 2 usable votes")
+    pairs = [(0, 1)]
+    if len(items) >= 3:
+        pairs = [(0, 1), (0, 2), (1, 2)]
+    agreeing = [p for p in pairs
+                if consensus_agree(items[p[0]], items[p[1]])]
+    if len(items) >= 3 and len(agreeing) == 3:
+        return ("unanimous", 0,
+                "unanimous 3-0 on %s" % consensus_summarize(items[0]))
+    if agreeing:
+        w = agreeing[0][0]
+        return ("majority", w,
+                "majority 2-1 on %s (winner vote %d of %d)"
+                % (consensus_summarize(items[w]), w + 1, len(items)))
+    detail = " | ".join(consensus_summarize(d) for d in items)
+    return ("split", -1, "split: no agreeing pair (%s)" % detail)
 
 
 def _bundle_case(runs_dir: str, run_id: str) -> str:
@@ -2263,6 +2392,9 @@ def main(argv=None) -> int:
     ladder_reason = "not-evaluated (base budget not yet exhausted)"
     ladder_decided = False
     tracked_spend_usd = 0.0
+    # Consensus pilot (opt-in --consensus, default OFF): when False every
+    # line below behaves byte-for-byte as the proven single path.
+    use_consensus = bool(getattr(args, "consensus", False))
     meta["attempts_consumed"] = 0
     meta["transport_retries"] = []
     meta["transport_failures"] = 0
@@ -2438,43 +2570,206 @@ def main(argv=None) -> int:
             # only -- prompt templates untouched, hashes stable -- and
             # logged verbatim in text_request.json below).
             attempt_prompt += "\n\n" + STRATEGY_CHANGE_DIRECTIVE
+        # CONSENSUS pilot (opt-in --consensus; default OFF skips this whole
+        # block so the single path below runs byte-identical). When active
+        # AND the ladder cost chain reports accumulated spend under the
+        # $0.50 cap, collect up to CONSENSUS_VOTES independent diagnoses
+        # (same prompt, fresh calls; flakes retried inside
+        # call_text_with_backoff, never counted as votes). UNANIMOUS or
+        # 2-of-3 MAJORITY proceeds with the majority diagnosis; a 1-1-1
+        # SPLIT (or fewer than 2 usable votes) consumes the attempt with
+        # no patch and no resim burned (mirroring the diversity re-ask
+        # rule) and carries all opinions into the next prior-attempts
+        # block. Over cap degrades to single-diagnosis with OFF-cost-cap.
+        consensus_note = ""
+        consensus_winner = False
+        consensus_votes_log: list = []
+        if use_consensus:
+            cok, cest, csrc = ladder_cost_ok(
+                run_dir, tracked_spend_usd, attempts_consumed)
+            if not cok:
+                consensus_note = (
+                    "consensus: OFF-cost-cap (est $%.4f via %s >= cap "
+                    "$%.2f; single-diagnosis fallback)"
+                    % (cest, csrc, LADDER_COST_CAP_USD))
+                print("[CONSENSUS] %s" % consensus_note, flush=True)
+            else:
+                opinions: list = []  # (call, model_obj|None, salvaged, err)
+                for _vote in range(CONSENSUS_VOTES):
+                    try:
+                        vcall, vwaits = call_text_with_backoff(
+                            attempt_prompt)
+                    except LiveAPIError as vexc:
+                        # Exhausted transport sequence for this vote:
+                        # excluded from votes, counted toward the bound.
+                        transport_failures += 1
+                        transport_waits_all.extend(
+                            list(getattr(vexc, "transport_waits",
+                                         None) or []))
+                        meta["transport_retries"] = list(
+                            transport_waits_all)
+                        meta["transport_failures"] = transport_failures
+                        print("[CONSENSUS] vote %d transport failure "
+                              "(excluded from votes; %d/%d): %s"
+                              % (_vote + 1, transport_failures,
+                                 MAX_TRANSPORT_FAILURES, vexc), flush=True)
+                        opinions.append((None, None, False, str(vexc)))
+                        continue
+                    tracked_spend_usd += ladder_text_usd(
+                        vcall.get("usage"), vcall.get("model"))
+                    transport_waits_all.extend(list(vwaits or []))
+                    try:
+                        vobj, vsalv = parse_model_output(vcall["content"])
+                    except LoopError as vexc:
+                        # Completed but unusable: an opinion that agrees
+                        # with nothing (never invents a diff).
+                        opinions.append((vcall, None, False, str(vexc)))
+                        continue
+                    opinions.append((vcall, vobj, vsalv, ""))
+                meta["transport_retries"] = list(transport_waits_all)
+                usable = [(c, o, s) for (c, o, s, _e) in opinions
+                          if o is not None]
+                consensus_votes_log = []
+                for i, (_c, vo, vs, ve) in enumerate(opinions):
+                    if vo is not None:
+                        consensus_votes_log.append(
+                            {"vote": i + 1,
+                             "diagnosis": str(vo.get("diagnosis",
+                                                     ""))[:160],
+                             "locator": consensus_summarize(
+                                 str(vo["patch_diff"])),
+                             "salvaged": vs})
+                    else:
+                        consensus_votes_log.append(
+                            {"vote": i + 1,
+                             "diagnosis": "(unusable: %s)"
+                                          % str(ve)[:120],
+                             "locator": "(empty)",
+                             "salvaged": False})
+                diffs = [str(o["patch_diff"]) for (_c, o, _s) in usable]
+                status, winner, detail = consensus_majority(diffs)
+                if status != "split" and len(usable) >= 2:
+                    wcall, wobj, wsalv = usable[winner]
+                    call, model_obj, salvaged = wcall, wobj, wsalv
+                    transport_waits = []
+                    label = ("UNANIMOUS 3-0" if status == "unanimous"
+                             else "MAJORITY 2-1")
+                    consensus_note = (
+                        "consensus: %s %s" % (label, detail))
+                    consensus_winner = True
+                    print("[CONSENSUS] attempt %d %s; proceeding with "
+                          "vote %d" % (attempt + 1, consensus_note,
+                                       winner + 1), flush=True)
+                elif (transport_failures >= MAX_TRANSPORT_FAILURES
+                        and len(usable) < 2):
+                    # Transport dead (persistent flakes, no quorum):
+                    # loud bounded stop, same shape as the single path.
+                    meta["error"] = (
+                        "live text API failed after %d transport failures "
+                        "(consensus quorum unreachable): %s "
+                        "(no heuristic fallback)"
+                        % (transport_failures,
+                           "; ".join(e for (_c, _o, _s, e) in opinions
+                                     if e)[:300]))
+                    print("FATAL: %s" % meta["error"], file=sys.stderr)
+                    ladder_reason = ("transport-failures-present "
+                                     "(consensus quorum unreachable)")
+                    meta["ladder_used"] = False
+                    meta["ladder_reason"] = ladder_reason
+                    break
+                else:
+                    detail = " | ".join(
+                        consensus_summarize(d) for d in diffs) or "no votes"
+                    consensus_note = "consensus: SPLIT %s" % detail
+                    print("[CONSENSUS] attempt %d %s (no patch, no "
+                          "resim burned)" % (attempt + 1, consensus_note),
+                          flush=True)
+                    attempts_consumed += 1
+                    meta["attempts_consumed"] = attempts_consumed
+                    with open(api("text_request.json"), "w",
+                              encoding="utf-8") as fh:
+                        fh.write(json.dumps(
+                            {"model": TEXT_MODEL, "endpoint": text_url(),
+                             "prompt": attempt_prompt,
+                             "prompt_sha256": prompt_hash,
+                             "prompt_file": args.prompt,
+                             "prompt_tokens": len(attempt_prompt.split()),
+                             "trace_lines": counts["trace_lines"],
+                             "trace_tokens": counts["trace_tokens"],
+                             "case": args.case, "seed": args.seed,
+                             "max_tokens": TEXT_MAX_TOKENS,
+                             "attempt": attempt + 1,
+                             "loop_feedback": loop_feedback,
+                             "consensus": consensus_note,
+                             "votes": consensus_votes_log},
+                            indent=2) + "\n")
+                    with open(api("text_response.json"), "w",
+                              encoding="utf-8") as fh:
+                        fh.write(json.dumps(
+                            {"error": consensus_note,
+                             "status": "SPLIT",
+                             "votes": consensus_votes_log},
+                            indent=2) + "\n")
+                    meta["attempts"].append(
+                        {**reset_note,
+                         **{"attempt": attempt + 1,
+                            "summary": "%s; vote logged, no patch "
+                                       "applied, no resim burned"
+                                       % consensus_note,
+                            "consensus": consensus_note,
+                            "votes": consensus_votes_log}})
+                    for (_c, o, _s) in usable:
+                        odiff = str(o["patch_diff"])
+                        prior_attempts.append({
+                            "attempt": attempt + 1,
+                            "patch": "[%s] %s"
+                                     % (consensus_summarize(odiff),
+                                        patch_one_liner(odiff)),
+                            "direction": direction_key(odiff),
+                            "resim": "not-run (consensus SPLIT)",
+                            "checksum_changed": "n/a"})
+                    continue
         # DIAGNOSE (live only; transport flakes retry with backoff)
-        try:
-            call, transport_waits = call_text_with_backoff(attempt_prompt)
-        except LiveAPIError as exc:
-            # Transport flake, NOT a diagnostic attempt: budget preserved,
-            # same attempt retried (bounded by MAX_TRANSPORT_FAILURES).
-            if note_transport_failure(exc):
-                break
-            continue
-        tracked_spend_usd += ladder_text_usd(call.get("usage"),
-                                             call.get("model"))
-        try:
-            # Truncation salvage (v3-21 lesson): a max_tokens cut that
-            # still yields a complete diagnosis+diff is repaired WITHOUT
-            # burning a retry (salvaged=True below). Only a failed
-            # salvage records an unparseable attempt and continues.
-            model_obj, salvaged = parse_model_output(call["content"])
-        except LoopError as exc:
-            # Completed response, failed salvage: consumes one diagnostic
-            # attempt (only transport flakes are exempt).
-            attempts_consumed += 1
-            meta["attempts_consumed"] = attempts_consumed
-            last_attempt = {"attempt": attempt + 1,
-                            "summary": "unparseable model output: %s" % exc,
-                            "text_latency_ms": call["latency_ms"],
-                            "text_request_id": call["request_id"],
-                            "salvaged": False}
-            meta["attempts"].append({**reset_note, **last_attempt})
-            prior_attempts.append({
-                "attempt": attempt + 1,
-                "patch": "(unparseable model output)",
-                "direction": "(unparseable)",
-                "resim": "not-run",
-                "checksum_changed": "n/a"})
-            print("[DIAGNOSE] attempt %d unparseable: %s"
-                  % (attempt + 1, exc), flush=True)
-            continue
+        if not consensus_winner:
+            try:
+                call, transport_waits = call_text_with_backoff(
+                    attempt_prompt)
+            except LiveAPIError as exc:
+                # Transport flake, NOT a diagnostic attempt: budget
+                # preserved, same attempt retried (bounded by
+                # MAX_TRANSPORT_FAILURES).
+                if note_transport_failure(exc):
+                    break
+                continue
+        if not consensus_winner:
+            tracked_spend_usd += ladder_text_usd(call.get("usage"),
+                                                 call.get("model"))
+            try:
+                # Truncation salvage (v3-21 lesson): a max_tokens cut that
+                # still yields a complete diagnosis+diff is repaired WITHOUT
+                # burning a retry (salvaged=True below). Only a failed
+                # salvage records an unparseable attempt and continues.
+                model_obj, salvaged = parse_model_output(call["content"])
+            except LoopError as exc:
+                # Completed response, failed salvage: consumes one diagnostic
+                # attempt (only transport flakes are exempt).
+                attempts_consumed += 1
+                meta["attempts_consumed"] = attempts_consumed
+                last_attempt = {"attempt": attempt + 1,
+                                "summary": "unparseable model output: %s" % exc,
+                                "text_latency_ms": call["latency_ms"],
+                                "text_request_id": call["request_id"],
+                                "salvaged": False}
+                meta["attempts"].append({**reset_note, **last_attempt})
+                prior_attempts.append({
+                    "attempt": attempt + 1,
+                    "patch": "(unparseable model output)",
+                    "direction": "(unparseable)",
+                    "resim": "not-run",
+                    "checksum_changed": "n/a"})
+                print("[DIAGNOSE] attempt %d unparseable: %s"
+                      % (attempt + 1, exc), flush=True)
+                continue
         diagnosis_text = str(model_obj["diagnosis"])
         expected_text = str(model_obj.get("expected", ""))
         model_diff = str(model_obj["patch_diff"])
@@ -2488,7 +2783,8 @@ def main(argv=None) -> int:
         # untouched (context block only, v3 hash stable); the augmented
         # prompt is logged verbatim in text_request.json below.
         duplicate_info: dict = {}
-        if (duplicate_reasks < MAX_DUPLICATE_REASKS
+        if (not consensus_winner
+                and duplicate_reasks < MAX_DUPLICATE_REASKS
                 and is_duplicate_direction(model_diff, prior_attempts)):
             duplicate_reasks += 1
             dup_key = direction_key(model_diff)
@@ -2600,7 +2896,7 @@ def main(argv=None) -> int:
                      "case": args.case, "seed": args.seed,
                      "max_tokens": TEXT_MAX_TOKENS,
                      "attempt": attempt + 1,
-                     "loop_feedback": loop_feedback}, indent=2) + "\n")
+                     "loop_feedback": loop_feedback, **({"consensus": consensus_note} if consensus_note else {})}, indent=2) + "\n")
             with open(api("text_response.json"), "w",
                       encoding="utf-8") as fh:
                 fh.write(json.dumps(
@@ -2610,7 +2906,10 @@ def main(argv=None) -> int:
                      "salvaged": salvaged,
                      "latency_ms": call["latency_ms"],
                      "request_id": call["request_id"],
-                     "model": call["model"], "usage": call["usage"]},
+                     "model": call["model"], "usage": call["usage"],
+                      **({"consensus": consensus_note,
+                         "votes": consensus_votes_log}
+                        if consensus_note else {})},
                     indent=2) + "\n")
             meta["diagnosed"] = True
             meta["text_latency_ms"] = call["latency_ms"]
@@ -2650,6 +2949,10 @@ def main(argv=None) -> int:
                         "patch_source_try": "model-verbatim",
                         "summary": summary,
                         **duplicate_info}
+        if consensus_note:
+            last_attempt["consensus"] = consensus_note
+        if consensus_votes_log:
+            last_attempt["votes"] = consensus_votes_log
         if attempt + 1 > MAX_ATTEMPTS:
             # Ladder-attempt marker (attempts 1-3 entries stay untouched).
             last_attempt["ladder"] = True
@@ -2727,7 +3030,7 @@ def main(argv=None) -> int:
                  "case": args.case, "seed": args.seed,
                  "max_tokens": TEXT_MAX_TOKENS,
                  "attempt": attempt + 1,
-                 "loop_feedback": loop_feedback}, indent=2) + "\n")
+                 "loop_feedback": loop_feedback, **({"consensus": consensus_note} if consensus_note else {})}, indent=2) + "\n")
         with open(api("text_response.json"), "w", encoding="utf-8") as fh:
             fh.write(json.dumps(
                 {"raw": call["raw"], "content": call["content"],
@@ -2736,7 +3039,9 @@ def main(argv=None) -> int:
                  "salvaged": salvaged,
                  "latency_ms": call["latency_ms"],
                  "request_id": call["request_id"],
-                 "model": call["model"], "usage": call["usage"]},
+                 "model": call["model"], "usage": call["usage"],
+                 **({"consensus": consensus_note, "votes": consensus_votes_log}
+                    if consensus_note else {})},
                 indent=2) + "\n")
         meta["text_latency_ms"] = call["latency_ms"]
         meta["text_request_id"] = call["request_id"]
