@@ -1371,16 +1371,66 @@ def parse_args(argv=None):
     return ap.parse_args(argv)
 
 
+def _fault_focus(case: dict, rel: str) -> tuple:
+    """(bug, anchor, pinned_lineno|None) for the excerpt path.
+
+    Pair specs (mut-pair-*) carry a `faults` list and no top-level
+    anchor/bug: focus the first fault in `rel`. Raises LoopError when
+    no fault lives in rel -- reading an unrelated file's excerpt would
+    mislead the diagnosis. Flat cases keep the legacy top-level keys.
+    """
+    raw = case.get("faults")
+    if raw is None:
+        return (case["bug"].strip(), case["anchor"].strip(), None)
+    if (not isinstance(raw, list) or not raw
+            or not all(isinstance(f, dict) for f in raw)):
+        raise LoopError("pair case needs a non-empty faults list, got %r"
+                        % (raw,))
+    match = None
+    for f in raw:
+        try:
+            if str(f["file"]) == rel:
+                match = f
+                break
+        except KeyError:
+            raise LoopError("mutant fault needs file + integer line + "
+                            "anchor + bug, got %r" % (f,))
+    if match is None:
+        raise LoopError("pair excerpt: no fault in %s (faults cover %s)"
+                        % (rel, sorted({str(f.get("file")) for f in raw})))
+    try:
+        bug = str(match["bug"]).strip()
+        anchor = str(match["anchor"]).strip()
+        lineno = int(match["line"])
+    except (KeyError, TypeError, ValueError):
+        raise LoopError("mutant fault needs file + integer line + "
+                        "anchor + bug, got %r" % (match,))
+    if not bug or not anchor or lineno < 1:
+        raise LoopError("mutant fault needs non-blank anchor+bug and "
+                        "line >= 1, got %r" % (match,))
+    return (bug, anchor, lineno)
+
+
 def bug_line_no(tree: str, rel: str, case: dict) -> int:
-    """1-based line number of the case bug (fallback: anchor, then 1)."""
+    """1-based line number of the case bug (fallback: anchor, then 1).
+
+    Pair specs focus the first fault in rel; the pinned line is used
+    only when the tree verifies it (holds the bug text), otherwise the
+    legacy text search applies -- so post-patch trees still resolve.
+    """
     path = os.path.join(tree, rel)
+    bug, anchor, pinned = _fault_focus(case, rel)
     try:
         with open(path, "r", encoding="utf-8") as fh:
             lines = fh.read().splitlines()
     except OSError:
         return 1
-    bug = case["bug"].strip()
-    anchor = case["anchor"].strip()
+    if pinned is not None and 1 <= pinned <= len(lines) \
+            and lines[pinned - 1].strip() == bug:
+        # Tree verifies the pin: use it directly. (Text search would
+        # also find it, but the pin is exact -- no ambiguity when the
+        # bug text occurs on several lines.)
+        return pinned
     idx = next((i for i, l in enumerate(lines) if l.strip() == bug), -1)
     if idx < 0:
         idx = next((i for i, l in enumerate(lines) if l.strip() == anchor),
@@ -2249,19 +2299,28 @@ def rtl_files(tree: str, cap: int = 25) -> list:
 
 
 def rtl_excerpt(tree: str, rel: str, case: dict, max_lines: int = 40) -> str:
-    """<=40 line-numbered lines around the injected bug line."""
+    """<=40 line-numbered lines around the injected bug line.
+
+    Pair specs focus the first fault in rel; the pinned line is used
+    only when the tree verifies it, otherwise the legacy text search
+    applies -- so post-patch trees still resolve.
+    """
     path = os.path.join(tree, rel)
+    bug, anchor, pinned = _fault_focus(case, rel)
     try:
         with open(path, "r", encoding="utf-8") as fh:
             lines = fh.read().splitlines()
     except OSError as exc:
         raise LoopError("cannot read RTL for excerpt: %s" % (exc,))
-    bug = case["bug"].strip()
-    anchor = case["anchor"].strip()
-    idx = next((i for i, ln in enumerate(lines) if ln.strip() == bug), -1)
-    if idx < 0:
-        idx = next((i for i, ln in enumerate(lines) if ln.strip() == anchor),
-                   0)
+    if pinned is not None and 1 <= pinned <= len(lines) \
+            and lines[pinned - 1].strip() == bug:
+        idx = pinned - 1
+    else:
+        idx = next((i for i, ln in enumerate(lines)
+                    if ln.strip() == bug), -1)
+        if idx < 0:
+            idx = next((i for i, ln in enumerate(lines)
+                        if ln.strip() == anchor), 0)
     half = max_lines // 2
     start = max(0, min(idx - half, len(lines) - max_lines))
     window = lines[start:start + max_lines]
