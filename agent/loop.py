@@ -1784,6 +1784,283 @@ def reset_tree_for_attempt(case: dict, pristine_tree: str, tree: str,
             "tree_reset_verified": baseline_sha256 is not None}
 
 
+# --------------------------------------------------------------------------
+# Compositional repair (stacked partial fixes, pair-05 lesson).
+#
+# A pair case needs TWO faults fixed. Single attempts fix at most one
+# fault, and the old loop RESET to the RED baseline after every non-green
+# attempt -- discarding real behavior-changing progress. The fix: when an
+# applied patch changes behavior (resim checksum != RED baseline) but the
+# verdict stays RED, KEEP the improved tree and diagnose on from it
+# (stacking) instead of resetting. RESET still applies on no-effect /
+# guard-rejected / unparseable attempts. Stack depth is capped at 2
+# (pairs need at most 2; deeper stacking is unproven -- refuse loudly).
+# No prompt-file changes: the already-fixed lines ride the existing
+# prior-attempts/feedback text channel. Stdlib only.
+# --------------------------------------------------------------------------
+
+STACK_MAX_DEPTH = 2
+
+
+def is_pair_case(case: dict) -> bool:
+    """True iff the case pins TWO OR MORE faults (mut-pair-* family).
+
+    Single-fault cases (flat eval specs AND legacy mutant_file /
+    mutant_line specs) return False: they never trigger stacking and
+    keep the old reset path byte-identical.
+    """
+    if not isinstance(case, dict):
+        return False
+    faults = case.get("faults")
+    return (isinstance(faults, list) and len(faults) >= 2
+            and all(isinstance(f, dict) for f in faults))
+
+
+def should_stack_diff(*, case: dict, applied: bool,
+                      checksum_before, checksum_after,
+                      still_red: bool) -> tuple:
+    """Pure stacking gate. Returns (stack: bool, why: str).
+
+    Stacks ONLY when ALL hold: pair case, an applied patch, both
+    checksums present and different (proven behavior change vs the RED
+    baseline), verdict still RED. GREEN goes to fresh-tree replay, not
+    to the stack; guard-rejected / unparseable / no-effect attempts
+    reset exactly like before.
+    """
+    if not is_pair_case(case):
+        return False, "single-fault case: never stack (reset path unchanged)"
+    if not still_red:
+        return False, "already GREEN: goes to replay, not to the stack"
+    if not applied:
+        return (False, "no applied patch: guard-rejected / unparseable "
+                       "attempts reset")
+    if not checksum_before or not checksum_after:
+        return False, "missing checksum: cannot prove behavior change, reset"
+    if checksum_after == checksum_before:
+        return False, "no behavior change (checksum identical): reset"
+    return True, ("behavior changed on pair case (checksum %s -> %s): "
+                  "keep the improved tree"
+                  % (str(checksum_before)[:12], str(checksum_after)[:12]))
+
+
+def make_stack_entry(*, attempt: int, patch: str, checksum_before: str,
+                     checksum_after: str, direction: str = "",
+                     patch_lines: int = 0) -> dict:
+    """One stacked-diff record: attempt number, patch text, checksum
+    provenance (tree state before -> after this diff), change direction,
+    patch line count. Every stacked diff passed guard + dry-run + resim
+    before it was recorded (the caller guarantees this)."""
+    return {"attempt": int(attempt), "patch": patch or "",
+            "direction": direction or "",
+            "checksum_before": checksum_before,
+            "checksum_after": checksum_after,
+            "patch_lines": int(patch_lines or 0)}
+
+
+def stack_combined_diff(stack) -> str:
+    """Concatenate stacked diffs in order (the FULL stacked fix)."""
+    parts = []
+    for entry in stack or []:
+        text = (entry or {}).get("patch") or ""
+        if text:
+            parts.append(text if text.endswith("\n") else text + "\n")
+    return "".join(parts)
+
+
+def check_stack_cap(stack) -> None:
+    """Refuse loudly beyond STACK_MAX_DEPTH (never silently accumulate)."""
+    depth = len(stack or [])
+    if depth >= STACK_MAX_DEPTH:
+        raise LoopError(
+            "compositional stack cap exceeded: depth %d >= max %d -- "
+            "deeper stacking is unproven, refusing loudly"
+            % (depth, STACK_MAX_DEPTH))
+
+
+def verify_stack_replay(*, stack, case: dict, pristine_tree: str,
+                        replay_tree: str, seed: int, tmp_path: str,
+                        boot_path: str | None = None,
+                        verdict_path: str | None = None,
+                        expected_checksum: str = "", spec=None,
+                        resim_fn=None) -> dict:
+    """Fresh-tree replay proof for a stacked fix. NEVER raises: every
+    failure mode becomes {"ok": False} with a loud reason (the caller
+    turns that RED -- a lying stack must not go GREEN).
+
+    Re-prepares the RED baseline into replay_tree, applies the FULL
+    stacked diff (guard + dry-run + apply, same as the loop), resims,
+    and requires pass=True AND checksum == expected_checksum (proves
+    the stack is real, not drift).
+    """
+    def _fail(reason):
+        return {"ok": False, "reason": reason, "verdict": None,
+                "combined_diff": stack_combined_diff(stack),
+                "replay_tree": replay_tree}
+    if boot_path is None:
+        boot_path = os.path.join(replay_tree, "boot_replay.log")
+    if verdict_path is None:
+        verdict_path = os.path.join(replay_tree, "verdict_replay.json")
+    if not stack:
+        return _fail("empty stack: nothing to replay")
+    if not pristine_tree or not os.path.isdir(pristine_tree):
+        return _fail("pristine tree absent: %r" % (pristine_tree,))
+    if not expected_checksum:
+        return _fail("missing expected checksum: refusing GREEN")
+    try:
+        prepare_mutant_tree(case, pristine_tree, replay_tree, force=True)
+    except LoopError as exc:
+        return _fail("fresh RED prepare failed: %s" % exc)
+    combined = stack_combined_diff(stack)
+    if not combined.strip():
+        return _fail("stacked diff is empty text: refusing GREEN")
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as fh:
+            fh.write(combined)
+    except OSError as exc:
+        return _fail("cannot stage stacked diff: %s" % exc)
+    outcome = try_apply_diff(combined, replay_tree, tmp_path, spec)
+    if not outcome.get("applied"):
+        return _fail("stacked diff REJECTED on fresh RED tree: %s"
+                      % (outcome.get("reasons"),))
+    fn = resim_after if resim_fn is None else resim_fn  # call-time lookup
+    try:
+        verdict = fn(replay_tree, case, seed, boot_path, verdict_path)
+    except Exception as exc:  # noqa: BLE001 -- loud, not a crash
+        return _fail("replay resim crashed: %r" % (exc,))
+    if not isinstance(verdict, dict) or not verdict.get("pass"):
+        return _fail(
+            "replay resim still RED on fresh tree (tohost=%s): "
+            "the stack lied"
+            % ((verdict or {}).get("tohost"),))
+    if verdict.get("checksum") != expected_checksum:
+        return _fail(
+            "replay checksum %s != stacked-run checksum %s: drift, "
+            "refusing GREEN"
+            % (verdict.get("checksum"), expected_checksum))
+    return {"ok": True,
+            "reason": "replay GREEN on fresh RED tree, checksum match",
+            "verdict": verdict, "combined_diff": combined,
+            "replay_tree": replay_tree}
+
+
+def collect_prompt_bundle(*, template: str, case_name: str, rtl_rel: str,
+                          excerpt: str, boot_text: str, verdict_text: str,
+                          tree: str, case: dict, runs_root: str,
+                          run_dir: str, run_id: str,
+                          current_case: str) -> tuple:
+    """COLLECT + v2/v3 augmentation, shared by the initial collection and
+    by compositional re-COLLECT from an improved (stacked) tree.
+
+    Byte-identical to the old inline loop block for identical inputs
+    (same trace + same tree state => same bundle); the stack path calls
+    it again with the fresh trace + fresh excerpts. Returns
+    (bundle, prompt_version, harvest_info). Raises AssertionError on a
+    collector-cap violation, OSError/LoopError on read failures -- the
+    caller maps those to loud RED, exactly like the old block.
+    """
+    staged = template.replace("{{CASE}}", case_name).replace(
+        "{{RTL_FILE}}", rtl_rel).replace("{{RTL_EXCERPT}}", excerpt)
+    bundle = collect.collect(boot_text, verdict_text, staged)
+    harvest_info: dict | None = None
+    if "{{HARVEST}}" in bundle["full_prompt"]:
+        # prompt v3: harvest pack (fingerprint + cone slice + verdict,
+        # budgets enforced inside harvest_pack). v3 is opt-in via
+        # --prompt v3; the default stays v2 until ablation crowns a
+        # winner (no silent default change). Any harvest exception
+        # degrades to v2 collection -- the loop never dies on harvest
+        # (cost-hook pattern: non-fatal, old bundles untouched).
+        try:
+            harvest_text, harvest_counts, fp_record = assemble_harvest(
+                bundle["trace_block"], verdict_text, tree,
+                rtl_files(tree), runs_root,
+                current_run_id=run_id, current_case=current_case)
+            # NEW bundle only (fix_memory.write_fingerprint creates
+            # parent dirs for run_dir; old bundles are never touched).
+            fix_memory.write_fingerprint(run_dir, fp_record)
+            full_with_harvest = bundle["full_prompt"].replace(
+                "{{HARVEST}}", harvest_text)
+            total = collect.approx_tokens(full_with_harvest)
+            assert total <= collect.MAX_PROMPT_TOKENS, (
+                "prompt v3 with harvest pack %d tokens exceeds cap %d"
+                % (total, collect.MAX_PROMPT_TOKENS))
+            bundle = dict(bundle, full_prompt=full_with_harvest)
+            bundle["counts"] = dict(
+                bundle["counts"], prompt_tokens=total,
+                harvest_tokens=harvest_counts["pack_tokens"],
+                harvest_dropped=harvest_counts["dropped"])
+            harvest_info = dict(harvest_counts, status="ok")
+        except Exception as exc:  # noqa: BLE001 -- degrade, never die
+            print("[COLLECT] harvest failed (%r); degrading to v2 "
+                  "collection" % (exc,), flush=True)
+            fallback = "HARVEST FAILED (%s)" % (exc,)
+            try:
+                v2_pack, v2_counts = context_pack.build_pack(
+                    bundle["trace_block"], tree, rtl_files(tree),
+                    runs_root,
+                    bug_line_no(tree, rtl_rel, case), rtl_rel)
+                if v2_pack:
+                    fallback = (
+                        "HARVEST FAILED (%s); degraded to v2-style "
+                        "context:\n%s" % (exc, v2_pack))
+            except Exception as exc2:  # noqa: BLE001 -- v2 also failed
+                v2_counts = {}
+                fallback = ("HARVEST FAILED (%s; v2 fallback also "
+                            "failed: %s)" % (exc, exc2))
+            cand = bundle["full_prompt"].replace("{{HARVEST}}",
+                                                 fallback)
+            if collect.approx_tokens(cand) > collect.MAX_PROMPT_TOKENS:
+                # Drop the v2 pack under pressure: the FAILED marker
+                # alone always fits wherever the v1 baseline fits.
+                fallback = "HARVEST FAILED (%s)" % (exc,)
+                cand = bundle["full_prompt"].replace("{{HARVEST}}",
+                                                     fallback)
+            total = collect.approx_tokens(cand)
+            assert total <= collect.MAX_PROMPT_TOKENS, (
+                "prompt v3 degraded fallback %d tokens exceeds cap %d"
+                % (total, collect.MAX_PROMPT_TOKENS))
+            bundle = dict(bundle, full_prompt=cand)
+            bundle["counts"] = dict(bundle["counts"],
+                                    prompt_tokens=total)
+            harvest_info = {"status": "FAILED",
+                            "error": str(exc)[:200],
+                            "fallback": "v2-context",
+                            "fingerprint": "",
+                            "cone_lines": 0, "cone_files": 0,
+                            "cone_drivers": 0,
+                            "pack_lines": 0, "pack_tokens": 0}
+    elif "{{CONTEXT}}" in bundle["full_prompt"]:
+        # prompt v2 (default): ground the model with the budgeted
+        # context pack.
+        pack, pack_counts = context_pack.build_pack(
+            bundle["trace_block"], tree, rtl_files(tree),
+            runs_root,
+            bug_line_no(tree, rtl_rel, case), rtl_rel)
+        full_with_pack = bundle["full_prompt"].replace(
+            "{{CONTEXT}}", pack)
+        total = collect.approx_tokens(full_with_pack)
+        assert total <= collect.MAX_PROMPT_TOKENS, (
+            "prompt v2 with context pack %d tokens exceeds cap %d"
+            % (total, collect.MAX_PROMPT_TOKENS))
+        bundle = dict(bundle, full_prompt=full_with_pack)
+        bundle["counts"] = dict(
+            bundle["counts"], prompt_tokens=total,
+            context_tokens=pack_counts["pack_tokens"],
+            context_dropped=pack_counts["dropped"],
+            localization_top1=pack_counts["top1_file"],
+            top1_is_true=pack_counts["top1_is_true"],
+            n_signals=pack_counts["n_signals"])
+    if "{{OPT_BASELINE}}" in staged:
+        prompt_version = OPT_PROMPT_NAME
+    elif "{{HARVEST}}" in staged:
+        prompt_version = "v3"
+    elif "{{CONTEXT}}" in staged:
+        prompt_version = "v2"
+    else:
+        prompt_version = "v1"
+    return bundle, prompt_version, harvest_info
+
+
+
 PROMPT_VERSIONS = ("v1", "v2", "v3")
 
 
@@ -1841,11 +2118,20 @@ def format_prior_attempts_block(priors) -> str:
     """
     rows = []
     for p in priors or []:
-        rows.append("- attempt %s: patch `%s` -> resim %s; "
-                    "checksum changed: %s"
-                    % (p.get("attempt", "?"), p.get("patch", "?"),
-                       p.get("resim", "?"),
-                       p.get("checksum_changed", "?")))
+        row = ("- attempt %s: patch `%s` -> resim %s; "
+               "checksum changed: %s"
+               % (p.get("attempt", "?"), p.get("patch", "?"),
+                  p.get("resim", "?"),
+                  p.get("checksum_changed", "?")))
+        if p.get("stacked"):
+            # Compositional repair: this fix is KEPT in the tree (no
+            # reset). The next attempt must diagnose the REMAINING
+            # fault(s) -- never re-fix these lines. Prompt templates
+            # untouched; this rides the existing channel.
+            row += (" [STACKED: this fix is KEPT in the tree -- "
+                    "diagnose the REMAINING fault(s) from the fresh "
+                    "trace; do NOT re-fix these already-fixed lines]")
+        rows.append(row)
     if not rows:
         return ""
     block = ("### PRIOR_ATTEMPTS [earlier patches FAILED -- do NOT repeat "
@@ -2674,96 +2960,12 @@ def main(argv=None) -> int:
         with open(art("verdict_before.json"), encoding="utf-8") as fh:
             verdict_json = fh.read()
         excerpt = build_excerpt_text(tree, rtl_rel, case)
-        staged = template.replace("{{CASE}}", args.case).replace(
-            "{{RTL_FILE}}", rtl_rel).replace("{{RTL_EXCERPT}}", excerpt)
-        bundle = collect.collect(boot_log, verdict_json, staged)
-        if "{{HARVEST}}" in bundle["full_prompt"]:
-            # prompt v3: harvest pack (fingerprint + cone slice + verdict,
-            # budgets enforced inside harvest_pack). v3 is opt-in via
-            # --prompt v3; the default stays v2 until ablation crowns a
-            # winner (no silent default change). Any harvest exception
-            # degrades to v2 collection -- the loop never dies on harvest
-            # (cost-hook pattern: non-fatal, old bundles untouched).
-            try:
-                harvest_text, harvest_counts, fp_record = assemble_harvest(
-                    bundle["trace_block"], verdict_json, tree,
-                    rtl_files(tree), os.path.join(ROOT, "runs"),
-                    current_run_id=run_id, current_case=args.case)
-                # NEW bundle only (fix_memory.write_fingerprint creates
-                # parent dirs for run_dir; old bundles are never touched).
-                fix_memory.write_fingerprint(run_dir, fp_record)
-                full_with_harvest = bundle["full_prompt"].replace(
-                    "{{HARVEST}}", harvest_text)
-                total = collect.approx_tokens(full_with_harvest)
-                assert total <= collect.MAX_PROMPT_TOKENS, (
-                    "prompt v3 with harvest pack %d tokens exceeds cap %d"
-                    % (total, collect.MAX_PROMPT_TOKENS))
-                bundle = dict(bundle, full_prompt=full_with_harvest)
-                bundle["counts"] = dict(
-                    bundle["counts"], prompt_tokens=total,
-                    harvest_tokens=harvest_counts["pack_tokens"],
-                    harvest_dropped=harvest_counts["dropped"])
-                harvest_info = dict(harvest_counts, status="ok")
-            except Exception as exc:  # noqa: BLE001 -- degrade, never die
-                print("[COLLECT] harvest failed (%r); degrading to v2 "
-                      "collection" % (exc,), flush=True)
-                fallback = "HARVEST FAILED (%s)" % (exc,)
-                try:
-                    v2_pack, v2_counts = context_pack.build_pack(
-                        bundle["trace_block"], tree, rtl_files(tree),
-                        os.path.join(ROOT, "runs"),
-                        bug_line_no(tree, rtl_rel, case), rtl_rel)
-                    if v2_pack:
-                        fallback = (
-                            "HARVEST FAILED (%s); degraded to v2-style "
-                            "context:\n%s" % (exc, v2_pack))
-                except Exception as exc2:  # noqa: BLE001 -- v2 also failed
-                    v2_counts = {}
-                    fallback = ("HARVEST FAILED (%s; v2 fallback also "
-                                "failed: %s)" % (exc, exc2))
-                cand = bundle["full_prompt"].replace("{{HARVEST}}",
-                                                     fallback)
-                if collect.approx_tokens(cand) > collect.MAX_PROMPT_TOKENS:
-                    # Drop the v2 pack under pressure: the FAILED marker
-                    # alone always fits wherever the v1 baseline fits.
-                    fallback = "HARVEST FAILED (%s)" % (exc,)
-                    cand = bundle["full_prompt"].replace("{{HARVEST}}",
-                                                         fallback)
-                total = collect.approx_tokens(cand)
-                assert total <= collect.MAX_PROMPT_TOKENS, (
-                    "prompt v3 degraded fallback %d tokens exceeds cap %d"
-                    % (total, collect.MAX_PROMPT_TOKENS))
-                bundle = dict(bundle, full_prompt=cand)
-                bundle["counts"] = dict(bundle["counts"],
-                                        prompt_tokens=total)
-                harvest_info = {"status": "FAILED",
-                                "error": str(exc)[:200],
-                                "fallback": "v2-context",
-                                "fingerprint": "",
-                                "cone_lines": 0, "cone_files": 0,
-                                "cone_drivers": 0,
-                                "pack_lines": 0, "pack_tokens": 0}
-        elif "{{CONTEXT}}" in bundle["full_prompt"]:
-            # prompt v2 (default): ground the model with the budgeted
-            # context pack.
-            pack, pack_counts = context_pack.build_pack(
-                bundle["trace_block"], tree, rtl_files(tree),
-                os.path.join(ROOT, "runs"),
-                bug_line_no(tree, rtl_rel, case), rtl_rel)
-            full_with_pack = bundle["full_prompt"].replace(
-                "{{CONTEXT}}", pack)
-            total = collect.approx_tokens(full_with_pack)
-            assert total <= collect.MAX_PROMPT_TOKENS, (
-                "prompt v2 with context pack %d tokens exceeds cap %d"
-                % (total, collect.MAX_PROMPT_TOKENS))
-            bundle = dict(bundle, full_prompt=full_with_pack)
-            bundle["counts"] = dict(
-                bundle["counts"], prompt_tokens=total,
-                context_tokens=pack_counts["pack_tokens"],
-                context_dropped=pack_counts["dropped"],
-                localization_top1=pack_counts["top1_file"],
-                top1_is_true=pack_counts["top1_is_true"],
-                n_signals=pack_counts["n_signals"])
+        bundle, prompt_version, harvest_info = collect_prompt_bundle(
+            template=template, case_name=args.case, rtl_rel=rtl_rel,
+            excerpt=excerpt, boot_text=boot_log,
+            verdict_text=verdict_json,
+            tree=tree, case=case, runs_root=os.path.join(ROOT, "runs"),
+            run_dir=run_dir, run_id=run_id, current_case=args.case)
     except AssertionError as exc:
         meta["error"] = "collector cap violated (fail loudly): %s" % (exc,)
         print("FATAL: %s" % meta["error"], file=sys.stderr)
@@ -2772,14 +2974,6 @@ def main(argv=None) -> int:
         meta["error"] = "COLLECT failed: %s" % (exc,)
         print("FATAL: %s" % meta["error"], file=sys.stderr)
         return finish("red")
-    if "{{OPT_BASELINE}}" in staged:
-        prompt_version = OPT_PROMPT_NAME
-    elif "{{HARVEST}}" in staged:
-        prompt_version = "v3"
-    elif "{{CONTEXT}}" in staged:
-        prompt_version = "v2"
-    else:
-        prompt_version = "v1"
     meta["prompt_version"] = prompt_version
     meta["harvest"] = harvest_info if harvest_info is not None else {
         "status": "n/a"}
@@ -2896,6 +3090,16 @@ def main(argv=None) -> int:
     meta["attempts_consumed"] = 0
     meta["transport_retries"] = []
     meta["transport_failures"] = 0
+    # Compositional repair (pair cases): `stack` records applied,
+    # behavior-changing diffs kept in the tree across attempts
+    # (stacked instead of reset). Singles never stack: the old reset
+    # path below is untouched for them.
+    stack: list = []
+    meta["stack"] = stack
+    meta["stacked"] = False
+    meta["stack_depth"] = 0
+    stack_keep_tree = False  # set when the previous attempt stacked
+    prev_resim_checksum = meta.get("checksum_before")
 
     def note_transport_failure(exc: Exception) -> bool:
         """Account one exhausted transport sequence; True => stop the run.
@@ -3010,13 +3214,59 @@ def main(argv=None) -> int:
         # is retried as attempt N until a completed response consumes it.
         attempt = attempts_consumed
         meta["retries"] = attempt
+        stacked_continue = False
         if attempt > 0:
             # Clean-slate attempts: reset to the recorded RED baseline
             # BEFORE diagnosing again (v3-21 lesson: attempt N must not
             # debug attempt N-1's patch debris). Mutant trees re-apply
             # the pinned fault onto the pristine copy; non-mutant trees
             # have no recorded baseline (logged false, honestly).
-            if mutant_record is not None:
+            # COMPOSITIONAL REPAIR: when the previous attempt stacked a
+            # behavior-changing diff, the improved tree is KEPT (no
+            # reset) and attempt N diagnoses from a FRESH re-COLLECT of
+            # that tree (fresh trace + excerpts).
+            if stack_keep_tree:
+                stacked_continue = True
+                stack_keep_tree = False
+                reset_note = {
+                    "tree_reset": False,
+                    "tree_reset_reason":
+                        "compositional stack: continue from improved "
+                        "tree (stack depth %d; no reset)" % len(stack),
+                    "stacked_continue": True,
+                    "stack_depth": len(stack)}
+                print("[STACK] kept improved tree (stack depth %d); "
+                      "re-collecting from it" % len(stack), flush=True)
+                try:
+                    with open(art("boot_after.log"),
+                              encoding="utf-8") as fh:
+                        boot_new = fh.read()
+                    with open(art("verdict_after.json"),
+                              encoding="utf-8") as fh:
+                        verdict_new = fh.read()
+                    excerpt_new = build_excerpt_text(tree, rtl_rel, case)
+                    bundle, prompt_version, harvest_info = (
+                        collect_prompt_bundle(
+                            template=template, case_name=args.case,
+                            rtl_rel=rtl_rel, excerpt=excerpt_new,
+                            boot_text=boot_new, verdict_text=verdict_new,
+                            tree=tree, case=case,
+                            runs_root=os.path.join(ROOT, "runs"),
+                            run_dir=run_dir, run_id=run_id,
+                            current_case=args.case))
+                    counts = bundle["counts"]
+                    full_prompt = bundle["full_prompt"]
+                    with open(art("input_trace_stacked_%d.txt"
+                                  % (attempt + 1)),
+                              "w", encoding="utf-8") as fh:
+                        fh.write(bundle["trace_block"] + "\n")
+                except (AssertionError, OSError, LoopError) as exc:
+                    meta["error"] = (
+                        "compositional re-COLLECT failed before attempt "
+                        "%d: %s" % (attempt + 1, exc))
+                    print("FATAL: %s" % meta["error"], file=sys.stderr)
+                    break
+            elif mutant_record is not None:
                 try:
                     reset_info = reset_tree_for_attempt(
                         case, pristine_tree, tree,
@@ -3043,7 +3293,16 @@ def main(argv=None) -> int:
                 "tree_reset_reason": "first attempt runs on the RED "
                                      "tree (no reset needed)"}
         note = ""
-        if attempt > 0:
+        if stacked_continue:
+            note = ("\n\nRETRY NOTE (attempt %d of %d): the previous "
+                    "patch is a PARTIAL fix already KEPT in the tree "
+                    "(compositional stack depth %d). Diagnose the "
+                    "REMAINING fault(s) from the FRESH trace below and "
+                    "propose a follow-up unified diff against the CURRENT "
+                    "tree state; do NOT re-fix the already-fixed lines "
+                    "noted in PRIOR_ATTEMPTS."
+                    % (attempt + 1, attempt_limit, len(stack)))
+        elif attempt > 0:
             prev = last_attempt.get("summary", "previous attempt failed")
             note = ("\n\nRETRY NOTE (attempt %d of %d): the previous patch "
                     "failed: %s. Diagnose again from the SAME trace and "
@@ -3746,6 +4005,49 @@ def main(argv=None) -> int:
                             "checksum": verdict_after.get("checksum"),
                             "source": "verdict_after.json"}})
         if getattr(after_verdict, "pass"):
+            if stack:
+                # Compositional-repair honesty gate: the FULL stacked
+                # diff (stacked fixes + this winning patch, in order)
+                # must apply cleanly to a FRESH prepared RED tree and go
+                # GREEN there (proves the stack is real, not drift). A
+                # lying stack turns the verdict RED -- loud, not triage.
+                stack.append(make_stack_entry(
+                    attempt=attempt + 1, patch=final_patch,
+                    checksum_before=prev_resim_checksum,
+                    checksum_after=verdict_after.get("checksum"),
+                    direction=direction_key(final_patch),
+                    patch_lines=outcome.get("patch_lines", 0)))
+                meta["stack_depth"] = len(stack)
+                combined = stack_combined_diff(stack)
+                replay_dir = os.path.join(ROOT, "runs", "scratch",
+                                          run_id + "-stack-replay")
+                replay = verify_stack_replay(
+                    stack=stack, case=case, pristine_tree=pristine_tree,
+                    replay_tree=replay_dir, seed=args.seed,
+                    tmp_path=os.path.join(run_dir, "stack_replay.diff"),
+                    boot_path=art("boot_replay.log"),
+                    verdict_path=art("verdict_replay.json"),
+                    expected_checksum=verdict_after.get("checksum"),
+                    spec=spec)
+                meta["replay_verified"] = bool(replay.get("ok"))
+                if not replay.get("ok"):
+                    green = False
+                    meta["error"] = (
+                        "compositional stack replay FAILED on a fresh "
+                        "RED tree: %s (the stack lied; refusing GREEN)"
+                        % (replay.get("reason"),))
+                    print("REPLAY-FAILED: %s" % meta["error"],
+                          file=sys.stderr)
+                    break
+                final_patch = combined
+                meta["patch_lines"] = sum(
+                    e.get("patch_lines", 0) for e in stack)
+                with open(os.path.join(run_dir, "stack.diff"), "w",
+                          encoding="utf-8") as fh:
+                    fh.write(combined if combined.endswith("\n")
+                             else combined + "\n")
+                print("[STACK] replay verified on fresh RED tree "
+                      "(depth %d)" % len(stack), flush=True)
             green = True
             if not ladder_used:
                 ladder_reason = "green-within-base (ladder not needed)"
@@ -3780,12 +4082,55 @@ def main(argv=None) -> int:
         else:
             changed = ("no" if after_checksum == before_checksum
                        else "yes")
-        prior_attempts.append({
+        prior_row = {
             "attempt": attempt + 1,
             "patch": patch_one_liner(final_patch),
             "direction": direction_key(final_patch),
             "resim": "RED (tohost=%s)" % verdict_after.get("tohost"),
-            "checksum_changed": changed})
+            "checksum_changed": changed}
+        stack_ok, stack_why = should_stack_diff(
+            case=case, applied=bool(final_patch),
+            checksum_before=before_checksum,
+            checksum_after=after_checksum, still_red=True)
+        if stack_ok:
+            # Compositional repair: this applied patch CHANGED behavior
+            # (already guard + dry-run + resim proven) but the pair is
+            # still RED -- KEEP the improved tree, record the diff, and
+            # diagnose on from it instead of resetting. Budget unchanged
+            # (this consumed one of the 3 diagnostic attempts).
+            try:
+                check_stack_cap(stack)
+            except LoopError as exc:
+                meta["error"] = (
+                    "compositional stack cap hit on attempt %d: %s "
+                    "-- refusing to stack further (loud RED)"
+                    % (attempt + 1, exc))
+                print("STACK-CAP: %s" % meta["error"], file=sys.stderr)
+                prior_attempts.append(prior_row)
+                prev_resim_checksum = after_checksum
+                break
+            prior_row["stacked"] = True
+            prior_attempts.append(prior_row)
+            stack.append(make_stack_entry(
+                attempt=attempt + 1, patch=final_patch,
+                checksum_before=prev_resim_checksum,
+                checksum_after=after_checksum,
+                direction=direction_key(final_patch),
+                patch_lines=outcome.get("patch_lines", 0)))
+            meta["stacked"] = True
+            meta["stack_depth"] = len(stack)
+            stack_keep_tree = True
+            prev_resim_checksum = after_checksum
+            with open(os.path.join(run_dir, "stack.diff"), "w",
+                      encoding="utf-8") as fh:
+                combined = stack_combined_diff(stack)
+                fh.write(combined if combined.endswith("\n")
+                         else combined + "\n")
+            print("[STACK] attempt %d stacked (%s); depth %d" % (
+                attempt + 1, stack_why, len(stack)), flush=True)
+        else:
+            prior_attempts.append(prior_row)
+            prev_resim_checksum = after_checksum
         # fall through to next attempt (retry with feedback note)
 
     # ---- bundle tail
