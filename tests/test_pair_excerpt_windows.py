@@ -105,6 +105,10 @@ class TestPairExcerptWindows(unittest.TestCase):
         self.assertIn("=== fault 1 (rtl/u.v:4) ===", text)
         self.assertIn("=== fault 2 (rtl/u.v:9) ===", text)
         self.assertIn("candidate bug lines: 4, 9", text)
+        # Control experiment (mutpair-v6-05): a byte-perfect hunk ending
+        # on -/+ lines with zero trailing context is rejected by
+        # patch/git-apply; the grounding must demand trailing context.
+        self.assertIn("trailing", text)
 
     def test_excerpt_text_flat_is_bare_window(self):
         flat = {"name": "flat", "files": ["rtl/u.v"],

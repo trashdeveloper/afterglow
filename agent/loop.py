@@ -1463,7 +1463,9 @@ _PAIR_GROUNDING = (
     "candidate bug lines: %s — the diff MUST touch a pinned line with "
     "`-` = current tree text (byte-verbatim incl. tabs); prefer minimal "
     "1-3 line hunks; never INSERT a duplicate assignment to fix a "
-    "wrong constant.")
+    "wrong constant; end EVERY hunk with at least 2 unchanged trailing "
+    "context lines (a hunk ending on a -/+ line is rejected even when "
+    "byte-perfect).")
 
 
 def build_excerpt_text(tree: str, rel: str, case: dict,
