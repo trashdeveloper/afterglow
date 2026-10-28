@@ -1,0 +1,12 @@
+{
+  "fingerprint": "0d900ccf5cf9034e3acc305452a4b6f318c8e947c19d4842e2a005ceb735bb1b",
+  "trap_line": "TRAP: darkriscv sltiu daddr=00000000 datao=00000000 want daddr=00000000 datao=00000001",
+  "oracle_sig": "FAIL 0xdead",
+  "signals": [
+    "daddr",
+    "datao",
+    "darkriscv",
+    "sltiu",
+    "xdead"
+  ]
+}

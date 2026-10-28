@@ -1,9 +1,9 @@
-- tb_darkriscv_sltiu seed 42
+- tb_darkriscv_sltiu seed 43
 - darkriscv sltiu: x3 must be 1 (5000 < -1 signed)
 - store daddr=00000000 datao=00000001 dlen=4
 tohost: PASS
 CYCLES=13
 - /home/tuncay/afterglow/sim/tb/darkriscv-sltiu_tb.sv:149: Verilog $finish
 - S i m u l a t i o n   R e p o r t: Verilator 5.052 2026-09-05
-- Verilator: $finish at 135ns; walltime 0.000 s; speed 4.278 ms/s
+- Verilator: $finish at 135ns; walltime 0.000 s; speed 4.131 ms/s
 - Verilator: cpu 0.000 s on 1 threads; allocated 4 MB

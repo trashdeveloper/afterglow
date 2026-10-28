@@ -1,10 +1,10 @@
 {
   "model": "muse-image-1.0",
   "endpoint": "https://api.meta.ai/v1/images/generations",
-  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: stranger2\nFailing-trace sha256 (first 16 hex): 6f8fca95d603df71\nVerbatim diagnosis from the debug agent:\nSLTIU with U1REG=5000 and imm=-1 wrote datao=00000000 instead of expected datao=00000001 (x3 must be 1). Unsigned compare U1REG < U2REGX used zero-extended UIMM=4095, so 5000<4095 is false. Root cause is line 531 where U2REGX selects UIMM when XMCC is set; it must select sign-extended SIMM (0xFFFFFFFF) so 5000<4294967295 is true unsigned.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 6f8fca95d603df71 in a corner as provenance. No decorative elements, no invented signals.",
-  "prompt_sha256": "5f12612fa61f12731a9c223afe43d385c9c33526ef2eea92fdb90ec98488c029",
-  "trace_sha256": "6f8fca95d603df712f458b814a1911a52ebb33ac6c264e73997d8e542650df4d",
-  "diagnosis_sha256": "6e4bfb24f33ed83433405d84059450c766257143a4cad4576a4c7d8a62004af5",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: stranger2\nFailing-trace sha256 (first 16 hex): 18ca9169cd14a516\nVerbatim diagnosis from the debug agent:\nSLTIU store shows datao=00000000 vs expected 00000001 for 5000 < -1 unsigned-true test. Excerpt line 531 builds U2REGX as XMCC ? UIMM : U2REG, zero-extending I-imm 0xFFF to 4095 instead of sign-extended 0xFFFFFFFF, so unsigned compare 5000 < 4095 is false. CONE_SLICE refs boards/de10nano_cyclonev_mister/sys/hq2x.sv:105,130,230,245,246,254,264 carry no darkriscv ALU cone, so trace wins and root cause is the UIMM selection for the SLTIU path.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 18ca9169cd14a516 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "acef186f9d87e4d7482684c762026a160fdb90ffd921510245f73c87a58e715e",
+  "trace_sha256": "18ca9169cd14a516002d88e756fc0c275e732eb774771d5695af77c794d7f2aa",
+  "diagnosis_sha256": "57b22638c27d87f5e51250351c1c81747625b983d373883553d4dd34fc7383ae",
   "case": "stranger2",
   "attempt": 1
 }

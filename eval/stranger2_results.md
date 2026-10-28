@@ -6,9 +6,8 @@ Quarantine: `ground_truth_fix` in `eval/stranger2.yaml` is judge evidence only -
 
 | stranger id | upstream commit | status | run | time_to_green_s | patch_lines | baseline_h | speedup_vs_baseline | human_touches |
 |---|---|---|---|---|---|---|---|---|
-| stranger2 | 3dae843a5740 | UNRUN | - | - | - | 4 | - | - |
+| stranger2 | 3dae843a5740 | GREEN | stranger2-auto1 | 52.7 | 2 | 4 | 273x | 0 |
 
-fix rate: 0/1
-median time-to-green: n/a (no green stranger2 runs yet)
-awaiting live runs: stranger2
+fix rate: 1/1
+median time-to-green (green only): 52.7s (baselines are estimated hours; see rows)
 
