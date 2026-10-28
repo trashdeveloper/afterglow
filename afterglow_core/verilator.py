@@ -54,6 +54,81 @@ RUN_TIMEOUT_S = 300
 _REQUIRED_KEYS = ("project", "files", "top", "tb", "anchor", "bug", "gate",
                   "oracle_pass")
 
+# Pair specs (mut-pair-*) carry a nested `faults:` list instead of a
+# top-level anchor/bug. Only these sub-keys are understood, in any order.
+_FAULT_KEYS = ("file", "line", "anchor", "bug")
+
+
+def _parse_faults_block(lines: list, path: str) -> list:
+    """Parse the indented lines of a `faults:` block (stdlib only).
+
+    Each fault starts with a `- ` item line (`- file: "f.v"`) followed
+    by `key: value` continuation lines. The `- ` prefix consumes the
+    rest of the line, so an inline fault MUST start with `file:` --
+    any other first key (e.g. `- line: 39`) is refused, never silently
+    re-keyed. Anything else -- unknown
+    sub-keys, missing fields, non-integer line, dash items anywhere
+    else -- raises ValueError loudly. Never silently mangles.
+    """
+    faults = []
+    current = None
+    for raw in lines:
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        indent = len(raw) - len(raw.lstrip(" \t"))
+        if indent == 0:
+            raise ValueError("faults block in %s interrupted by %r"
+                             % (path, raw))
+        if stripped.startswith("- "):
+            if current is not None:
+                faults.append(_finish_fault(current, path))
+            sub = stripped[2:].strip()
+            if ":" not in sub:
+                raise ValueError("bad fault item in %s: %r" % (path, raw))
+            key, val = sub.split(":", 1)
+            key = key.strip()
+            if key != "file":
+                raise ValueError("fault item in %s must start with "
+                                 "'file:', got %r" % (path, raw))
+            current = {"file": _unquote(val)}
+        else:
+            if current is None:
+                raise ValueError("fault field outside an item in %s: %r"
+                                 % (path, raw))
+            if ":" not in stripped:
+                raise ValueError("bad fault line in %s: %r" % (path, raw))
+            key, val = stripped.split(":", 1)
+            key = key.strip()
+            if key not in _FAULT_KEYS or key in current:
+                raise ValueError("bad fault key in %s: %r" % (path, raw))
+            if key == "line":
+                try:
+                    current[key] = int(_unquote(val))
+                except ValueError:
+                    raise ValueError("fault line not an integer in %s: %r"
+                                     % (path, raw))
+            else:
+                current[key] = _unquote(val)
+    if current is not None:
+        faults.append(_finish_fault(current, path))
+    # No silent empty: a faults: block that yields zero faults means the
+    # spec pins nothing, so the pair path would run un-mutated -- refuse.
+    if not faults:
+        raise ValueError("empty faults block in %s" % path)
+    return faults
+
+
+def _finish_fault(current: dict, path: str) -> dict:
+    """Validate one fault dict; raises ValueError on any deviation."""
+    if set(current) != set(_FAULT_KEYS):
+        raise ValueError("fault in %s needs exactly %s, got %s"
+                         % (path, list(_FAULT_KEYS), sorted(current)))
+    for key in ("file", "anchor", "bug"):
+        if not str(current[key]).strip():
+            raise ValueError("fault %s blank in %s" % (key, path))
+    return current
+
 
 def _unquote(value: str) -> str:
     text = value.strip()
@@ -63,26 +138,56 @@ def _unquote(value: str) -> str:
 
 
 def load_case_file(path: str) -> dict:
-    """Parse a flat ``key: value`` case YAML at any path (stdlib only).
+    """Parse a case YAML at any path (stdlib only).
 
-    Same schema as :func:`vbackend.load_case` (which only reads
-    ``sim/targets/<name>.yaml``); the case ``name`` is the file stem.
-    Raises OSError on unreadable files, ValueError on bad lines,
+    Flat ``key: value`` schema, same as :func:`vbackend.load_case`;
+    the case ``name`` is the file stem. Pair specs (mut-pair-*) carry
+    one nested block, ``faults:`` (a list of {file,line,anchor,bug}
+    faults); it is parsed by :func:`_parse_faults_block`. Any OTHER
+    indented or dash line raises ValueError loudly -- the flat parser
+    used to strip indentation and silently mangle nested blocks into
+    garbage keys, which mis-fired pair REDs down the single-fault sim
+    path. Raises OSError on unreadable files, ValueError on bad lines,
     KeyError on missing required keys -- loudly, never silent defaults
     for the oracle marker.
     """
     with open(path, "r", encoding="utf-8") as fh:
-        text = fh.read()
+        raw_lines = fh.read().splitlines()
     case: dict = {}
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
+    i = 0
+    n = len(raw_lines)
+    while i < n:
+        raw = raw_lines[i]
+        stripped = raw.strip()
+        i += 1
+        if not stripped or stripped.startswith("#"):
             continue
-        if ":" not in line:
+        indent = len(raw) - len(raw.lstrip(" \t"))
+        if indent > 0 or stripped.startswith("- "):
+            raise ValueError("bad yaml line in %s (only a faults: block "
+                             "may nest): %r" % (path, raw))
+        if ":" not in stripped:
             raise ValueError("bad yaml line in %s: %r" % (path, raw))
-        key, val = line.split(":", 1)
+        key, val = stripped.split(":", 1)
         key = key.strip()
         val = val.strip()
+        if key == "faults":
+            if val:
+                raise ValueError("faults in %s must be a block, got %r"
+                                 % (path, raw))
+            block = []
+            while i < n:
+                nxt = raw_lines[i]
+                if not nxt.strip() or nxt.strip().startswith("#"):
+                    i += 1
+                    continue
+                nxt_indent = len(nxt) - len(nxt.lstrip(" \t"))
+                if nxt_indent == 0:
+                    break
+                block.append(nxt)
+                i += 1
+            case[key] = _parse_faults_block(block, path)
+            continue
         if val.startswith("[") and val.endswith("]"):
             inner = val[1:-1].strip()
             items = []
@@ -91,7 +196,12 @@ def load_case_file(path: str) -> dict:
             case[key] = items
         else:
             case[key] = _unquote(val)
-    for req in _REQUIRED_KEYS:
+    required = _REQUIRED_KEYS
+    if "faults" in case:
+        # Pair specs pin faults, not one anchor/bug.
+        required = tuple(k for k in _REQUIRED_KEYS
+                         if k not in ("anchor", "bug"))
+    for req in required:
         if req not in case:
             raise KeyError("spec %s missing key %s" % (path, req))
     if isinstance(case["files"], str):

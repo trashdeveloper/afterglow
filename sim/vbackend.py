@@ -49,18 +49,52 @@ def _unquote(v):
 
 
 def load_case(name):
-    """Minimal YAML parser for sim/targets/<case>.yaml (flat keys only)."""
+    """Minimal YAML parser for sim/targets/<case>.yaml (flat keys only,
+    plus one nested block: the pair-spec `faults:` list of
+    {file,line,anchor,bug} faults).
+
+    Any OTHER indented or dash line raises ValueError loudly -- the
+    parser used to strip indentation and silently mangle nested blocks
+    into garbage keys, which mis-fired pair REDs down the single-fault
+    sim path. Pair specs also skip the anchor/bug required keys (they
+    pin faults, not one anchor/bug).
+    """
     text = (SIMDIR / "targets" / ("%s.yaml" % name)).read_text()
     d = {}
-    for raw in text.splitlines():
-        line = raw.strip()
-        if not line or line.startswith("#"):
+    raw_lines = text.splitlines()
+    i = 0
+    n = len(raw_lines)
+    while i < n:
+        raw = raw_lines[i]
+        stripped = raw.strip()
+        i += 1
+        if not stripped or stripped.startswith("#"):
             continue
-        if ":" not in line:
+        indent = len(raw) - len(raw.lstrip(" \t"))
+        if indent > 0 or stripped.startswith("- "):
+            raise ValueError("bad yaml line in %s (only a faults: block "
+                             "may nest): %r" % (name, raw))
+        if ":" not in stripped:
             raise ValueError("bad yaml line in %s: %r" % (name, raw))
-        k, v = line.split(":", 1)
+        k, v = stripped.split(":", 1)
         k = k.strip()
         v = v.strip()
+        if k == "faults":
+            if v:
+                raise ValueError("faults in %s must be a block, got %r"
+                                 % (name, raw))
+            block = []
+            while i < n:
+                nxt = raw_lines[i]
+                if not nxt.strip() or nxt.strip().startswith("#"):
+                    i += 1
+                    continue
+                if len(nxt) - len(nxt.lstrip(" \t")) == 0:
+                    break
+                block.append(nxt)
+                i += 1
+            d[k] = _parse_faults_block(block, name)
+            continue
         if v.startswith("[") and v.endswith("]"):
             inner = v[1:-1].strip()
             items = []
@@ -69,7 +103,11 @@ def load_case(name):
             d[k] = items
         else:
             d[k] = _unquote(v)
-    for req in ("project", "files", "top", "tb", "anchor", "bug", "gate", "oracle_pass"):
+    required = ("project", "files", "top", "tb", "anchor", "bug", "gate",
+                "oracle_pass")
+    if "faults" in d:
+        required = tuple(k for k in required if k not in ("anchor", "bug"))
+    for req in required:
         if req not in d:
             raise KeyError("case %s missing key %s" % (name, req))
     if isinstance(d["files"], str):
@@ -80,6 +118,73 @@ def load_case(name):
         d["vflags"] = [d["vflags"]] if d["vflags"] else []
     d["name"] = name
     return d
+
+
+_FAULT_KEYS = ("file", "line", "anchor", "bug")
+
+
+def _finish_fault(current, where):
+    """Validate one fault dict; raises ValueError on any deviation."""
+    if set(current) != set(_FAULT_KEYS):
+        raise ValueError("fault in %s needs exactly %s, got %s"
+                         % (where, list(_FAULT_KEYS), sorted(current)))
+    for key in ("file", "anchor", "bug"):
+        if not str(current[key]).strip():
+            raise ValueError("fault %s blank in %s" % (key, where))
+    return current
+
+
+def _parse_faults_block(lines, where):
+    """Parse the indented lines of a `faults:` block (stdlib only).
+
+    Loud ValueError on anything not exactly `- ` items of
+    {file,line,anchor,bug} -- never silently mangles.
+    """
+    faults = []
+    current = None
+    for raw in lines:
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        indent = len(raw) - len(raw.lstrip(" \t"))
+        if indent == 0:
+            raise ValueError("faults block in %s interrupted by %r"
+                             % (where, raw))
+        if stripped.startswith("- "):
+            if current is not None:
+                faults.append(_finish_fault(current, where))
+            sub = stripped[2:].strip()
+            if ":" not in sub:
+                raise ValueError("bad fault item in %s: %r" % (where, raw))
+            key, val = sub.split(":", 1)
+            key = key.strip()
+            if key != "file":
+                raise ValueError("fault item in %s must start with "
+                                 "'file:', got %r" % (where, raw))
+            current = {"file": _unquote(val)}
+        else:
+            if current is None:
+                raise ValueError("fault field outside an item in %s: %r"
+                                 % (where, raw))
+            if ":" not in stripped:
+                raise ValueError("bad fault line in %s: %r" % (where, raw))
+            key, val = stripped.split(":", 1)
+            key = key.strip()
+            if key not in _FAULT_KEYS or key in current:
+                raise ValueError("bad fault key in %s: %r" % (where, raw))
+            if key == "line":
+                try:
+                    current[key] = int(_unquote(val))
+                except ValueError:
+                    raise ValueError("fault line not an integer in %s: %r"
+                                     % (where, raw))
+            else:
+                current[key] = _unquote(val)
+    if current is not None:
+        faults.append(_finish_fault(current, where))
+    if not faults:
+        raise ValueError("empty faults block in %s" % where)
+    return faults
 
 
 def tree_dir(project, sha):
@@ -141,6 +246,14 @@ def is_fixed(tree, case):
 def inject(tree, case):
     """Line-anchored injection: every line whose stripped form equals the
     anchor is replaced by (that line's indent + bug). Returns hit count."""
+    if "faults" in case:
+        raise RuntimeError(
+            "case %s is a multi-fault pair spec: sim.py inject is "
+            "line-anchored and would mis-fire the pair as single-fault "
+            "injections -- fire via agent/loop.py --spec "
+            "sim/targets/%s.yaml instead (it applies the pinned faults "
+            "list, verified multi-line)"
+            % (case.get("name"), case.get("name")))
     if "mutant_line" in case:
         raise RuntimeError(
             "case %s is a line-pinned mutant: sim.py inject is "
@@ -192,6 +305,12 @@ def run_case(name, seed=42, boot="/tmp/boot.log", verdict="/tmp/v.json"):
     """Full board run: clean tree -> inject bug -> build -> run -> verdict.
     Returns 0 on PASS, 1 on RED. Always writes boot log + verdict json."""
     case = load_case(name)
+    if "faults" in case:
+        # Fail fast: pair specs refuse in inject(), but check here so a
+        # mis-fired pair stem never even clones/resets a tree first.
+        raise RuntimeError(
+            "case %s is a multi-fault pair spec: fire via agent/loop.py "
+            "--spec sim/targets/%s.yaml instead" % (name, name))
     pins = load_pins()
     if case["project"] not in pins:
         raise KeyError("unknown project %r" % case["project"])
