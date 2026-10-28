@@ -140,5 +140,9 @@ if ./repro/run.sh --bogus-flag >/dev/null 2>&1; then fail "repro unknown-flag sh
   if [ $? -eq 2 ]; then pass "repro unknown-flag exit 2"; else fail "repro unknown-flag exit $? (want 2)"; fi
 fi
 
+# 10. Tracked-dirt gate: scratch, caches, secrets must never be committed.
+DIRTY="$(git ls-files | grep -e 'runs/scratch/' -e '__pycache__' -e '\.pyc$' -e '(^|/)\.env$' -e '\.key$' || true)"
+if [ -n "$DIRTY" ]; then fail "tracked dirt (scratch/caches/secrets): $DIRTY"; else pass "no tracked scratch/caches/secrets"; fi
+
 if [ "$FAIL" -eq 0 ]; then say "CI GATE: ALL PASS"; else say "CI GATE: RED"; fi
 exit "$FAIL"
