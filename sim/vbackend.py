@@ -284,18 +284,28 @@ def inject(tree, case):
     return total
 
 
-def build(tree, case):
-    """REAL verilator build. Returns path to the sim binary."""
+def build(tree, case, log_path=None):
+    """REAL verilator build. Returns path to the sim binary.
+
+    When log_path is given, the full verilator/make stdout is written
+    there -- on success AND on failure -- so the run bundle proves a
+    recompile happened (mutpair-v8b-05: build stdout was discarded, so
+    nothing proved attempt-1's fix was ever recompiled). The return
+    contract is unchanged: existing callers pass no log_path.
+    """
     top = case["top"]
     mdir = Path(tree) / ("obj_afterglow_%s" % case["name"])
     binary = mdir / ("V%s" % top)
-    tb = SIMDIR / "tb" / case["tb"]
+    tb = Path(SIMDIR) / "tb" / case["tb"]
     if not tb.is_file():
         raise FileNotFoundError("missing testbench: %s" % tb)
     cmd = ["verilator", "--binary", "--timing", "-j", "4",
            "--top-module", top, "-Mdir", str(mdir), "-o", "V%s" % top]
     cmd += _find_all(tree, case) + [str(tb)] + list(case.get("vflags", []))
     rc, out = sh(cmd, cwd=str(tree), timeout=900)
+    if log_path is not None:
+        Path(log_path).parent.mkdir(parents=True, exist_ok=True)
+        Path(log_path).write_text(out)
     if rc or not binary.exists():
         raise RuntimeError("verilator build failed (exit %d):\n%s" % (rc, out))
     return binary

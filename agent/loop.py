@@ -854,9 +854,13 @@ def canonical_diff(tree: str, case: dict) -> tuple:
 # --------------------------------------------------------------------------
 
 def resim_after(tree: str, case: dict, seed: int, boot_path: str,
-                verdict_path: str) -> dict:
-    """Build the patched tree and rerun. Same oracle math as run_case."""
-    binary = vbackend.build(tree, case)  # raises loudly on build failure
+                verdict_path: str, build_log_path=None) -> dict:
+    """Build the patched tree and rerun. Same oracle math as run_case.
+
+    build_log_path (optional) is forwarded to vbackend.build so the
+    bundle keeps the full verilator/make stdout per attempt.
+    """
+    binary = vbackend.build(tree, case, log_path=build_log_path)  # raises loudly on build failure
     try:
         rc, log = vbackend.sh([str(binary), "+seed=%d" % seed],
                               cwd=str(tree), timeout=300)
@@ -930,10 +934,17 @@ def snapshot_file_hashes(tree: str, rels: list) -> dict:
     return out
 
 
-def stash_patched_sources(tree: str, rels: list, run_dir: str) -> dict:
+def stash_patched_sources(tree: str, rels: list, run_dir: str,
+                            attempt=None) -> dict:
     """Copy the patched tree file(s) into the run bundle BEFORE resim as
     patched_source.<ext> (patched_source.<n>.<ext> when several share an
     extension) AND return their content hashes.
+
+    When attempt is given, ALSO keep a per-attempt copy
+    (patched_source.attempt<N>.<ext>, with .<n> dedup) so every
+    attempt's pre-build content survives -- the legacy name keeps the
+    latest (mutpair-v8b-05: only the last attempt's source survived,
+    hiding what attempt-1's build compiled).
 
     The bundle copy pins what the build was supposed to compile; the
     returned hashes are the pre-build baseline for the post-VERIFY
@@ -947,6 +958,15 @@ def stash_patched_sources(tree: str, rels: list, run_dir: str) -> dict:
             continue
         hashes[str(rel)] = sha256_file(src)
         _root, ext = os.path.splitext(os.path.basename(str(rel)))
+        if attempt is not None:
+            att_name = "patched_source.attempt%d%s" % (int(attempt), ext)
+            n = 1
+            while att_name in used:
+                n += 1
+                att_name = "patched_source.attempt%d.%d%s" % (
+                    int(attempt), n, ext)
+            used.add(att_name)
+            shutil.copyfile(src, os.path.join(run_dir, att_name))
         dest_name = "patched_source" + ext
         n = 1
         while dest_name in used:
@@ -988,56 +1008,157 @@ def build_loop_feedback(attempt_no: int, verdict_before: dict,
            verdict_after.get("tohost")))
 
 
+def _retry_build_log_path(build_log_path):
+    """Derive the retry resim's build-log path (never overwrites the first)."""
+    if not build_log_path:
+        return None
+    root, ext = os.path.splitext(str(build_log_path))
+    return root + ".retry" + ext
+
+
+def _edit_differs_from_baseline(pre: dict, red_baseline_hashes) -> bool:
+    """True when the pre-build tree content really changed vs RED baseline.
+
+    Compares only files present in both snapshots; an empty/absent
+    baseline disables the check (never force a rebuild on no evidence).
+    """
+    if not red_baseline_hashes:
+        return False
+    common = [r for r in pre if r in red_baseline_hashes]
+    if not common:
+        return False
+    return any(pre[r] != red_baseline_hashes[r] for r in common)
+
+
+def _call_resim(resim_fn, tree, case, seed, boot_path, verdict_path,
+                build_log_path=None):
+    """Call resim_fn with build_log_path when it accepts it.
+
+    Additive-kwarg backward compatibility: older injected fakes (and any
+    third-party resim_fn written against the pre-log contract) take only
+    the five positional args. If the call fails with a TypeError naming
+    build_log_path, retry once without it. Any other TypeError is
+    re-raised untouched so real bugs never hide behind the fallback.
+    """
+    if build_log_path is None:
+        return resim_fn(tree, case, seed, boot_path, verdict_path)
+    try:
+        return resim_fn(tree, case, seed, boot_path, verdict_path,
+                        build_log_path=build_log_path)
+    except TypeError as exc:
+        if "build_log_path" not in str(exc):
+            raise
+        return resim_fn(tree, case, seed, boot_path, verdict_path)
+
+
 def resim_with_integrity(tree: str, case: dict, seed: int, boot_path: str,
                          verdict_path: str, run_dir: str | None = None,
                          verdict_before: dict | None = None,
-                         resim_fn=None) -> tuple:
+                         resim_fn=None, attempt=None,
+                         red_baseline_hashes=None,
+                         build_log_path=None) -> tuple:
     """Snapshot -> resim -> re-hash, with at most ONE clean rebuild.
 
     - BEFORE the build: stash the patched file(s) into the run bundle
-      (when run_dir is given) and record pre-build content hashes.
+      (when run_dir is given; per-attempt copies when attempt is given)
+      and record pre-build content hashes.
     - AFTER VERIFY: re-hash the tree files. On mismatch mark
       integrity["stale-tree-suspect"]=True, drop the incremental
       obj_afterglow_<case> dir, and resim EXACTLY once more (clean
       rebuild retry); the second verdict stands, whatever it says.
+    - STALE-BUILD suspect (mutpair-v8b-05): when the pre-build content
+      really differs from the RED baseline yet the verdict is a
+      behaviorally-null resim (identical checksum, unchanged tohost),
+      the build likely never recompiled the edit -- drop the obj dir,
+      clean-rebuild, resim EXACTLY once; the second verdict stands.
+      At most ONE extra resim per attempt, whatever the cause.
     - When verdict_before is given, set
-      integrity["no_behavioral_effect"] via detect_no_behavioral_effect.
+      integrity["no_behavioral_effect"] via detect_no_behavioral_effect
+      on the FINAL verdict.
 
-    resim_fn (default: resim_after, resolved at call time so tests can
-    mock loop.resim_after) must take
+    resim_fn (default: loop.resim_after, resolved at call time so
+    tests can mock it with mock.patch.object) must take
     (tree, case, seed, boot_path, verdict_path) and return a verdict
-    dict. Returns (verdict, integrity). Raises only when resim_fn does.
+    dict; when build_log_path is given it is passed through as a
+    keyword (the retry uses a derived non-overwriting path). Returns
+    (verdict, integrity). Raises only when resim_fn does.
     """
     if resim_fn is None:
-        resim_fn = resim_after  # call-time lookup: honors mock.patch
+        resim_fn = resim_after  # call-time global lookup: honors mock.patch
     rels = list(case.get("files", []))
     if run_dir is not None:
-        pre = stash_patched_sources(tree, rels, run_dir)
+        pre = stash_patched_sources(tree, rels, run_dir, attempt=attempt)
     else:
         pre = snapshot_file_hashes(tree, rels)
-    verdict = resim_fn(tree, case, seed, boot_path, verdict_path)
+    verdict = _call_resim(resim_fn, tree, case, seed, boot_path,
+                          verdict_path, build_log_path=build_log_path)
     post = snapshot_file_hashes(tree, rels)
     match, detail = hashes_match(pre, post)
     integrity: dict = {"pre_hashes": dict(pre), "post_hashes": dict(post),
                        "integrity_detail": detail,
                        "stale-tree-suspect": False, "clean_rebuilds": 0,
-                       "no_behavioral_effect": False}
+                       "no_behavioral_effect": False,
+                       "stale-build-suspect": False,
+                       "stale_build_reason": ""}
     if not match:
         integrity["stale-tree-suspect"] = True
         mdir = os.path.join(str(tree),
                             "obj_afterglow_%s" % case.get("name"))
         shutil.rmtree(mdir, ignore_errors=True)
         integrity["clean_rebuilds"] = 1
-        verdict = resim_fn(tree, case, seed, boot_path, verdict_path)
+        verdict = _call_resim(
+            resim_fn, tree, case, seed, boot_path, verdict_path,
+            build_log_path=(None if build_log_path is None
+                            else _retry_build_log_path(build_log_path)))
         post2 = snapshot_file_hashes(tree, rels)
         integrity["post_hashes"] = dict(post2)
         integrity["integrity_detail"] = (
             "%s; clean rebuild forced (obj dir dropped, resim x2)"
             % (detail,))
+    if (integrity["clean_rebuilds"] == 0
+            and _edit_differs_from_baseline(pre, red_baseline_hashes)
+            and verdict_before is not None
+            and detect_no_behavioral_effect(verdict_before, verdict)):
+        reason = ("pre-build content differs from RED baseline but "
+                  "checksum %s / tohost %s unchanged: build likely "
+                  "never recompiled the edit"
+                  % (verdict.get("checksum"), verdict.get("tohost")))
+        mdir = os.path.join(str(tree),
+                            "obj_afterglow_%s" % case.get("name"))
+        shutil.rmtree(mdir, ignore_errors=True)
+        integrity["clean_rebuilds"] = 1
+        integrity["stale-build-suspect"] = True
+        integrity["stale_build_reason"] = reason
+        verdict = _call_resim(
+            resim_fn, tree, case, seed, boot_path, verdict_path,
+            build_log_path=(None if build_log_path is None
+                            else _retry_build_log_path(build_log_path)))
+        post2 = snapshot_file_hashes(tree, rels)
+        integrity["post_hashes"] = dict(post2)
+        integrity["integrity_detail"] = (
+            "%s; stale-build suspect (%s), clean rebuild forced "
+            "(obj dir dropped, resim x2)" % (detail, reason))
     if verdict_before is not None:
         integrity["no_behavioral_effect"] = detect_no_behavioral_effect(
             verdict_before, verdict)
     return verdict, integrity
+
+
+def truncate_stack_on_reset(stack: list, reset_note: dict) -> None:
+    """Truncate the compositional stack record on reset-to-baseline.
+
+    The record must never describe a tree that no longer exists
+    (mutpair-v8b-05: reset wiped attempt-1's fix but the record kept
+    appending, reaching depth 2 on a tree holding only attempt-3).
+    A nonempty stack is cleared to [] with stack_truncated=True and
+    stack_truncated_from=N logged on the reset note; an empty stack
+    leaves the note byte-identical (singles reset path unchanged).
+    """
+    if not stack:
+        return
+    reset_note["stack_truncated"] = True
+    reset_note["stack_truncated_from"] = len(stack)
+    del stack[:]
 
 
 # --------------------------------------------------------------------------
@@ -2954,6 +3075,13 @@ def main(argv=None) -> int:
         # patch stayed in-tree and broke attempt-3's dry-run at 1446).
         meta["red_baseline_tree_sha256"] = hash_tree(tree)
 
+    # Per-file RED-baseline content snapshot for the stale-build
+    # suspect: a real edit (pre-build content != this snapshot) with a
+    # behaviorally-null resim means the build likely never recompiled
+    # the edit (mutpair-v8b-05). Empty when files are unknown.
+    red_baseline_hashes: dict = snapshot_file_hashes(
+        tree, list(case.get("files", [])))
+
     # ---- COLLECT
     args.prompt = resolve_prompt_file(args.prompt)
     try:
@@ -3291,6 +3419,11 @@ def main(argv=None) -> int:
                     "tree_reset": True,
                     "tree_reset_verified":
                         reset_info["tree_reset_verified"]}
+                # The record must never describe a tree that no longer
+                # exists: reset-to-baseline clears the compositional
+                # stack (mutpair-v8b-05 reached depth 2 on a tree that
+                # held only attempt-3's fix).
+                truncate_stack_on_reset(stack, reset_note)
                 print("[RESET] scratch tree restored to RED baseline %s"
                       % reset_info["tree_sha256"][:12], flush=True)
             else:
@@ -3974,14 +4107,20 @@ def main(argv=None) -> int:
 
         # RESIM + VERIFY (integrity-guarded: snapshot the patched
         # sources into the bundle, rebuild, re-hash; a drift forces ONE
-        # clean rebuild; an identical checksum/tohost flags a
-        # behaviorally-null resim for the next attempt's feedback).
+        # clean rebuild; a real edit with a behaviorally-null resim
+        # suspects a stale build and forces ONE clean rebuild; an
+        # identical checksum/tohost flags a behaviorally-null resim for
+        # the next attempt's feedback).
         print("[RESIM] rebuilding patched tree...", flush=True)
         try:
             verdict_after, resim_integrity = resim_with_integrity(
                 tree, case, args.seed,
                 art("boot_after.log"), art("verdict_after.json"),
-                run_dir=run_dir, verdict_before=verdict_before)
+                run_dir=run_dir, verdict_before=verdict_before,
+                attempt=attempt + 1,
+                red_baseline_hashes=red_baseline_hashes,
+                build_log_path=art("build_attempt%d.log"
+                                   % (attempt + 1)))
         except Exception as exc:
             last_attempt["summary"] += "; RESIM crashed: %r" % (exc,)
             meta["error"] = "RESIM failed: %r" % (exc,)
@@ -3995,8 +4134,19 @@ def main(argv=None) -> int:
                 resim_integrity.get("no_behavioral_effect", False),
             "integrity_detail":
                 resim_integrity.get("integrity_detail", ""),
+            "stale-build-suspect":
+                resim_integrity.get("stale-build-suspect", False),
+            "stale_build_reason":
+                resim_integrity.get("stale_build_reason", ""),
         }
         meta["attempts"][-1].update(last_attempt["resim_integrity"])
+        if resim_integrity.get("stale-build-suspect"):
+            last_attempt["stale-build-suspect"] = True
+            meta["attempts"][-1]["stale-build-suspect"] = True
+            print("[RESIM] stale-build suspect -- "
+                  "clean rebuild forced (x1): %s"
+                  % resim_integrity.get("stale_build_reason", ""),
+                  flush=True)
         if resim_integrity.get("stale-tree-suspect"):
             last_attempt["stale-tree-suspect"] = True
             meta["attempts"][-1]["stale-tree-suspect"] = True
