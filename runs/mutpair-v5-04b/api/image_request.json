@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pair-04\nFailing-trace sha256 (first 16 hex): b4c062b48af1a4fb\nVerbatim diagnosis from the debug agent:\nFetch TB shows TRAP: no progress max_addr=0x00000000 with tohost FAIL 0xdead after 2009 cycles, so no fetch retired versus expected advancing fetches. Gated by mem_do_prefetch||mem_do_rinst||mem_do_rdata in mem_state 1, the excerpt asserts mem_valid but holds mem_state <= 1 instead of advancing. With mem_state stuck in 1 the mem_valid/mem_ready handshake never progresses, so max_addr never advances.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash b4c062b48af1a4fb in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "a1da85b86c01b0634ebae5c3071a6eacb5385036f6a3b9d19fbbc931cda689b7",
+  "trace_sha256": "b4c062b48af1a4fb94d0ab458e18825cf6cfa402d65edcb24fa202b680754e53",
+  "diagnosis_sha256": "be00c7146a455bb6e6a00cbe24689b4ef354b27cbece06fd75aba7bc47f2617a",
+  "case": "mut-pair-04",
+  "attempt": 3
+}

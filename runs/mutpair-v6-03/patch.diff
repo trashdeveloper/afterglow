@@ -1,0 +1,9 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -679,1 +679,1 @@
+-	assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) || !{instr_lui, instr_auipc, instr_jal, instr_jalr,
++	assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) && !{instr_lui, instr_auipc, instr_jal, instr_jalr,
+@@ -877,1 +877,1 @@
+-			is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010010;
++			is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;

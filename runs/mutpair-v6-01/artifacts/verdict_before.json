@@ -1,0 +1,9 @@
+{
+  "case": "mut-pair-01",
+  "pass": false,
+  "tohost": "FAIL 0xdead",
+  "checksum": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+  "cycles": 22023,
+  "seed": 42,
+  "sim_time_utc": "2026-10-28T03:29:46Z"
+}

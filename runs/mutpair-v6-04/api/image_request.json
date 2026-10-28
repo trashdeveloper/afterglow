@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pair-04\nFailing-trace sha256 (first 16 hex): f800991ca12bd290\nVerbatim diagnosis from the debug agent:\nTrace shows TRAP: no progress max_addr=0x00000000 with tohost FAIL 0xdead, i.e. zero fetches vs expected NOP-stream progress. Root cause in excerpt is the memory FSM idle state: picorv32.v:568 resets mem_state <= 1 and picorv32.v:582 labels the idle branch 1: begin, creating a duplicate 1: with picorv32.v:595 and leaving no 0 idle state. The FSM self-loops in the request branch and never reaches the mem_xfer wait handling, so mem_valid/mem fetch never progresses.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash f800991ca12bd290 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "4638b4729ed8b654f0e50541ae95deb733db46e4a47a1165f0a53f4031d62734",
+  "trace_sha256": "f800991ca12bd290cede60975edb3587b0ddbbd8165348304bf267ecc46e5030",
+  "diagnosis_sha256": "e6a2414d6888f4bb55981f9803945b39e7c76a0dd4d48fda8b3b8161662bd755",
+  "case": "mut-pair-04",
+  "attempt": 1
+}

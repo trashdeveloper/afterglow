@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pair-01\nFailing-trace sha256 (first 16 hex): a5f4314b38c87bd6\nVerbatim diagnosis from the debug agent:\nTrace shows loopback send 0xa5 at divider 64 times out with no byte received (FAIL 0xdead). CONE_SLICE has no simpleuart refs (only spiflash.v, system.v), so trace wins. Excerpt shows two faults that together break loopback: line 39 reg [3:1] recv_state is 3-bit and cannot count 0-10 for start+8data+stop so recv_buf_valid never sets, and line 114 send_pattern <= ~1 holds ser_tx=send_pattern[0]=0 in reset instead of idle 1, injecting a false start.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash a5f4314b38c87bd6 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "7026b3f7889d8a21400821add398c6305c69070aa1c4c3787e8d7f448a54a13e",
+  "trace_sha256": "a5f4314b38c87bd6a91f990525001e36aab46b8863378161bb1c227979afc90d",
+  "diagnosis_sha256": "014fea4e0d3b7aca3060d0de2cd2b358fb4577861847821145752f80382f76a0",
+  "case": "mut-pair-01",
+  "attempt": 2
+}

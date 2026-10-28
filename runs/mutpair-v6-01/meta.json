@@ -1,0 +1,168 @@
+{
+  "run_id": "mutpair-v6-01",
+  "case_id": "mut-pair-01",
+  "case": "mut-pair-01",
+  "mode": "live",
+  "status": "green",
+  "retries": 1,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-28T03:29:46Z",
+  "wall_end_utc": "2026-10-28T03:32:06Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 4,
+  "patch_source": "canonical-bootstrap-gated",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 48211,
+      "text_request_id": "chatcmpl-01a1808f-43c6-74a4-a100-801c315367b8",
+      "diagnosis_chars": 717,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    },
+    {
+      "tree_reset": true,
+      "tree_reset_verified": true,
+      "attempt": 2,
+      "text_latency_ms": 39268,
+      "text_request_id": "chatcmpl-01a18090-5015-7095-8914-c5a511cbdbb6",
+      "diagnosis_chars": 451,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "canonical-bootstrap-gated",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picosoc/simpleuart.v\\nHunk #2 FAILED at 114.\\n1 out of 2 hunks FAILED\\n']; applied via canonical-bootstrap-gated",
+      "gate_signal": "simpleuart",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-pair-01.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutpair-v6-01",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 39,
+    "before": "reg [3:0] recv_state;",
+    "after": "reg [3:1] recv_state;",
+    "seed": "1234",
+    "op": "pair",
+    "faults": [
+      {
+        "file": "picosoc/simpleuart.v",
+        "line": 39,
+        "before": "reg [3:0] recv_state;",
+        "after": "reg [3:1] recv_state;"
+      },
+      {
+        "file": "picosoc/simpleuart.v",
+        "line": 114,
+        "before": "send_pattern <= ~0;",
+        "after": "send_pattern <= ~1;"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-pair-01",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+  "cycles_before": 22023,
+  "red_baseline_tree_sha256": "2f960146fd572e0eadfe6907705502de94b623afa6e4e50c384ce06c8dd49cc4",
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 65,
+    "pack_tokens": 310,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "bf263cfe722478d447eda314288bdbea85be5874e177a35cafb50f67fc9c1e8e",
+    "cone_lines": 47,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "byte",
+    "cone_files": 4,
+    "cone_source": "static",
+    "cone_drivers": 0,
+    "harvest_lines": 69,
+    "harvest_tokens": 359,
+    "recall": [
+      [
+        "mut-live-01-v3",
+        1.0
+      ],
+      [
+        "mut-live-03-v3",
+        1.0
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 0,
+    "status": "ok"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 66,
+  "prompt_tokens": 1173,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "a5f4314b38c87bd6a91f990525001e36aab46b8863378161bb1c227979afc90d",
+  "attempts_consumed": 2,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "image_latency_ms": 22135,
+  "image_request_id": "24493732-ab59-4434-a9d3-aaab9d99d305",
+  "image_bytes": 1262941,
+  "text_latency_ms": 39268,
+  "text_request_id": "chatcmpl-01a18090-5015-7095-8914-c5a511cbdbb6",
+  "api_usage": {
+    "completion_tokens": 4411,
+    "prompt_tokens": 3187,
+    "total_tokens": 7598,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4134
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 139.5,
+  "est_usd": 0.071662,
+  "text_tokens": 7598,
+  "image_calls": 1
+}

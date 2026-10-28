@@ -1,0 +1,178 @@
+{
+  "run_id": "mutpair-v6-05",
+  "case_id": "mut-pair-05",
+  "case": "mut-pair-05",
+  "mode": "live",
+  "status": "red",
+  "retries": 2,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-28T03:38:17Z",
+  "wall_end_utc": "2026-10-28T03:43:03Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": false,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 61016,
+      "text_request_id": "chatcmpl-01a18098-5c07-7198-b079-bea5bd541a38",
+      "diagnosis_chars": 350,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": true,
+      "integrity_detail": "all 1 file(s) unchanged"
+    },
+    {
+      "tree_reset": true,
+      "tree_reset_verified": true,
+      "attempt": 2,
+      "text_latency_ms": 64443,
+      "text_request_id": "chatcmpl-01a18099-8777-775c-a977-927d7007d5a4",
+      "diagnosis_chars": 449,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picorv32.v\\nHunk #1 FAILED at 1446.\\n1 out of 1 hunk FAILED\\n']; bootstrap refused (diagnosis names no gate signal)"
+    },
+    {
+      "tree_reset": true,
+      "tree_reset_verified": true,
+      "attempt": 3,
+      "text_latency_ms": 41008,
+      "text_request_id": "chatcmpl-01a1809a-5a7c-71b5-b514-9a8d2bb8619b",
+      "diagnosis_chars": 341,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picorv32.v\\nHunk #1 FAILED at 1405.\\nHunk #2 FAILED at 1447.\\n2 out of 2 hunks FAILED\\n']; bootstrap refused (diagnosis names no gate signal)"
+    }
+  ],
+  "no_behavioral_effect": true,
+  "ladder_used": false,
+  "ladder_reason": "prior-attempts-lack-3-RED (guard-rejected/unparseable rows carry no resim signal)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-pair-05.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/mutpair-v6-05",
+  "mutant_record": {
+    "file": "picorv32.v",
+    "line": 1408,
+    "before": "set_mem_do_wdata = 0;",
+    "after": "set_mem_do_wdata = 1;",
+    "seed": "1234",
+    "op": "pair",
+    "faults": [
+      {
+        "file": "picorv32.v",
+        "line": 1408,
+        "before": "set_mem_do_wdata = 0;",
+        "after": "set_mem_do_wdata = 1;"
+      },
+      {
+        "file": "picorv32.v",
+        "line": 1450,
+        "before": "do_waitirq <= 0;",
+        "after": "do_waitirq <= 1;"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "mut-pair-05",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+  "cycles_before": 2009,
+  "red_baseline_tree_sha256": "890a26ac65fd5babb7732e182a5401baa67d1b881eece6e2221bf98f6cc99af3",
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 19,
+    "pack_tokens": 74,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "938a85fe28aaaf8b96f8867985008bad95bae23b0ef98dea0406753390994e81",
+    "cone_lines": 0,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "max_addr",
+    "cone_files": 0,
+    "cone_source": "empty",
+    "cone_drivers": 0,
+    "harvest_lines": 23,
+    "harvest_tokens": 119,
+    "recall": [
+      [
+        "mutbigN-v3-01",
+        1.0
+      ],
+      [
+        "mutbigN-v3-02",
+        1.0
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 0,
+    "status": "ok"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 966,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "6589526299d2ccd29bb22737bac7601f22b2a0da940002a7626bbfecd09b7751",
+  "attempts_consumed": 3,
+  "transport_retries": [
+    7.071004880880085
+  ],
+  "transport_failures": 0,
+  "image_latency_ms": 21277,
+  "image_request_id": "198fc04b-8760-4f74-b8f7-dc00c9d5edca",
+  "image_bytes": 1148963,
+  "text_latency_ms": 61016,
+  "text_request_id": "chatcmpl-01a18098-5c07-7198-b079-bea5bd541a38",
+  "api_usage": {
+    "completion_tokens": 6601,
+    "prompt_tokens": 2388,
+    "total_tokens": 8989,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6370
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "FAIL 0xdead",
+  "checksum_after": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+  "cycles_after": 2009,
+  "error": "still RED after 3 attempt(s); see attempts log",
+  "time_to_green_s": 285.4,
+  "est_usd": 0.087584,
+  "text_tokens": 8989,
+  "image_calls": 1
+}

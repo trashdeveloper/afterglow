@@ -1,0 +1,11 @@
+{
+  "model": "muse-spark-1.3-contributor",
+  "endpoint": "https://api.meta.ai/v1/chat/completions",
+  "prompt_sha256": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v3.txt",
+  "case": "mut-pair-04",
+  "seed": 42,
+  "max_tokens": 8000,
+  "note": "no attempt produced an applied patch; see attempts log",
+  "attempts": 3
+}
