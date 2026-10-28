@@ -57,4 +57,28 @@ one diff, and the loop RESETs behavior-changing-but-still-RED progress.
 Compositional repair (stack verified partial diffs, continue from the
 improved tree) is now evidence-backed, not speculation. 05 stays RED and
 visible; no more live spend on it until the stacking wave lands.
+
+## v8/v9 05 goes GREEN via stacking + honesty (2026-10-28)
+
+v8 (`mutpair-v8-05`): 9-EMPTY flake storm, 0 diagnostics, correct triage.
+v8b (`mutpair-v8b-05`): stacking fired live (depth 1, then depth 2 after
+an unparseable attempt-2 reset) but stayed RED — and forensics proved
+the v8b stack record DIVERGED from its tree (reset wiped attempt-1's
+fix while the record kept appending) AND attempt-1's correct both-line
+fix may have met a stale build (manual fully-fixed tree PASSES golden
+5c282382 while the loop's resim said FAIL on identical content).
+Built: resim honesty (per-attempt stash, build log, stale-build
+suspect + ONE clean-rebuild retry as arbiter, stack truncation on
+reset) + widened applied-clean stacking trigger (`9a3a796`, retrospective
+APPROVE, suite 403 OK, CI ALL PASS).
+v9 (`mutpair-v9-05`): attempt-1 both-line fix -> null resim ->
+stale-build suspect FIRED -> clean rebuild -> still null (suspect
+falsified as stale, confirmed as genuine partial) -> STACKED (depth 1)
+-> attempt-2 from improved tree, no reset -> PASS 5c282382 ->
+stack replay VERIFIED on fresh tree (depth 2), model-verbatim 6 lines,
+0 touches, fixed_unaided=True, 585.9s.
+
+Pilot: 5/5. The last RED converted on the machinery its failure built:
+stacking accumulated the two halves, honesty arbitrated the ghost.
+See `runs/mutpair-v9-05/`.
 See `runs/mutpair-v7-05/`.
