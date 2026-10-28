@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a180a3-b249-762a-ab1c-c5933fa80055",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Fetch TB reports TRAP: no progress max_addr=0x00000000 and tohost FAIL 0xdead instead of advancing through 256-word NOP mem. Expected decoder_trigger from mem_do_rinst && mem_done at picorv32.v:1446 to advance PC past 0x00000000, but do_waitirq stuck at 1 at picorv32.v:1450 forces permanent WFI wait and blocks fetch. Root cause is default do_waitirq <= 1 should be 0; fixing picorv32.v:1450 restores progress.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1446,10 +1446,10 @@\\n \\t\\tdecoder_trigger <= mem_do_rinst && mem_done;\\n \\t\\tdecoder_trigger_q <= decoder_trigger;\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n-\\t\\tdo_waitirq <= 1;\\n+\\t\\tdo_waitirq <= 0;\\n \\n \\t\\ttrace_valid <= 0;\\n \\n \\t\\tif (!ENABLE_TRACE)\\n \\t\\t\\ttrace_data <= 'bx;\\n\", \"expected\": \"tohost PASS with max_addr advancing beyond 0x00000000 through 256-word NOP mem, no TRAP: no progress\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793159573,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 6975,
+      "prompt_tokens": 2764,
+      "total_tokens": 9739,
+      "completion_tokens_details": {
+        "reasoning_tokens": 6645
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Fetch TB reports TRAP: no progress max_addr=0x00000000 and tohost FAIL 0xdead instead of advancing through 256-word NOP mem. Expected decoder_trigger from mem_do_rinst && mem_done at picorv32.v:1446 to advance PC past 0x00000000, but do_waitirq stuck at 1 at picorv32.v:1450 forces permanent WFI wait and blocks fetch. Root cause is default do_waitirq <= 1 should be 0; fixing picorv32.v:1450 restores progress.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1446,10 +1446,10 @@\\n \\t\\tdecoder_trigger <= mem_do_rinst && mem_done;\\n \\t\\tdecoder_trigger_q <= decoder_trigger;\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n-\\t\\tdo_waitirq <= 1;\\n+\\t\\tdo_waitirq <= 0;\\n \\n \\t\\ttrace_valid <= 0;\\n \\n \\t\\tif (!ENABLE_TRACE)\\n \\t\\t\\ttrace_data <= 'bx;\\n\", \"expected\": \"tohost PASS with max_addr advancing beyond 0x00000000 through 256-word NOP mem, no TRAP: no progress\"}",
+  "diagnosis": "Fetch TB reports TRAP: no progress max_addr=0x00000000 and tohost FAIL 0xdead instead of advancing through 256-word NOP mem. Expected decoder_trigger from mem_do_rinst && mem_done at picorv32.v:1446 to advance PC past 0x00000000, but do_waitirq stuck at 1 at picorv32.v:1450 forces permanent WFI wait and blocks fetch. Root cause is default do_waitirq <= 1 should be 0; fixing picorv32.v:1450 restores progress.",
+  "expected": "tohost PASS with max_addr advancing beyond 0x00000000 through 256-word NOP mem, no TRAP: no progress",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 67409,
+  "request_id": "chatcmpl-01a180a3-b249-762a-ab1c-c5933fa80055",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 6975,
+    "prompt_tokens": 2764,
+    "total_tokens": 9739,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6645
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

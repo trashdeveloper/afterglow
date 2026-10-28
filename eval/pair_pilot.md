@@ -40,3 +40,21 @@ Same 4 missed pairs, same seeds, new run-ids `mutpair-v6-*`, fixed code:
 Pilot: 4/5 (02 v5-verbatim + 01/03/04 v6). Only 05 remains, and its failure
 mode MOVED from invisible-fault (a) to wrong-context (c) — the exact
 progress the fix predicted. See `runs/mutpair-v6-*/`.
+
+## v7 05 with trailing-context grounding (2026-10-28, `mutpair-v7-05`)
+
+Grounding strengthened (`end EVERY hunk with >=2 trailing context lines`).
+Result: RED, but the failure moved again — attempt-1/3 hunk now HAS
+trailing context and APPLIES clean (10-line hunk, `do_waitirq <= 1` -> `0`
+at 1450, checksum 563b..626f -> 563b..f25d: real behavior change), yet
+only ONE fault fixed per attempt; 1408 (`wdata`) untouched -> still RED.
+v6-att3 had BOTH hunks but contextless (rejected); v7 has ONE hunk with
+context (applied, insufficient). Attempt-2 output truncated mid-JSON
+(unparseable, correctly rejected). Two EMPTY flakes burned calls 1-2.
+
+Conclusion: the model can produce each half of the fix but never both in
+one diff, and the loop RESETs behavior-changing-but-still-RED progress.
+Compositional repair (stack verified partial diffs, continue from the
+improved tree) is now evidence-backed, not speculation. 05 stays RED and
+visible; no more live spend on it until the stacking wave lands.
+See `runs/mutpair-v7-05/`.

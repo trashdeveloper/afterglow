@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pair-05\nFailing-trace sha256 (first 16 hex): 9096e6378fce79fc\nVerbatim diagnosis from the debug agent:\nFetch TB reports TRAP: no progress max_addr=0x00000000 and tohost FAIL 0xdead instead of advancing through 256-word NOP mem. Expected decoder_trigger from mem_do_rinst && mem_done at picorv32.v:1446 to advance PC past 0x00000000, but do_waitirq stuck at 1 at picorv32.v:1450 forces permanent WFI wait and blocks fetch. Root cause is default do_waitirq <= 1 should be 0; fixing picorv32.v:1450 restores progress.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 9096e6378fce79fc in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "0ef96f481e5f1774bc4831ca58eb9a11644b90811289afc8f823767ba260ef95",
+  "trace_sha256": "9096e6378fce79fcba08048e3269ec11ad07c82b5bc1ff1c5ed55b772743e896",
+  "diagnosis_sha256": "ccd187e0bcb834dd8f47af01ed83fdc6f710be9bf8f30d137057066dd2d3bdcf",
+  "case": "mut-pair-05",
+  "attempt": 3
+}
