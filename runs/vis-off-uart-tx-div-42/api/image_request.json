@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: uart-tx-div\nFailing-trace sha256 (first 16 hex): 3da15208fd93f3ca\nVerbatim diagnosis from the debug agent:\nLoopback send of 0xa5 was received as 0xff (idle) per TRAP: uart data mismatch got 0xff want 0xa5 with tohost FAIL 0xdead. Per CONE_SLICE picosoc/picosoc.v:190 simpleuart instance and picosoc/simpleuart.v:20 module, TX bit timing in excerpt line 130 uses (cfg_divider >> 4) making TX 16x too fast versus divider 64, so TX returns to idle before RX samples and RX reads 0xff.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 3da15208fd93f3ca in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "5eb1d528770985cd1777e1d44be866863c5700eb795019fba1a4a6428b5d6183",
+  "trace_sha256": "3da15208fd93f3cabbb217a81f41d5d9cf8d15db745a74f33e3a33a9debb93cc",
+  "diagnosis_sha256": "6c2a98335710d1492f08ba7b1c687cb1520736614fe9ff148f30e969dfa94da4",
+  "case": "uart-tx-div",
+  "attempt": 1
+}

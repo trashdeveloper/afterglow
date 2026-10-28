@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a17ff7-431b-741d-8c5d-b651058018d5",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Trace ends with `TRAP: cpu trap asserted` and `tohost: FAIL 0xdead` (fingerprint sha256:d52ca6bb4e44) after 2009 cycles on NOP fetch. `mem_rdata_latched_noshuffle` returned stale `mem_rdata_q` on the `mem_xfer` cycle instead of live `mem_rdata`, causing illegal-decode trap. Root cause is picorv32.v:384 where `(mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata` inverts latch/hold mux; live `mem_rdata` is valid at transfer per picosoc/picosoc.v:130.\",\n\"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -384 +384 @@\\n-\\tassign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata;\\n+\\tassign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata : mem_rdata_q;\\n\",\n\"expected\": \"tohost PASS (was FAIL 0xdead), no TRAP: cpu trap asserted\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793148273,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 3932,
+      "prompt_tokens": 3213,
+      "total_tokens": 7145,
+      "completion_tokens_details": {
+        "reasoning_tokens": 3646
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Trace ends with `TRAP: cpu trap asserted` and `tohost: FAIL 0xdead` (fingerprint sha256:d52ca6bb4e44) after 2009 cycles on NOP fetch. `mem_rdata_latched_noshuffle` returned stale `mem_rdata_q` on the `mem_xfer` cycle instead of live `mem_rdata`, causing illegal-decode trap. Root cause is picorv32.v:384 where `(mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata` inverts latch/hold mux; live `mem_rdata` is valid at transfer per picosoc/picosoc.v:130.\",\n\"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -384 +384 @@\\n-\\tassign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata;\\n+\\tassign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata : mem_rdata_q;\\n\",\n\"expected\": \"tohost PASS (was FAIL 0xdead), no TRAP: cpu trap asserted\"}",
+  "diagnosis": "Trace ends with `TRAP: cpu trap asserted` and `tohost: FAIL 0xdead` (fingerprint sha256:d52ca6bb4e44) after 2009 cycles on NOP fetch. `mem_rdata_latched_noshuffle` returned stale `mem_rdata_q` on the `mem_xfer` cycle instead of live `mem_rdata`, causing illegal-decode trap. Root cause is picorv32.v:384 where `(mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata` inverts latch/hold mux; live `mem_rdata` is valid at transfer per picosoc/picosoc.v:130.",
+  "expected": "tohost PASS (was FAIL 0xdead), no TRAP: cpu trap asserted",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 32780,
+  "request_id": "chatcmpl-01a17ff7-431b-741d-8c5d-b651058018d5",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 3932,
+    "prompt_tokens": 3213,
+    "total_tokens": 7145,
+    "completion_tokens_details": {
+      "reasoning_tokens": 3646
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

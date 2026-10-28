@@ -1,0 +1,9 @@
+{
+  "case": "picosoc-uart-div",
+  "pass": false,
+  "tohost": "FAIL 0xdead",
+  "checksum": "27ee482b473c74db5dce8b5ab1a233084cce3055c317a1f2045faa6dbc13a1c6",
+  "cycles": 2112,
+  "seed": 43,
+  "sim_time_utc": "2026-10-28T00:16:07Z"
+}

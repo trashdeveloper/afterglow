@@ -1,0 +1,137 @@
+{
+  "run_id": "vis-on-rdata-latch-42",
+  "case_id": "rdata-latch",
+  "case": "rdata-latch",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-28T00:45:10Z",
+  "wall_end_utc": "2026-10-28T00:46:48Z",
+  "sim_seed": 42,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 25175,
+      "text_request_id": "chatcmpl-01a17ff8-370e-74b6-a90c-3cddc4c7753a",
+      "diagnosis_chars": 352,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "multimodal": "multimodal: CONFIRMED (Diagram shows the fetch rdata path through mem_rdata_q mux into decode/trap, confirming the inverted-select explains the TRAP/FAIL and the swap fixes it.; proceeding with identical patch @@ -384,1 +384,1 @@ / -\tassign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata;)",
+      "multimodal_detail": {
+        "decision": "CONFIRM",
+        "reason": "Diagram shows the fetch rdata path through mem_rdata_q mux into decode/trap, confirming the inverted-select explains the TRAP/FAIL and the swap fixes it.",
+        "first_diagnosis": "Fetch fails with `TRAP: cpu trap asserted` and `FAIL 0xdead` instead of clean NOP progress. `mem_rdata_latched_noshuffle` at picorv32.v:384 selects `mem_rdata_q` when `mem_xfer` is true and live `mem_rdata` when idle, which is inverted. This feeds stale/previous-cycle data into `mem_rdata_latched` (picorv32.v:386-388) causing illegal decode and trap.",
+        "final_diagnosis": "Fetch fails with `TRAP: cpu trap asserted` and `FAIL 0xdead` instead of clean NOP progress. `mem_rdata_latched_noshuffle` at picorv32.v:384 selects `mem_rdata_q` when `mem_xfer` is true and live `mem_rdata` when idle, which is inverted. This feeds stale/previous-cycle data into `mem_rdata_latched` (picorv32.v:386-388) causing illegal decode and trap.",
+        "first_patch": "@@ -384,1 +384,1 @@ / -\tassign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata;",
+        "final_patch": "@@ -384,1 +384,1 @@ / -\tassign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata;",
+        "patch_changed": false,
+        "second_request_id": "chatcmpl-01a17ff9-5033-70ac-9836-0b144601a9eb"
+      },
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/rdata-latch.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "rdata-latch",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+  "cycles_before": 2009,
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 79,
+    "pack_tokens": 308,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "d52ca6bb4e446a3edfed66d96bace0902aae1d58d3df04abdc934f249c056cfc",
+    "cone_lines": 61,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "asserted",
+    "cone_files": 1,
+    "cone_source": "fallback-window",
+    "cone_drivers": 0,
+    "harvest_lines": 83,
+    "harvest_tokens": 353,
+    "recall": [
+      [
+        "mutbigN-v3-05",
+        1.0
+      ],
+      [
+        "mutbigN-v3-07",
+        1.0
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 0,
+    "status": "ok"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 1011,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "5724608dd3385155da50d1314cfea2c525a7f053e8258e80b8629b87b795a342",
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "image_latency_ms": 33931,
+  "image_request_id": "748ccaf6-450b-4ff2-8cdc-9bbae410da1e",
+  "image_bytes": 1305676,
+  "text_latency_ms": 25175,
+  "text_request_id": "chatcmpl-01a17ff8-370e-74b6-a90c-3cddc4c7753a",
+  "api_usage": {
+    "completion_tokens": 3085,
+    "prompt_tokens": 3213,
+    "total_tokens": 6298,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2797
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "time_to_green_s": 97.5,
+  "est_usd": 0.061106,
+  "text_tokens": 6298,
+  "image_calls": 1
+}

@@ -1,0 +1,138 @@
+{
+  "run_id": "vis-on-uart-tx-div-43",
+  "case_id": "uart-tx-div",
+  "case": "uart-tx-div",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-28T00:38:51Z",
+  "wall_end_utc": "2026-10-28T00:40:20Z",
+  "sim_seed": 43,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "canonical-bootstrap-gated",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 34153,
+      "text_request_id": "chatcmpl-01a17ff2-9119-7260-a9fe-80de3ad2210c",
+      "diagnosis_chars": 438,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "canonical-bootstrap-gated",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picosoc/simpleuart.v\\nHunk #1 FAILED at 127.\\n1 out of 1 hunk FAILED\\n']; applied via canonical-bootstrap-gated",
+      "multimodal": "multimodal: CONFIRMED (Diagram shows ser_tx from send_pattern[0] completing the 0xa5 frame ~16x early due to cfg_divider>>4 while RX still samples idle 0xff, confirming the TX divider mismatch.; proceeding with identical patch @@ -127,7 +127,7 @@ / - \t\t\tif (send_divcnt > (cfg_divider >> 4) && send_bitcnt) begin)",
+      "multimodal_detail": {
+        "decision": "CONFIRM",
+        "reason": "Diagram shows ser_tx from send_pattern[0] completing the 0xa5 frame ~16x early due to cfg_divider>>4 while RX still samples idle 0xff, confirming the TX divider mismatch.",
+        "first_diagnosis": "Loopback TX stayed idle so ser_tx from send_pattern[0] at picosoc/simpleuart.v:107 held 1 and RX got 0xff vs want 0xa5 (TRAP: uart data mismatch, tohost FAIL 0xdead). Root cause is picosoc/simpleuart.v:130 `send_divcnt > (cfg_divider >> 4)` which makes TX bit period ~16x too fast for divider 64, so RX sampling at the configured divider misses the frame. CONE_SLICE picosoc/picosoc.v:190 simpleuart instance agrees on wiring; trace wins.",
+        "final_diagnosis": "Loopback TX stayed idle so ser_tx from send_pattern[0] at picosoc/simpleuart.v:107 held 1 and RX got 0xff vs want 0xa5 (TRAP: uart data mismatch, tohost FAIL 0xdead). Root cause is picosoc/simpleuart.v:130 `send_divcnt > (cfg_divider >> 4)` which makes TX bit period ~16x too fast for divider 64, so RX sampling at the configured divider misses the frame. CONE_SLICE picosoc/picosoc.v:190 simpleuart instance agrees on wiring; trace wins.",
+        "first_patch": "@@ -127,7 +127,7 @@ / - \t\t\tif (send_divcnt > (cfg_divider >> 4) && send_bitcnt) begin",
+        "final_patch": "@@ -127,7 +127,7 @@ / - \t\t\tif (send_divcnt > (cfg_divider >> 4) && send_bitcnt) begin",
+        "patch_changed": false,
+        "second_request_id": "chatcmpl-01a17ff3-64e1-74aa-90bd-a0e113414ff4"
+      },
+      "gate_signal": "divider",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/uart-tx-div.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "uart-tx-div",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "e251d79bc7250f734efe026d9d7f036e818ad243c9428000f5cdb2c1fd8b03c6",
+  "cycles_before": 2652,
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 36,
+    "pack_tokens": 180,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "2e5ce049369d5e22f21d524ec227eef0b7e12e477b227e4ce4b69afadad592bc",
+    "cone_lines": 18,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "uart",
+    "cone_files": 2,
+    "cone_source": "static",
+    "cone_drivers": 0,
+    "harvest_lines": 40,
+    "harvest_tokens": 233,
+    "recall": [
+      [
+        "mut-live-02-v3",
+        1.0
+      ],
+      [
+        "mut-live-05-v3",
+        1.0
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 0,
+    "status": "ok"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 820,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "8e6a4793cda495188dc53aacb720990e5d8e500156822389080e58290e4ce826",
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "image_latency_ms": 15185,
+  "image_request_id": "b8259440-3ba4-4164-b64f-7ca96f79cd76",
+  "image_bytes": 1599302,
+  "text_latency_ms": 34153,
+  "text_request_id": "chatcmpl-01a17ff2-9119-7260-a9fe-80de3ad2210c",
+  "api_usage": {
+    "completion_tokens": 4501,
+    "prompt_tokens": 2159,
+    "total_tokens": 6660,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4152
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 88.6,
+  "est_usd": 0.070326,
+  "text_tokens": 6660,
+  "image_calls": 1
+}

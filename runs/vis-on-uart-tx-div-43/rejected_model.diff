@@ -1,0 +1,11 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -127,7 +127,7 @@
+ 				send_divcnt <= 0;
+ 			end else
+- 			if (send_divcnt > (cfg_divider >> 4) && send_bitcnt) begin
++ 			if (send_divcnt > cfg_divider && send_bitcnt) begin
+ 				send_pattern <= {1'b1, send_pattern[9:1]};
+ 				send_bitcnt <= send_bitcnt - 1;
+ 				send_divcnt <= 0;

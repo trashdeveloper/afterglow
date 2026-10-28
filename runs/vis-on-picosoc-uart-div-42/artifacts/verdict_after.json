@@ -1,0 +1,10 @@
+{
+  "case": "picosoc-uart-div",
+  "pass": false,
+  "tohost": null,
+  "checksum": null,
+  "cycles": null,
+  "seed": 42,
+  "sim_time_utc": "2026-10-28T00:15:05Z",
+  "note": "no patch applied"
+}

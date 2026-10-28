@@ -1,0 +1,6 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -384,1 +384,1 @@
+-	assign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata;
++	assign mem_rdata_latched_noshuffle = (!mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata;

@@ -1,0 +1,126 @@
+{
+  "run_id": "vis-off-uart-tx-div-43",
+  "case_id": "uart-tx-div",
+  "case": "uart-tx-div",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-28T00:37:35Z",
+  "wall_end_utc": "2026-10-28T00:38:51Z",
+  "sim_seed": 43,
+  "prompt_file": "v3",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 47397,
+      "text_request_id": "chatcmpl-01a17ff1-9dd9-73a2-b8a3-303cc80e3826",
+      "diagnosis_chars": 403,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged"
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/uart-tx-div.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "uart-tx-div",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "e251d79bc7250f734efe026d9d7f036e818ad243c9428000f5cdb2c1fd8b03c6",
+  "cycles_before": 2652,
+  "prompt_hash": "ad529368accaf171e6121a54b2d27547230920a900c7c4e5094d3fff13ca4233",
+  "prompt_version": "v3",
+  "harvest": {
+    "pack_lines": 36,
+    "pack_tokens": 180,
+    "sections": [
+      "fingerprint",
+      "cone_slice",
+      "verdict"
+    ],
+    "dropped": [],
+    "fingerprint": "2e5ce049369d5e22f21d524ec227eef0b7e12e477b227e4ce4b69afadad592bc",
+    "cone_lines": 18,
+    "verdict_tokens": 17,
+    "budget_tokens": 900,
+    "seed": "uart",
+    "cone_files": 2,
+    "cone_source": "static",
+    "cone_drivers": 0,
+    "harvest_lines": 40,
+    "harvest_tokens": 233,
+    "recall": [
+      [
+        "mut-live-02-v3",
+        1.0
+      ],
+      [
+        "mut-live-05-v3",
+        1.0
+      ]
+    ],
+    "recall_dropped": false,
+    "recall_excluded": 0,
+    "status": "ok"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 820,
+  "context_tokens": 0,
+  "context_dropped": "n/a",
+  "localization_top1": "",
+  "top1_is_true": "",
+  "trace_sha256": "8f5f27ebbae8a5e780004d626f5a52748ee7c6712c4dfb6ec5d3438c707faa14",
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "image_latency_ms": 27533,
+  "image_request_id": "01c6ada8-b039-4a5d-99a2-0c4c55e3028e",
+  "image_bytes": 1428284,
+  "text_latency_ms": 47397,
+  "text_request_id": "chatcmpl-01a17ff1-9dd9-73a2-b8a3-303cc80e3826",
+  "api_usage": {
+    "completion_tokens": 6180,
+    "prompt_tokens": 2159,
+    "total_tokens": 8339,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5780
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 75.5,
+  "est_usd": 0.083758,
+  "text_tokens": 8339,
+  "image_calls": 1
+}

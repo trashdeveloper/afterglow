@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: rdata-latch\nFailing-trace sha256 (first 16 hex): 3193d666f3861eea\nVerbatim diagnosis from the debug agent:\nTrace ends with `TRAP: cpu trap asserted` and `tohost: FAIL 0xdead` (fingerprint sha256:d52ca6bb4e44) after 2009 cycles on NOP fetch. `mem_rdata_latched_noshuffle` returned stale `mem_rdata_q` on the `mem_xfer` cycle instead of live `mem_rdata`, causing illegal-decode trap. Root cause is picorv32.v:384 where `(mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata_q : mem_rdata` inverts latch/hold mux; live `mem_rdata` is valid at transfer per picosoc/picosoc.v:130.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 3193d666f3861eea in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "f471fa43aad3daf1b9222ddff7628502febb066656157c78000ed2313a256f3b",
+  "trace_sha256": "3193d666f3861eea3f5164c1e9223a2fd72804ba2b9d6e76e24c069f39832dbb",
+  "diagnosis_sha256": "c68c2e8d215f838174b50d2922830e79f51e202c764a8a1297fa17ad337555da",
+  "case": "rdata-latch",
+  "attempt": 1
+}

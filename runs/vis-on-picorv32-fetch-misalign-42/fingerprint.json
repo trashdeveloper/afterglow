@@ -1,0 +1,14 @@
+{
+  "fingerprint": "636e125d7951bc82075f3001dd69892df90b60572c888ac15a0eef64d1afdf44",
+  "trap_line": "TRAP: fetch misalign addr low bits nonzero",
+  "oracle_sig": "FAIL 0xdead",
+  "signals": [
+    "addr",
+    "bits",
+    "fetch",
+    "low",
+    "misalign",
+    "nonzero",
+    "xdead"
+  ]
+}
