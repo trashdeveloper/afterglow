@@ -1205,7 +1205,7 @@ def run_optimize_pass(run_dir: str, tree: str, case: dict, spec,
     opt_req_path = os.path.join(run_dir, "api", "opt_text_request.json")
     opt_resp_path = os.path.join(run_dir, "api", "opt_text_response.json")
     try:
-        excerpt = rtl_excerpt(tree, rtl_rel, case)
+        excerpt = build_excerpt_text(tree, rtl_rel, case)
     except Exception as exc:  # noqa: BLE001 -- opt never breaks GREEN
         return _fail("opt excerpt unreadable: %s" % (exc,))
     try:
@@ -1369,6 +1369,118 @@ def parse_args(argv=None):
                          "to single-diagnosis. Default OFF keeps the "
                          "proven single path byte-identical.")
     return ap.parse_args(argv)
+
+
+def _resolve_idx(lines, bug, anchor, pinned):
+    """0-based excerpt center: verified pin wins, else text search."""
+    if pinned is not None and 1 <= pinned <= len(lines) \
+            and lines[pinned - 1].strip() == bug:
+        return pinned - 1
+    idx = next((i for i, ln in enumerate(lines)
+                if ln.strip() == bug), -1)
+    if idx < 0:
+        idx = next((i for i, ln in enumerate(lines)
+                    if ln.strip() == anchor), 0)
+    return idx
+
+
+def _window_text(lines, idx, max_lines):
+    half = max_lines // 2
+    start = max(0, min(idx - half, len(lines) - max_lines))
+    window = lines[start:start + max_lines]
+    return "\n".join("line %d: %s" % (start + i + 1, ln)
+                     for i, ln in enumerate(window))
+
+
+def _all_faults_in_rel(case: dict, rel: str) -> list:
+    """[(bug, anchor, lineno)] for EVERY fault in rel.
+
+    Flat cases return their single top-level (bug, anchor, None).
+    Raises LoopError on the same malformed inputs _fault_focus rejects.
+    """
+    raw = case.get("faults")
+    if raw is None:
+        return [(case["bug"].strip(), case["anchor"].strip(), None)]
+    if (not isinstance(raw, list) or not raw
+            or not all(isinstance(f, dict) for f in raw)):
+        raise LoopError("pair case needs a non-empty faults list, got %r"
+                        % (raw,))
+    out = []
+    for f in raw:
+        try:
+            if str(f["file"]) != rel:
+                continue
+            bug = str(f["bug"]).strip()
+            anchor = str(f["anchor"]).strip()
+            lineno = int(f["line"])
+        except KeyError:
+            raise LoopError("mutant fault needs file + integer line + "
+                            "anchor + bug, got %r" % (f,))
+        except (TypeError, ValueError):
+            raise LoopError("mutant fault needs file + integer line + "
+                            "anchor + bug, got %r" % (f,))
+        if not bug or not anchor or lineno < 1:
+            raise LoopError("mutant fault needs non-blank anchor+bug and "
+                            "line >= 1, got %r" % (f,))
+        out.append((bug, anchor, lineno))
+    if not out:
+        raise LoopError("pair excerpt: no fault in %s (faults cover %s)"
+                        % (rel, sorted({str(f.get("file")) for f in raw})))
+    return out
+
+
+def rtl_excerpts(tree: str, rel: str, case: dict,
+                 max_lines: int = 40) -> list:
+    """[(pinned_lineno|None-resolved, window_text)] per fault in rel.
+
+    Singles return exactly one window, byte-identical to rtl_excerpt.
+    """
+    path = os.path.join(tree, rel)
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            lines = fh.read().splitlines()
+    except OSError as exc:
+        raise LoopError("cannot read RTL for excerpt: %s" % (exc,))
+    out = []
+    for bug, anchor, pinned in _all_faults_in_rel(case, rel):
+        idx = _resolve_idx(lines, bug, anchor, pinned)
+        out.append((idx + 1, _window_text(lines, idx, max_lines)))
+    return out
+
+
+def pair_pinned_lines(case: dict, rel: str) -> list:
+    """Sorted pinned fault lines for pair specs; [] for flat cases."""
+    raw = case.get("faults")
+    if not isinstance(raw, list):
+        return []
+    return sorted(int(f["line"]) for f in raw
+                  if isinstance(f, dict) and str(f.get("file")) == rel
+                  and str(f.get("line", "")).lstrip("-").isdigit()
+                  and int(f["line"]) >= 1)
+
+
+_PAIR_GROUNDING = (
+    "candidate bug lines: %s — the diff MUST touch a pinned line with "
+    "`-` = current tree text (byte-verbatim incl. tabs); prefer minimal "
+    "1-3 line hunks; never INSERT a duplicate assignment to fix a "
+    "wrong constant.")
+
+
+def build_excerpt_text(tree: str, rel: str, case: dict,
+                       max_lines: int = 40) -> str:
+    """Prompt-ready excerpt: bare single window for flat/one-fault cases,
+    one `=== fault N (file:line) ===` window per fault plus a pinned-lines
+    grounding line for multi-fault pair specs."""
+    wins = rtl_excerpts(tree, rel, case, max_lines)
+    if len(wins) == 1:
+        return wins[0][1]
+    pins = pair_pinned_lines(case, rel)
+    parts = []
+    for n, (lineno, text) in enumerate(wins, 1):
+        parts.append("=== fault %d (%s:%d) ===" % (n, rel, lineno))
+        parts.append(text)
+    parts.append(_PAIR_GROUNDING % (", ".join(map(str, pins)),))
+    return "\n".join(parts)
 
 
 def _fault_focus(case: dict, rel: str) -> tuple:
@@ -2559,7 +2671,7 @@ def main(argv=None) -> int:
             boot_log = fh.read()
         with open(art("verdict_before.json"), encoding="utf-8") as fh:
             verdict_json = fh.read()
-        excerpt = rtl_excerpt(tree, rtl_rel, case)
+        excerpt = build_excerpt_text(tree, rtl_rel, case)
         staged = template.replace("{{CASE}}", args.case).replace(
             "{{RTL_FILE}}", rtl_rel).replace("{{RTL_EXCERPT}}", excerpt)
         bundle = collect.collect(boot_log, verdict_json, staged)
