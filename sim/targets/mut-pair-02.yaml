@@ -1,0 +1,24 @@
+# SANCTIONED dual-fault pilot spec mut-pair-02 (Task 7).
+# picorv32.v:376 (mem_done || -> &&) + picorv32.v:373 (mem_xfer || -> &&).
+# Parent TB/oracle: picorv32-fetch-misalign.
+project: "picorv32"
+files: [picorv32.v]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+vflags: [-Wno-PINMISSING]
+gate: "dual-fault pilot mem-if pair"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-pair-02"
+mutant_seed: 1234
+mutant_op: "pair"
+faults:
+  - file: "picorv32.v"
+    line: 376
+    anchor: "wire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) || (&mem_state && mem_do_rinst)) &&"
+    bug: "wire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) && (&mem_state && mem_do_rinst)) &&"
+  - file: "picorv32.v"
+    line: 373
+    anchor: "assign mem_xfer = (mem_valid && mem_ready) || (mem_la_use_prefetched_high_word && mem_do_rinst);"
+    bug: "assign mem_xfer = (mem_valid && mem_ready) && (mem_la_use_prefetched_high_word && mem_do_rinst);"
+parent_case: "picorv32-fetch-misalign"

@@ -1,0 +1,28 @@
+# SANCTIONED dual-fault pilot spec mut-pair-01 (Task 7).
+# Two pinned faults, one run: simpleuart.v:39 (recv_state width) +
+# simpleuart.v:114 (send_pattern). In-tree so the loop's in-tree-only
+# --spec rule is UNCHANGED. Firing: agent/loop.py --spec ONLY.
+# Combined RED is verified at fire time: if the pair is jointly GREEN
+# the run fails loudly (not RED), never silently.
+# Parent TB/oracle: picosoc-uart-div.
+project: "picorv32"
+files: [picosoc/simpleuart.v]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+vflags: ["-Wno-WIDTH"]
+gate: "dual-fault pilot simpleuart pair"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-pair-01"
+mutant_seed: 1234
+mutant_op: "pair"
+faults:
+  - file: "picosoc/simpleuart.v"
+    line: 39
+    anchor: "reg [3:0] recv_state;"
+    bug: "reg [3:1] recv_state;"
+  - file: "picosoc/simpleuart.v"
+    line: 114
+    anchor: "send_pattern <= ~0;"
+    bug: "send_pattern <= ~1;"
+parent_case: "picosoc-uart-div"

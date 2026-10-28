@@ -1,0 +1,24 @@
+# SANCTIONED dual-fault pilot spec mut-pair-05 (Task 7).
+# picorv32.v:1408 (set_mem_do_wdata 0->1) + picorv32.v:1450 (do_waitirq).
+# Parent TB/oracle: picorv32-fetch-misalign.
+project: "picorv32"
+files: [picorv32.v]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+vflags: [-Wno-PINMISSING]
+gate: "dual-fault pilot wdata-waitirq pair"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-pair-05"
+mutant_seed: 1234
+mutant_op: "pair"
+faults:
+  - file: "picorv32.v"
+    line: 1408
+    anchor: "set_mem_do_wdata = 0;"
+    bug: "set_mem_do_wdata = 1;"
+  - file: "picorv32.v"
+    line: 1450
+    anchor: "do_waitirq <= 0;"
+    bug: "do_waitirq <= 1;"
+parent_case: "picorv32-fetch-misalign"

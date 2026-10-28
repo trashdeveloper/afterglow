@@ -783,6 +783,29 @@ def canonical_diff(tree: str, case: dict) -> tuple:
     line 83, so an anchored replace-every-match would corrupt a healthy
     line alongside the fix. Normal cases keep the legacy anchored loop.
     """
+    anchor = None
+    bug = None
+    raw_faults = case.get("faults")
+    if raw_faults is not None:
+        # Pair restore: each fault's bug line -> anchor at its own pin.
+        # Bug and anchor differ per fault; restoring via a single
+        # anchor/bug pair would corrupt the sibling fault's line.
+        blocks = []
+        total_hits = 0
+        for f in raw_faults:
+            sub = dict(case)
+            sub["anchor"] = str(f["anchor"])
+            sub["bug"] = str(f["bug"])
+            sub["mutant_file"] = str(f["file"])
+            sub["mutant_line"] = int(f["line"])
+            sub.pop("faults", None)
+            sub_diff, sub_hits = canonical_diff(tree, sub)
+            blocks.append(sub_diff)
+            total_hits += sub_hits
+        if total_hits == 0:
+            raise LoopError("bootstrap: bug line not found in tree "
+                            "(already fixed or unexpected tree state)")
+        return "".join(blocks), total_hits
     anchor = case["anchor"].strip()
     bug = case["bug"].strip()
     pinned = None
@@ -1374,13 +1397,20 @@ def bug_line_no(tree: str, rel: str, case: dict) -> int:
 # --------------------------------------------------------------------------
 
 def is_mutant_case(case: dict) -> bool:
-    """True iff the case pins a single-point mutant fault.
+    """True iff the case pins mutant fault(s).
 
     Sanctioned mut-pilot-*.yaml specs carry mutant_file + mutant_line
-    alongside the usual anchor/bug; normal eval cases lack them.
+    alongside the usual anchor/bug; pair specs (mut-pair-*) carry a
+    `faults` list of {file, line, anchor, bug} instead. Normal eval
+    cases lack both.
     """
-    return (isinstance(case, dict) and "mutant_file" in case
-            and "mutant_line" in case)
+    if not isinstance(case, dict):
+        return False
+    if "mutant_file" in case and "mutant_line" in case:
+        return True
+    faults = case.get("faults")
+    return (isinstance(faults, list) and len(faults) > 0
+            and all(isinstance(f, dict) for f in faults))
 
 
 def prepare_mutant_tree(case: dict, pristine_tree: str, dest: str,
@@ -1400,23 +1430,46 @@ def prepare_mutant_tree(case: dict, pristine_tree: str, dest: str,
     wrong fault distribution for big-N fix-rate stats. Only the pinned
     line is touched; the post-apply walk asserts every other line of
     every other file is byte-identical to pristine.
+
+    Pair specs (mut-pair-*) carry `faults: [{file, line, anchor, bug}]`
+    and inject every fault; the legacy mutant_file/mutant_line keys are
+    exactly the one-fault form of the same list.
     """
-    try:
-        rel = str(case.get("mutant_file") or (case.get("files") or [""])[0])
-        lineno = int(case.get("mutant_line"))  # type: ignore[arg-type]
-    except (TypeError, ValueError):
-        raise LoopError("mutant case needs mutant_file + integer "
-                        "mutant_line, got %r/%r"
-                        % (case.get("mutant_file"),
-                           case.get("mutant_line")))
-    anchor = str(case.get("anchor", "")).strip()
-    bug = str(case.get("bug", "")).strip()
-    if not anchor or not bug:
-        raise LoopError("mutant case needs non-blank anchor+bug")
-    if anchor == bug:
-        raise LoopError("mutant anchor == bug (no fault to apply)")
-    if lineno < 1:
-        raise LoopError("mutant_line out of range: %d" % lineno)
+    raw_faults = case.get("faults")
+    if raw_faults is not None:
+        if (not isinstance(raw_faults, list) or not raw_faults
+                or not all(isinstance(f, dict) for f in raw_faults)):
+            raise LoopError("mutant case needs a non-empty faults list "
+                            "of {file, line, anchor, bug}, got %r"
+                            % (raw_faults,))
+        faults = []
+        for f in raw_faults:
+            try:
+                faults.append((str(f["file"]), int(f["line"]),
+                               str(f["anchor"]).strip(),
+                               str(f["bug"]).strip()))
+            except (KeyError, TypeError, ValueError):
+                raise LoopError("mutant fault needs file + integer line "
+                                "+ anchor + bug, got %r" % (f,))
+    else:
+        try:
+            rel0 = str(case.get("mutant_file")
+                       or (case.get("files") or [""])[0])
+            lineno0 = int(case.get("mutant_line"))
+        except (TypeError, ValueError):
+            raise LoopError("mutant case needs mutant_file + integer "
+                            "mutant_line, got %r/%r"
+                            % (case.get("mutant_file"),
+                               case.get("mutant_line")))
+        faults = [(rel0, lineno0, str(case.get("anchor", "")).strip(),
+                   str(case.get("bug", "")).strip())]
+    for (_rel, _lineno, _anchor, _bug) in faults:
+        if not _anchor or not _bug:
+            raise LoopError("mutant case needs non-blank anchor+bug")
+        if _anchor == _bug:
+            raise LoopError("mutant anchor == bug (no fault to apply)")
+        if _lineno < 1:
+            raise LoopError("mutant_line out of range: %d" % _lineno)
     if os.path.exists(dest):
         if not force:
             raise LoopError("mutant scratch exists (refusing): %s" % dest)
@@ -1435,52 +1488,78 @@ def prepare_mutant_tree(case: dict, pristine_tree: str, dest: str,
     # Copy first; every read below happens inside dest, every write below
     # happens inside dest. The pristine tree is never opened for writing.
     shutil.copytree(pristine_tree, dest, ignore=_ignore)
-    path = os.path.join(dest, rel)
-    if not os.path.isfile(path):
-        raise LoopError("mutant file missing in pristine tree: %s" % rel)
-    with open(path, "r", encoding="utf-8") as fh:
-        lines = fh.read().splitlines()
-    if lineno > len(lines):
-        raise LoopError("mutant_line %d out of range (%d lines in %s)"
-                        % (lineno, len(lines), rel))
-    cur = lines[lineno - 1]
-    if cur.strip() != anchor:
-        raise LoopError(
-            "pristine %s:%d is %r, not anchor %r "
-            "(wrong pristine revision? refusing)" % (rel, lineno,
-                                                     cur.strip(), anchor))
-    indent = cur[:len(cur) - len(cur.lstrip())]
-    lines[lineno - 1] = "%s%s" % (indent, bug)
-    with open(path, "w", encoding="utf-8") as fh:
-        fh.write("\n".join(lines) + "\n")
-    # Verify: exactly one line differs in the pinned file, and every
+    applied = []
+    for (rel, lineno, anchor, bug) in faults:
+        path = os.path.join(dest, rel)
+        if not os.path.isfile(path):
+            raise LoopError("mutant file missing in pristine tree: %s"
+                            % rel)
+        with open(path, "r", encoding="utf-8") as fh:
+            lines = fh.read().splitlines()
+        if lineno > len(lines):
+            raise LoopError("mutant_line %d out of range (%d lines in %s)"
+                            % (lineno, len(lines), rel))
+        cur = lines[lineno - 1]
+        if cur.strip() != anchor:
+            raise LoopError(
+                "pristine %s:%d is %r, not anchor %r "
+                "(wrong pristine revision? refusing)" % (rel, lineno,
+                                                         cur.strip(), anchor))
+        indent = cur[:len(cur) - len(cur.lstrip())]
+        lines[lineno - 1] = "%s%s" % (indent, bug)
+        with open(path, "w", encoding="utf-8") as fh:
+            fh.write("\n".join(lines) + "\n")
+        applied.append((rel, lineno, anchor, bug))
+    # Verify: EXACTLY the pinned lines differ per touched file, and every
     # other file is byte-identical to pristine (no cross-contamination,
     # no double-fault from duplicate anchor text elsewhere).
-    with open(os.path.join(pristine_tree, rel), "r",
-              encoding="utf-8") as fh:
-        pristine_lines = fh.read().splitlines()
-    diffs = [i for i, (a, b) in enumerate(zip(pristine_lines, lines))
-             if a != b]
-    if (len(pristine_lines) != len(lines) or len(diffs) != 1
-            or diffs[0] != lineno - 1
-            or lines[lineno - 1].strip() != bug):
-        raise LoopError("mutant apply left unexpected diff in %s "
-                        "(want exactly line %d -> bug)" % (rel, lineno))
+    want_changed = {}
+    for (rel, lineno, _anchor, _bug) in applied:
+        want_changed.setdefault(rel, set()).add(lineno - 1)
+    touched_rels = set(want_changed)
     for dirpath, _dirnames, filenames in os.walk(dest):
         for fn in filenames:
             full = os.path.join(dirpath, fn)
             tree_rel = os.path.relpath(full, dest)
-            if tree_rel == rel:
-                continue
             with open(full, "rb") as fh:
                 got = fh.read()
             with open(os.path.join(pristine_tree, tree_rel), "rb") as fh:
                 want = fh.read()
-            if got != want:
-                raise LoopError("scratch file differs from pristine "
-                                "outside the pinned fault: %s" % tree_rel)
-    return {"file": rel, "line": lineno, "before": anchor, "after": bug,
-            "seed": case.get("mutant_seed"), "op": case.get("mutant_op")}
+            if tree_rel not in touched_rels:
+                if got != want:
+                    raise LoopError("scratch file differs from pristine "
+                                    "outside the pinned faults: %s"
+                                    % tree_rel)
+                continue
+            try:
+                got_lines = got.decode("utf-8").splitlines()
+                want_lines = want.decode("utf-8").splitlines()
+            except UnicodeDecodeError:
+                raise LoopError("mutant file not UTF-8 text: %s" % tree_rel)
+            if len(got_lines) != len(want_lines):
+                raise LoopError("mutant apply changed line count in %s"
+                                % tree_rel)
+            diffs = set(i for i, (a, b) in
+                        enumerate(zip(want_lines, got_lines)) if a != b)
+            if diffs != want_changed[tree_rel]:
+                raise LoopError("mutant apply left unexpected diff in %s "
+                                "(want exactly lines %s)"
+                                % (tree_rel,
+                                   sorted(l + 1
+                                          for l in want_changed[tree_rel])))
+    for (rel, lineno, anchor, bug) in applied:
+        with open(os.path.join(dest, rel), "r",
+                  encoding="utf-8") as fh:
+            check = fh.read().splitlines()
+        if check[lineno - 1].strip() != bug:
+            raise LoopError("mutant apply left unexpected diff in %s "
+                            "(want line %d -> bug)" % (rel, lineno))
+    first = applied[0]
+    return {"file": first[0], "line": first[1],
+            "before": first[2], "after": first[3],
+            "seed": case.get("mutant_seed"), "op": case.get("mutant_op"),
+            "faults": [{"file": r, "line": n, "before": a, "after": b}
+                       for (r, n, a, b) in applied]}
 
 
 def hash_tree(tree: str) -> str:

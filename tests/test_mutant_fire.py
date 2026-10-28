@@ -259,6 +259,67 @@ class TestCanonicalRestorePinned(unittest.TestCase):
         self.assertEqual(hits, 2)
 
 
+class TestDualFaultPairs(unittest.TestCase):
+    """Two pinned faults in one spec: prepare injects both, canonical
+    restores both, legacy single-fault path untouched. Red-first: the
+    loop only knows mutant_file/mutant_line (singular) today."""
+
+    def _pair_case(self):
+        return {
+            "name": "mut-pair-tiny", "project": "picorv32",
+            "files": ["picosoc/simpleuart.v"],
+            "top": "tb_x", "tb": "x_tb.sv",
+            "gate": "t", "oracle_pass": "tohost: PASS",
+            "faults": [
+                {"file": "picosoc/simpleuart.v", "line": 4,
+                 "anchor": "recv_state <= 0;",
+                 "bug": "recv_state <= 1;"},
+                {"file": "picosoc/simpleuart.v", "line": 6,
+                 "anchor": "send_pattern <= ~0;",
+                 "bug": "send_pattern <= ~1;"},
+            ],
+        }
+
+    def test_pair_case_detected_as_mutant(self):
+        self.assertTrue(loop.is_mutant_case(self._pair_case()))
+
+    def test_prepare_applies_both_faults(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = _tiny_pristine(tmp)
+            dest = os.path.join(tmp, "scratch", "run-pair")
+            record = loop.prepare_mutant_tree(
+                self._pair_case(), src, dest)
+            with open(os.path.join(
+                    dest, "picosoc", "simpleuart.v")) as fh:
+                got = fh.read().splitlines()
+            self.assertEqual(got[3], "recv_state <= 1;")
+            self.assertEqual(got[5], "send_pattern <= ~1;")
+            self.assertEqual(got[6], "recv_state <= 0;")  # dup pristine
+            self.assertEqual(got[7], "send_pattern <= ~0;")
+            self.assertEqual(len(record["faults"]), 2)
+
+    def test_prepare_rejects_second_fault_mismatch_loudly(self):
+        bad = self._pair_case()
+        bad["faults"][1]["line"] = 7  # line 7 is not the anchor
+        with tempfile.TemporaryDirectory() as tmp:
+            src = _tiny_pristine(tmp)
+            with self.assertRaises(loop.LoopError):
+                loop.prepare_mutant_tree(
+                    bad, src, os.path.join(tmp, "scratch", "run-bad"))
+
+    def test_canonical_restores_both_pins(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = _tiny_pristine(tmp)
+            dest = os.path.join(tmp, "scratch", "run-pair")
+            loop.prepare_mutant_tree(self._pair_case(), src, dest)
+            diff, hits = loop.canonical_diff(dest, self._pair_case())
+            self.assertEqual(hits, 2)
+            self.assertIn("-recv_state <= 1;", diff)
+            self.assertIn("+recv_state <= 0;", diff)
+            self.assertIn("-send_pattern <= ~1;", diff)
+            self.assertIn("+send_pattern <= ~0;", diff)
+
+
 class TestOracleRedGreen(unittest.TestCase):
     def _log(self, name):
         with open(os.path.join(PILOT, "logs", name)) as fh:

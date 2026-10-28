@@ -1,0 +1,24 @@
+# SANCTIONED dual-fault pilot spec mut-pair-03 (Task 7).
+# picorv32.v:679 (instr_trap && -> ||) + picorv32.v:877 (opcode LSB flip).
+# Parent TB/oracle: picorv32-fetch-misalign.
+project: "picorv32"
+files: [picorv32.v]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+vflags: [-Wno-PINMISSING]
+gate: "dual-fault pilot trap-decode pair"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-pair-03"
+mutant_seed: 1234
+mutant_op: "pair"
+faults:
+  - file: "picorv32.v"
+    line: 679
+    anchor: "assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) && !{instr_lui, instr_auipc, instr_jal, instr_jalr,"
+    bug: "assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) || !{instr_lui, instr_auipc, instr_jal, instr_jalr,"
+  - file: "picorv32.v"
+    line: 877
+    anchor: "is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;"
+    bug: "is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010010;"
+parent_case: "picorv32-fetch-misalign"

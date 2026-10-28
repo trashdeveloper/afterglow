@@ -1,0 +1,24 @@
+# SANCTIONED dual-fault pilot spec mut-pair-04 (Task 7).
+# picorv32.v:568 (mem_state 0->1) + picorv32.v:582 (case 0->1).
+# Parent TB/oracle: picorv32-fetch-misalign.
+project: "picorv32"
+files: [picorv32.v]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+vflags: [-Wno-PINMISSING]
+gate: "dual-fault pilot mem-state pair"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-pair-04"
+mutant_seed: 1234
+mutant_op: "pair"
+faults:
+  - file: "picorv32.v"
+    line: 568
+    anchor: "mem_state <= 0;"
+    bug: "mem_state <= 1;"
+  - file: "picorv32.v"
+    line: 582
+    anchor: "0: begin"
+    bug: "1: begin"
+parent_case: "picorv32-fetch-misalign"
