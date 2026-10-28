@@ -2,19 +2,23 @@
 
 Pair-05 evidence (runs/mutpair-v7-05/, eval/pair_pilot.md): the pair needs
 TWO faults fixed (picorv32.v:1408 wdata + :1450 do_waitirq); single
-attempts fix at most one fault, and the loop RESETs to the RED baseline
-after every non-green attempt, discarding real behavior-changing
-progress. The fix: when an applied patch changes behavior (resim
-checksum != RED baseline) but stays RED, KEEP the improved tree and
-diagnose on from it (stacking) instead of resetting; RESET only on
-no-effect / guard-rejected / unparseable attempts.
+attempts fix at most one fault, and NEITHER single fix changes any
+observable (checksum/cycles/log identical, BEFORE==AFTER in
+runs/mutpair-v7-05/ no_behavioral_effect=True) -- yet composing BOTH fixes
+goes GREEN with a clean fresh-tree replay. So the old checksum-delta gate
+could never fire there. The honest trigger is applied-clean: pair spec +
+patch applied clean (guard + dry-run pass, resim completed with a
+verdict) + still RED => stack and continue from the improved tree,
+whether or not the checksum moved. The replay gate + cap-2 + 3-attempt
+budget already bound the cost of a wrong stack. RESET only on
+guard-rejected / unparseable attempts (junk never stacks).
 
 - TestStackPredicates: is_pair_case / should_stack_diff pure gates.
-- TestStackRecord: make_stack_entry shape, stack_combined_diff order,
-  check_stack_cap refusal (cap depth 2, loud LoopError).
+- TestStackRecord: make_stack_entry shape (incl. trigger marker),
+  stack_combined_diff order, check_stack_cap refusal (cap depth 2).
 - TestStackWiring: full mocked main loop on a pair spec --
-  behavior-change RED skips reset_tree_for_attempt, records meta stack,
-  and re-collects; no-effect RED still resets (old path preserved).
+  applied-clean RED skips reset_tree_for_attempt, records meta stack,
+  and re-collects; guard-rejected RED still resets (old path preserved).
 - TestStackReplay: fresh-tree replay verification logic -- combined
   stack applies clean to a fresh RED tree (real prepare + real apply),
   replay verdict decides GREEN-vs-loud-RED; a lying stack is RED.
@@ -165,12 +169,25 @@ class TestStackPredicates(unittest.TestCase):
         self.assertFalse(loop.is_pair_case({"name": "x"}))
         self.assertFalse(loop.is_pair_case(None))
 
-    def test_should_stack_only_on_pair_applied_changed_red(self):
+    def test_should_stack_only_on_pair_applied_clean_red(self):
         ok, why = loop.should_stack_diff(
             case=_pair_case(), applied=True,
             checksum_before="aaa", checksum_after="bbb", still_red=True)
         self.assertTrue(ok, why)
-        self.assertIn("behavior", why.lower())
+        self.assertIn("applied-clean", why.lower())
+
+    def test_should_stack_on_identical_checksum_applied_clean(self):
+        # Pair-05 real behavior: single fixes are log-identical
+        # (BEFORE==AFTER in runs/mutpair-v7-05/) yet compose GREEN.
+        # Applied-clean + still RED stacks whether or not the
+        # checksum moved (replay gate + cap-2 + budget bound the cost).
+        ok, why = loop.should_stack_diff(
+            case=_pair_case(), applied=True,
+            checksum_before="aaa", checksum_after="aaa", still_red=True)
+        self.assertTrue(ok,
+                        "applied-clean RED must stack even when "
+                        "checksum is identical: %r" % (why,))
+        self.assertIn("applied-clean", why.lower())
 
     def test_should_stack_refuses_single_even_when_changed(self):
         ok, why = loop.should_stack_diff(
@@ -179,18 +196,12 @@ class TestStackPredicates(unittest.TestCase):
         self.assertFalse(ok)
         self.assertIn("single", why.lower())
 
-    def test_should_stack_refuses_no_effect(self):
+    def test_should_stack_refuses_unapplied_junk(self):
         ok, why = loop.should_stack_diff(
-            case=_pair_case(), applied=True,
-            checksum_before="aaa", checksum_after="aaa", still_red=True)
-        self.assertFalse(ok)
-        self.assertIn("no", why.lower())
-
-    def test_should_stack_refuses_unapplied(self):
-        ok, _why = loop.should_stack_diff(
             case=_pair_case(), applied=False,
-            checksum_before="aaa", checksum_after="bbb", still_red=True)
-        self.assertFalse(ok, "guard-rejected/unparseable attempts must reset")
+            checksum_before="aaa", checksum_after="aaa", still_red=True)
+        self.assertFalse(ok, "guard-rejected/unparseable attempts reset")
+        self.assertIn("no applied", why.lower())
 
     def test_should_stack_refuses_green(self):
         ok, _why = loop.should_stack_diff(
@@ -211,15 +222,18 @@ class TestStackRecord(unittest.TestCase):
     def test_entry_shape(self):
         entry = loop.make_stack_entry(
             attempt=1, patch=_fix1_diff(),
-            checksum_before="aaa", checksum_after="bbb",
+            checksum_before="aaa", checksum_after="aaa",
             direction="picorv32.v@10:replace")
         for key in ("attempt", "patch", "checksum_before",
-                    "checksum_after", "direction"):
+                    "checksum_after", "direction", "trigger"):
             self.assertIn(key, entry, "stack entry needs %r" % key)
         self.assertEqual(entry["attempt"], 1)
         self.assertEqual(entry["patch"], _fix1_diff())
         self.assertEqual(entry["checksum_before"], "aaa")
-        self.assertEqual(entry["checksum_after"], "bbb")
+        self.assertEqual(entry["checksum_after"], "aaa")
+        self.assertEqual(entry["trigger"], "applied-clean",
+                         "current code only emits applied-clean "
+                         "(checksum-delta is a future trigger)")
 
     def test_combined_diff_concatenates_in_order(self):
         stack = [
@@ -263,18 +277,21 @@ class TestStackWiring(unittest.TestCase):
         """
         return _drive_pair_loop(self, run_id, resim_checksums, green_at)
 
-    def test_behavior_change_skips_reset_and_records_stack(self):
+    def test_applied_clean_skips_reset_and_records_stack(self):
         rc, meta, reset_calls, prompts = self._run_pair(
-            "test-stack-noreset", ["aaa", "bbb", "ccc", "aaa"])
+            "test-stack-noreset", ["aaa", "bbb", "ccc"])
         self.assertEqual(rc, 1)  # all RED, never false green
         self.assertEqual(reset_calls, [],
                          "stacked attempts must NOT reset to RED baseline")
         stack = meta.get("stack")
         self.assertIsInstance(stack, list)
         self.assertEqual(len(stack), 2,
-                         "attempts 1+2 changed behavior: 2 stacked diffs")
+                         "attempts 1+2 applied-clean RED: 2 stacked diffs")
         self.assertTrue(meta.get("stacked"))
         self.assertEqual(meta.get("stack_depth"), 2)
+        for ent in stack:
+            self.assertEqual(ent.get("trigger"), "applied-clean",
+                             "current code only emits applied-clean")
         e0 = stack[0]
         self.assertEqual(e0["attempt"], 1)
         self.assertEqual(e0["checksum_before"], "aaa")
@@ -302,15 +319,120 @@ class TestStackWiring(unittest.TestCase):
             "text_request.json"))
         self.assertEqual(req.get("prompt_sha256"), _sha_text(template))
 
-    def test_no_effect_still_resets(self):
+    def test_identical_checksum_still_stacks(self):
+        # Pair-05 ground truth: applied-clean RED with an IDENTICAL
+        # checksum still stacks (checksum-delta gate could never fire).
         rc, meta, reset_calls, _prompts = self._run_pair(
-            "test-stack-reset", ["aaa", "aaa", "aaa"])
+            "test-stack-identical", ["aaa", "aaa", "aaa"])
         self.assertEqual(rc, 1)
-        self.assertGreaterEqual(len(reset_calls), 1,
-                                "no-effect RED must keep the old reset path")
+        self.assertEqual(reset_calls, [],
+                         "stacked attempts must NOT reset even when "
+                         "checksum is identical")
+        stack = meta.get("stack", [])
+        self.assertEqual(len(stack), 2,
+                         "attempts 1+2 applied-clean: stacked; "
+                         "attempt 3 hits the cap")
+        self.assertTrue(meta.get("stacked"))
+        for ent in stack:
+            self.assertEqual(ent.get("trigger"), "applied-clean")
+        self.assertIn("cap", (meta.get("error") or "").lower(),
+                      "third identical-checksum RED must hit the cap loudly")
+
+    def test_guard_rejected_still_resets_no_junk_stacked(self):
+        # Guard-rejected / unparseable attempts never stack junk: the
+        # old reset path is preserved and the stack stays empty.
+        run_id = "test-stack-guardreject"
+        run_dir = os.path.join(ROOT, "runs", run_id)
+        self.addCleanup(shutil.rmtree, run_dir, True)
+        scratch = os.path.join(ROOT, "runs", "scratch", run_id)
+        self.addCleanup(shutil.rmtree, scratch, True)
+        prompts = []
+        reset_calls = []
+
+        def _fake_before(case, seed, boot_path, verdict_path):
+            with open(boot_path, "w", encoding="utf-8") as fh:
+                fh.write(FAKE_BOOT_RED)
+            verdict = {"case": case, "pass": False,
+                       "tohost": "FAIL 0x1", "checksum": "aaa",
+                       "cycles": 1234, "seed": seed}
+            with open(verdict_path, "w", encoding="utf-8") as fh:
+                fh.write(json.dumps(verdict) + "\n")
+            return verdict
+
+        def _fake_text(prompt, **kwargs):
+            prompts.append(prompt)
+            return dict(MODEL_OK), []
+
+        def _fake_before_red(tree, case, seed, boot_path, verdict_path):
+            # Mutant BEFORE also goes through resim_after: report RED.
+            with open(boot_path, "w", encoding="utf-8") as fh:
+                fh.write(FAKE_BOOT_RED)
+            verdict = {"case": case, "pass": False,
+                       "tohost": "FAIL 0x1", "checksum": "aaa",
+                       "cycles": 1234, "seed": seed}
+            with open(verdict_path, "w", encoding="utf-8") as fh:
+                fh.write(json.dumps(verdict) + "\n")
+            return verdict
+
+        def _fake_reset(case, pristine_tree, tree, baseline_sha256=None):
+            reset_calls.append(dict(tree=tree))
+            return {"tree_reset": True, "tree_sha256": "reset-sha",
+                    "tree_reset_verified": True}
+
+        def _fake_prepare(case, pristine_tree, dest, force=False):
+            import shutil as _shutil
+            if os.path.exists(dest):
+                _shutil.rmtree(dest)
+            os.makedirs(dest)
+            with open(os.path.join(dest, "picorv32.v"), "w") as fh:
+                fh.write("// wiring scratch\nset_mem_do_wdata = 1;\n"
+                         "do_waitirq <= 1;\n")
+            return {"file": "picorv32.v", "line": 10,
+                    "before": "x", "after": "y",
+                    "faults": [{"file": "picorv32.v", "line": 10},
+                               {"file": "picorv32.v", "line": 20}]}
+
+        patches = [
+            mock.patch.object(loop, "run_sim_before",
+                              side_effect=_fake_before),
+            mock.patch.object(loop, "rtl_excerpt",
+                              return_value="line 1: fake excerpt"),
+            mock.patch.object(loop, "call_text_with_backoff",
+                              side_effect=_fake_text),
+            mock.patch.object(loop.visual, "generate",
+                              return_value=dict(IMG_OK)),
+            mock.patch.object(loop, "try_apply_diff",
+                              return_value={"guard_ok": False,
+                                            "reasons": ["junk hunk"],
+                                            "applied": False,
+                                            "repaired": False,
+                                            "patch_lines": 0,
+                                            "files": [],
+                                            "applied_diff": ""}),
+            mock.patch.object(loop, "resim_after",
+                              side_effect=_fake_before_red),
+            mock.patch.object(loop, "reset_tree_for_attempt",
+                              side_effect=_fake_reset),
+            mock.patch.object(loop, "prepare_mutant_tree",
+                              side_effect=_fake_prepare),
+        ]
+        for p in patches:
+            p.start()
+            self.addCleanup(p.stop)
+        with mock.patch.object(
+                loop.vbackend, "load_case",
+                return_value=dict(_pair_case())):
+            rc = loop.main(["--case", "mut-pair-05", "--seed", "42",
+                            "--run-id", run_id])
+        self.assertEqual(rc, 2,
+                         "all-guard-rejected: triage (patch withheld), "
+                         "never GREEN, never stacked")
+        meta = _read_json(os.path.join(run_dir, "meta.json"))
         self.assertEqual(meta.get("stack", []), [],
-                         "no behavior change: nothing stacked")
+                         "guard-rejected attempts must never stack junk")
         self.assertFalse(meta.get("stacked", False))
+        self.assertGreaterEqual(len(reset_calls), 1,
+                                "guard-rejected RED keeps the reset path")
 
 
 def _drive_pair_loop(testcase, run_id, resim_checksums, green_at=None):
@@ -522,7 +644,7 @@ class TestStackCap(unittest.TestCase):
         rc, meta, _reset_calls, _prompts = _drive_pair_loop(
             self, "test-stack-cap", ["bbb", "ccc", "ddd"])
         # attempts 1+2 stack (depth 2); attempt 3 is another
-        # behavior-changing RED -> cap refuses loudly, run RED.
+        # applied-clean RED -> cap refuses loudly, run RED.
         self.assertEqual(rc, 1)
         self.assertEqual(len(meta.get("stack", [])), 2,
                          "cap holds: stack never grows beyond 2")
@@ -596,12 +718,14 @@ class TestRealToolchainJoint(unittest.TestCase):
     Pair-05 ground truth on the real Verilator backend: NEITHER single
     fix changes the checksum (both resims are log-identical to the RED
     baseline -- replicated here, matching runs/mutpair-v7-05/ where
-    BEFORE == AFTER == 563b.. and no_behavioral_effect=True). So the
-    stacking gate must REFUSE (honesty: behavior-null patches never
-    stack; reset path preserved). Composing BOTH fixes then goes GREEN,
-    and the FULL stacked diff replays GREEN on a fresh RED tree with
-    the REAL resim -- the complete compositional end-state, proven
-    without mocks.
+    BEFORE == AFTER == 563b.. and no_behavioral_effect=True). Yet the
+    joint test proves both-fixes-composed goes GREEN with a clean
+    fresh-tree replay. So the honest trigger is applied-clean: the
+    first applied-clean RED stacks (keep the improved tree) even
+    though the checksum is identical; stacking the second fix then
+    goes GREEN, and the FULL stacked diff replays GREEN on a fresh RED
+    tree with the REAL resim -- the complete compositional end-state,
+    proven without mocks.
     """
 
     def _fix_hunk(self, tree_lines, lineno, old, new):
@@ -616,7 +740,7 @@ class TestRealToolchainJoint(unittest.TestCase):
         return ("@@ -%d,%d +%d,%d @@\n" % (idx, n, idx, n)
                 + "\n".join(body) + "\n")
 
-    def test_real_single_fixes_do_not_stack_but_compose_green(self):
+    def test_real_single_fix_stacks_on_identical_checksum_and_composes_green(self):
         case = vbackend.load_case("mut-pair-05")
         pins = vbackend.load_pins()
         _url, sha = pins[case["project"]]
@@ -661,13 +785,18 @@ class TestRealToolchainJoint(unittest.TestCase):
             case=case, applied=True,
             checksum_before=base["checksum"],
             checksum_after=mid["checksum"], still_red=True)
-        self.assertFalse(ok, "behavior-null patch must reset, not stack")
-        self.assertIn("no behavior", why.lower())
-        # Stack the second fix on the improved tree: GREEN.
+        self.assertTrue(ok,
+                        "applied-clean RED must stack even though the "
+                        "checksum is identical (05 real behavior): %r"
+                        % (why,))
+        self.assertIn("applied-clean", why.lower())
+        # Stack the first fix and continue from the improved tree: the
+        # second fix on top goes GREEN.
         entry1 = loop.make_stack_entry(
             attempt=1, patch=out1["applied_diff"],
             checksum_before=base["checksum"],
             checksum_after=mid["checksum"])
+        self.assertEqual(entry1["trigger"], "applied-clean")
         with open(os.path.join(scratch, "picorv32.v")) as fh:
             tree_lines2 = fh.read().splitlines()
         fix2 = self._fix_hunk(tree_lines2, 1450,
@@ -681,6 +810,7 @@ class TestRealToolchainJoint(unittest.TestCase):
             attempt=2, patch=out2["applied_diff"],
             checksum_before=mid["checksum"],
             checksum_after="pending-green")
+        self.assertEqual(entry2["trigger"], "applied-clean")
         stack = [entry1, entry2]
         green = loop.resim_after(
             scratch, case, 42,

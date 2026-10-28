@@ -1789,13 +1789,19 @@ def reset_tree_for_attempt(case: dict, pristine_tree: str, tree: str,
 #
 # A pair case needs TWO faults fixed. Single attempts fix at most one
 # fault, and the old loop RESET to the RED baseline after every non-green
-# attempt -- discarding real behavior-changing progress. The fix: when an
-# applied patch changes behavior (resim checksum != RED baseline) but the
-# verdict stays RED, KEEP the improved tree and diagnose on from it
-# (stacking) instead of resetting. RESET still applies on no-effect /
-# guard-rejected / unparseable attempts. Stack depth is capped at 2
-# (pairs need at most 2; deeper stacking is unproven -- refuse loudly).
-# No prompt-file changes: the already-fixed lines ride the existing
+# attempt -- discarding real progress. Pair-05 ground truth
+# (runs/mutpair-v7-05/): neither single fix changes any observable
+# (checksum/cycles/log identical, BEFORE==AFTER), yet both-fixes-composed
+# goes GREEN with a clean fresh-tree replay -- so a checksum-delta gate
+# can never fire there. The honest trigger is applied-clean: pair spec +
+# patch applied clean (guard + dry-run pass, resim completed with a
+# verdict) + still RED => KEEP the improved tree and diagnose on from it
+# (stacking) instead of resetting, whether or not the checksum moved.
+# The replay gate + cap-2 + 3-attempt budget already bound the cost of a
+# wrong stack. RESET still applies on guard-rejected / unparseable
+# attempts (junk never stacks). Stack depth is capped at 2 (pairs need
+# at most 2; deeper stacking is unproven -- refuse loudly). No
+# prompt-file changes: the already-fixed lines ride the existing
 # prior-attempts/feedback text channel. Stdlib only.
 # --------------------------------------------------------------------------
 
@@ -1821,11 +1827,15 @@ def should_stack_diff(*, case: dict, applied: bool,
                       still_red: bool) -> tuple:
     """Pure stacking gate. Returns (stack: bool, why: str).
 
-    Stacks ONLY when ALL hold: pair case, an applied patch, both
-    checksums present and different (proven behavior change vs the RED
-    baseline), verdict still RED. GREEN goes to fresh-tree replay, not
-    to the stack; guard-rejected / unparseable / no-effect attempts
-    reset exactly like before.
+    Stacks ONLY when ALL hold: pair case, an applied-clean patch
+    (applied True means guard + dry-run passed and the diff is in the
+    tree, per the try_apply_diff contract), both checksums present
+    (proves the resim completed with a verdict), verdict still RED.
+    The checksum may be IDENTICAL: pair-05 proves single fixes can be
+    log-identical yet compose GREEN, so a delta is not required (the
+    replay gate + cap-2 + attempt budget bound a wrong stack). GREEN
+    goes to fresh-tree replay, not to the stack; guard-rejected /
+    unparseable attempts (applied False) reset exactly like before.
     """
     if not is_pair_case(case):
         return False, "single-fault case: never stack (reset path unchanged)"
@@ -1835,26 +1845,28 @@ def should_stack_diff(*, case: dict, applied: bool,
         return (False, "no applied patch: guard-rejected / unparseable "
                        "attempts reset")
     if not checksum_before or not checksum_after:
-        return False, "missing checksum: cannot prove behavior change, reset"
-    if checksum_after == checksum_before:
-        return False, "no behavior change (checksum identical): reset"
-    return True, ("behavior changed on pair case (checksum %s -> %s): "
+        return False, "missing checksum: resim never completed, reset"
+    return True, ("applied-clean on pair case (checksum %s -> %s): "
                   "keep the improved tree"
                   % (str(checksum_before)[:12], str(checksum_after)[:12]))
 
 
 def make_stack_entry(*, attempt: int, patch: str, checksum_before: str,
                      checksum_after: str, direction: str = "",
-                     patch_lines: int = 0) -> dict:
+                     patch_lines: int = 0,
+                     trigger: str = "applied-clean") -> dict:
     """One stacked-diff record: attempt number, patch text, checksum
     provenance (tree state before -> after this diff), change direction,
-    patch line count. Every stacked diff passed guard + dry-run + resim
-    before it was recorded (the caller guarantees this)."""
+    patch line count, and the stacking trigger marker ("applied-clean"
+    today; "checksum-delta" reserved as a future, stricter trigger).
+    Every stacked diff passed guard + dry-run + resim before it was
+    recorded (the caller guarantees this)."""
     return {"attempt": int(attempt), "patch": patch or "",
             "direction": direction or "",
             "checksum_before": checksum_before,
             "checksum_after": checksum_after,
-            "patch_lines": int(patch_lines or 0)}
+            "patch_lines": int(patch_lines or 0),
+            "trigger": trigger or "applied-clean"}
 
 
 def stack_combined_diff(stack) -> str:
@@ -3090,10 +3102,9 @@ def main(argv=None) -> int:
     meta["attempts_consumed"] = 0
     meta["transport_retries"] = []
     meta["transport_failures"] = 0
-    # Compositional repair (pair cases): `stack` records applied,
-    # behavior-changing diffs kept in the tree across attempts
-    # (stacked instead of reset). Singles never stack: the old reset
-    # path below is untouched for them.
+    # Compositional repair (pair cases): `stack` records applied-clean
+    # diffs kept in the tree across attempts (stacked instead of reset).
+    # Singles never stack: the old reset path below is untouched for them.
     stack: list = []
     meta["stack"] = stack
     meta["stacked"] = False
@@ -3221,8 +3232,8 @@ def main(argv=None) -> int:
             # debug attempt N-1's patch debris). Mutant trees re-apply
             # the pinned fault onto the pristine copy; non-mutant trees
             # have no recorded baseline (logged false, honestly).
-            # COMPOSITIONAL REPAIR: when the previous attempt stacked a
-            # behavior-changing diff, the improved tree is KEPT (no
+            # COMPOSITIONAL REPAIR: when the previous attempt stacked an
+            # applied-clean diff, the improved tree is KEPT (no
             # reset) and attempt N diagnoses from a FRESH re-COLLECT of
             # that tree (fresh trace + excerpts).
             if stack_keep_tree:
@@ -4016,7 +4027,8 @@ def main(argv=None) -> int:
                     checksum_before=prev_resim_checksum,
                     checksum_after=verdict_after.get("checksum"),
                     direction=direction_key(final_patch),
-                    patch_lines=outcome.get("patch_lines", 0)))
+                    patch_lines=outcome.get("patch_lines", 0),
+                    trigger="applied-clean"))
                 meta["stack_depth"] = len(stack)
                 combined = stack_combined_diff(stack)
                 replay_dir = os.path.join(ROOT, "runs", "scratch",
@@ -4093,11 +4105,12 @@ def main(argv=None) -> int:
             checksum_before=before_checksum,
             checksum_after=after_checksum, still_red=True)
         if stack_ok:
-            # Compositional repair: this applied patch CHANGED behavior
-            # (already guard + dry-run + resim proven) but the pair is
-            # still RED -- KEEP the improved tree, record the diff, and
-            # diagnose on from it instead of resetting. Budget unchanged
-            # (this consumed one of the 3 diagnostic attempts).
+            # Compositional repair: this patch applied clean (guard +
+            # dry-run + resim proven) but the pair is still RED -- KEEP
+            # the improved tree, record the diff, and diagnose on from
+            # it instead of resetting, whether or not the checksum
+            # moved. Budget unchanged (this consumed one of the 3
+            # diagnostic attempts).
             try:
                 check_stack_cap(stack)
             except LoopError as exc:
@@ -4116,7 +4129,8 @@ def main(argv=None) -> int:
                 checksum_before=prev_resim_checksum,
                 checksum_after=after_checksum,
                 direction=direction_key(final_patch),
-                patch_lines=outcome.get("patch_lines", 0)))
+                patch_lines=outcome.get("patch_lines", 0),
+                trigger="applied-clean"))
             meta["stacked"] = True
             meta["stack_depth"] = len(stack)
             stack_keep_tree = True
