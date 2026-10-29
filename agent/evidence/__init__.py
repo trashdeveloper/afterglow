@@ -10,3 +10,14 @@ from evidence.vcd_slice import (  # noqa: F401  (package re-export)
     slice_vcd,
     summarize_slice,
 )
+from evidence.spec_rag import (  # noqa: F401  (Task B2 re-export)
+    build_corpus,
+    build_query,
+    chunk_markdown,
+    format_prompt_section,
+    jaccard,
+    load_default_corpus,
+    retrieve,
+    retrieve_for_prompt,
+    tokenize,
+)
