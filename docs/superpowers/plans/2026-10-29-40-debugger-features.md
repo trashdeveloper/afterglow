@@ -73,7 +73,7 @@
 - [x] **Task C6: Spec-grounded fix (item 26)** — patch must cite a spec chunk id (from B2); mechanical check rejects uncited patches in strict mode; test: cited passes, uncited rejected. Builds on B2.
 - [x] **Task C7: Cross-fault transfer (item 27)** — indexes fixed diffs by signal names; tries top match first on new same-signal faults; test: fixture retrieves the known prior fix. No API.
 - [x] **Task C8: Negative learning (item 28)** — records failed fix shapes per signal into `eval/fix_blacklist.md`; prompt includes blacklist; test: blacklisted shape is absent from next prompt. No API.
-- [ ] **Task C9: Lint-before-resim (item 29)** — runs Verilator `--lint-only` on patched tree before full rebuild; lint fail skips resim (saves time, not counted as attempt); test: broken syntax skips resim. Sim-only.
+- [x] **Task C9: Lint-before-resim (item 29)** — runs Verilator `--lint-only` on patched tree before full rebuild; lint fail skips resim (saves time, not counted as attempt); test: broken syntax skips resim. Sim-only.
 - [ ] **Task C10: Incremental rebuild cache (item 30)** — preserves obj dir across attempts when only one file changed (vs current drop-on-suspect); suspect path still drops; test: cache hit rebuilds faster than clean (timed), suspect still forces clean. Sim-only.
 
 ### Wave D — TRUST IT (agent/trust/)
