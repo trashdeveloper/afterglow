@@ -87,7 +87,7 @@
 - [x] **Task D7: Human-readable diff story (item 37)** — DONE: diffstory.py renders patch in design signal names, pinned sentences (8/8); suite 1205, CI green — renders patch explanation in the design's own signal names; test: fixture renders pinned sentence. Uses existing report data, no API.
 - [x] **Task D8: Audit mode (item 38)** — DONE: auditmode.py hash-chained prompt->response->patch->resim dump, tamper names the link (12/12); suite 1217, CI green — `--audit` dumps every prompt/response hash chain; test: audit log verifies against bundle. No API.
 - [x] **Task D9: Blameless REDs (item 39)** — DONE: blame.py classifies REDs tool/tb/model/infra with infra>tool>tb>model precedence (13/13); suite 1230, CI green — failure attribution classifier (tool/TB/model/infra) in meta; test: fixture failures classify pinned. No API.
-- [ ] **Task D10: Sign-off gate (item 40)** — `--signoff` requires an approval token file before GREEN is finalized; test: missing token blocks, present token passes. No API.
+- [x] **Task D10: Sign-off gate (item 40)** — DONE: signoff.py token gate, missing/blank/tampered blocks, exact match passes (14/14); suite 1244, CI green — `--signoff` requires an approval token file before GREEN is finalized; test: missing token blocks, present token passes. No API.
 
 ## Execution
 
