@@ -43,7 +43,7 @@
 - [x] **Task A6: Assertion synthesizer (item 6)** — DONE: assertion_synth.py + 12 tests, 1 prop holds-clean/falsified-by-mutant, live $0.085 (4 attempts disclosed), suite 480, CI ALL PASS.
 - [x] **Task A7: Spec-vs-RTL differ (item 7)** — DONE: specdiff.py + 14 tests, 4/5 honest split (parity uncovered), suite 492, CI ALL PASS.
 - [x] **Task A8: Reset/X-prop hunter (item 8)** — DONE: xprop.py + 24 tests, pristine inconclusive (honest), positive-control LEAK, suite 518, CI ALL PASS.
-- [ ] **Task A9: Timing stressor (item 9)** — varies `+seed`/clock-edge sampling params across runs, flags order-dependent PASS/FAIL flips; test: deterministic case → stable; injected race → flagged. Sim-only.
+- [x] **Task A9: Timing stressor (item 9)** — DONE: timing.py + 17 tests, pristine 5-seed STABLE, suite 535, CI ALL PASS.
 - [ ] **Task A10: Regression bisect (item 10)** — given a failing stimulus, delta-minimizes to shortest trigger; test: synthetic 100-input trigger minimized to known 3-input core. No API.
 
 ### Wave B — SEE MORE (agent/evidence/)
