@@ -50,23 +50,23 @@
 
 **Interfaces:** `EvidencePack(case, tree) -> dict` consumed by prompt builders; every addition is additive + default-off unless stated.
 
-- [ ] **Task B1: VCD-as-evidence (item 11)** — enables `--trace`, slices VCD window around first FAIL cycle, summarizes top toggling signals; test: fixture VCD slice contains the injected signal transition. Sim-only.
-- [ ] **Task B2: Spec RAG (item 12)** — chunks `docs/` spec excerpts, Jaccard retrieval per fault, cites chunk ids in prompt; test: query returns the chunk containing the anchor line. No API.
-- [ ] **Task B3: Git-blame context (item 13)** — for fault lines, reports last-commit hash/message touching them (repo-local git); test: fixture repo returns pinned commit. No API.
-- [ ] **Task B4: Past-fix memory (item 14)** — retrieves similar past diagnoses from `runs/*/meta.json` by signal-name overlap; test: query returns the known similar run. No API.
-- [ ] **Task B5: Cone-plus (item 15)** — extends wave-3 slicer across one module boundary following fan-in; test: cross-module fault's driver appears in cone. No API.
-- [ ] **Task B6: Multi-signal TBs (item 16)** — TB generator emitting data+control+interrupt checks in one TB; test: generated TB kills a control-only mutant that a data-only TB misses. Sim-only.
-- [ ] **Task B7: Fault interaction graph (item 17)** — for pair specs, records which fault's fix changes the other's symptom (masking order); test: fixture pair yields pinned order. Uses existing pair runs, no new API.
-- [ ] **Task B8: Flake fingerprinting (item 18)** — classifies transport failures by signature (EMPTY vs timeout vs truncation), routes around known-bad patterns; test: fixture error strings classify pinned. No API.
-- [ ] **Task B9: Confidence calibration (item 19)** — model self-reports fix confidence 1-5; loop budgets attempts proportionally (low confidence → more attempts, never fewer than 1); test: budget mapping table pinned. Live validation on 2 cases (~$0.20).
-- [ ] **Task B10: Counterexample minimizer (item 20)** — shrinks failing trace window to minimal lines preserving the FAIL signature; test: 200-line trace with injected fault minimizes to window containing the fault line. No API.
+- [x] **Task B1: VCD-as-evidence (item 11)** — DONE: vcd_slice.py + 13 tests, 556 suite, CI ALL PASS; default-off, parser reused, trace-verified.
+- [x] **Task B2: Spec RAG (item 12)** — DONE: chunker+Jaccard+cited sections, 17 tests, 573 suite, CI ALL PASS; unknown queries return empty.
+- [x] **Task B3: Git-blame context (item 13)** — DONE: per-line porcelain blame, injectable runner, 15 tests, 588 suite, CI ALL PASS; bad lines yield None.
+- [x] **Task B4: Past-fix memory (item 14)** — DONE: Jaccard over runs metas, run-id from dirname, 15 tests, 603 suite, CI ALL PASS; misses return empty.
+- [x] **Task B5: Cone-plus (item 15)** — DONE: one-hop cross-module cone reusing base slicer, 10 tests, 613 suite, CI ALL PASS; depth-cap honest.
+- [x] **Task B6: Multi-signal TBs (item 16)** — DONE: multisig_tb.py (handshake+uart) + 15 tests, suite 628, CI ALL PASS; control-only mutant killed while data-only misses, pristine simpleuart validation GREEN.
+- [x] **Task B7: Fault interaction graph (item 17)** — DONE: masking-order determination, 19 tests, 647 suite, CI ALL PASS; coarse logs honestly yield unknown.
+- [x] **Task B8: Flake fingerprinting (item 18)** — DONE: classify_flake + priority chain, 23 tests, 670 suite, CI ALL PASS; synthetic timeout/429 justified by grep.
+- [x] **Task B9: Confidence calibration (item 19)** — DONE: marker parser + budget map, 18 tests, 688 suite, CI ALL PASS; live 1/2 split ~$0.03.
+- [x] **Task B10: Counterexample minimizer (item 20)** — DONE: ddmin-style 1-minimal windows, 19 tests, 707 suite, CI ALL PASS; fault-line validation green.
 
 ### Wave C — FIX BETTER (agent/repair/)
 
 **Interfaces:** repair helpers consume `(tree, case, diagnosis)` and produce diffs through the existing `try_apply_diff` + guard seam. Singles behavior must stay byte-identical (regression test each task).
 
-- [ ] **Task C1: Repair templates (item 21)** — guarded sketch-fill for reset-missing/off-by-one/width-mismatch shapes; template applies only if guard passes; test: each template fires on its fixture, refuses on others. No API.
-- [ ] **Task C2: Multi-hunk planner (item 22)** — model emits plan-then-diff; loop validates every planned hunk landed; test: 2-hunk plan with 1 landed → flagged incomplete. Live validation 1 pair case (~$0.10).
+- [x] **Task C1: Repair templates (item 21)** — DONE: 3 guarded shapes with pinned refusals, 25 tests, 732 suite, CI ALL PASS; decode fire disclosed as shape-scoped.
+- [x] **Task C2: Multi-hunk planner (item 22)** — c4dc1f2 (@@-range coverage; live-validated: literal rule flagged real diff 0/2, range rule 2/2; 17/17, 749 suite, CI green) — model emits plan-then-diff; loop validates every planned hunk landed; test: 2-hunk plan with 1 landed → flagged incomplete. Live validation 1 pair case (~$0.10).
 - [ ] **Task C3: Equivalence check (item 23)** — after GREEN, runs fixed vs pristine tree on random stimulus, demands identical traces; test: equivalent pair passes, behavior-changed pair flagged. Sim-only.
 - [ ] **Task C4: Fix ranking (item 24)** — collects up to 3 candidate patches across attempts, resims each, ships smallest passing; test: fixture picks smallest of 3. Uses existing attempt machinery, minimal API.
 - [ ] **Task C5: Interactive repair (item 25)** — `--interact` pauses after PATCH, dev accepts/edits/rejects hunks, loop continues; test: reject path restores baseline. No API for the mechanism test.
