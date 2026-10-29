@@ -78,7 +78,7 @@
 
 ### Wave D — TRUST IT (agent/trust/)
 
-- [ ] **Task D1: Proof bundle v2 (item 31)** — `runs/<id>/REPLAY.sh` regenerating the verdict from bundle contents alone; test: fresh copy of a bundle replays to identical checksum. Sim-only.
+- [x] **Task D1: Proof bundle v2 (item 31)** — `runs/<id>/REPLAY.sh` regenerating the verdict from bundle contents alone; test: fresh copy of a bundle replays to identical checksum. Sim-only.
 - [ ] **Task D2: False-fix alarm (item 32)** — after GREEN, runs C3 equivalence; divergence → alarm flag in meta, verdict stays but marked `needs-review`; test: fixture divergence alarms. Sim-only.
 - [ ] **Task D3: TB strength score (item 33)** — kill-rate of standard mutant sample by the case TB, written to meta; test: weak TB scores lower than strong TB on fixture. Sim-only.
 - [ ] **Task D4: Fix provenance chain (item 34)** — one JSON trail fault→diagnosis→patch→green with request ids; test: v9 bundle regenerates a complete trail. No API.
