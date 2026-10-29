@@ -1,0 +1,18 @@
+You are diagnosing an RTL simulation failure. Real failing trace and machine-gathered fault context follow.
+
+FAULT CONTEXT (machine-gathered, from sim/targets/mut-pilot-01.yaml): mutant_file picosoc/simpleuart.v, mutant_line 78, mutant_op num_bump, anchor "0: begin" replaced by bug "1: begin", parent_case picosoc-uart-div.
+
+FAILING TRACE (verbatim, from runs/live-20261026T174854Z-picosoc-uart-div/artifacts/input_trace.txt):
+- tb_picosoc_uart seed 42
+- divider 64 loopback send 0xa5
+tohost: FAIL 0xdead
+TRAP: uart data mismatch got 0xe0 want 0xa5
+CYCLES=2112
+- /home/tuncay/afterglow/sim/tb/picosoc-uart-div_tb.sv:86: Verilog $finish
+- S i m u l a t i o n   R e p o r t: Verilator 5.052 2026-09-05
+- Verilator: $finish at 21ns; walltime 0.001 s; speed 41.973 us/s
+- Verilator: cpu 0.001 s on 1 threads; allocated 4 MB
+
+Reply with exactly two lines:
+LINE1: one-sentence fault hypothesis naming file:line.
+LINE2: CONFIDENCE: N where N is 1-5, your self-reported confidence that LINE1 names the true fault (1=guessing, 5=certain).

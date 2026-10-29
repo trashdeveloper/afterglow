@@ -1,0 +1,8 @@
+{
+  "model": "muse-spark-1.3-contributor",
+  "prompt_sha256": "ebd909d8067571169c23a6ee740f625d70c3067de5ba1777712166c8f7ada8c9",
+  "prompt_chars": 980,
+  "marker_instruction": "Reply with exactly two lines:\nLINE1: one-sentence fault hypothesis naming file:line.\nLINE2: CONFIDENCE: N where N is 1-5, your self-reported confidence that LINE1 names the true fault (1=guessing, 5=certain).",
+  "pilot": "mut-pilot-02",
+  "trace_source": "runs/live-20261026T180408Z-uart-tx-div/artifacts/input_trace.txt"
+}

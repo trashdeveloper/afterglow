@@ -1,0 +1,46 @@
+{
+  "content": "{\"LINE1\": \"UART baud divider numeric bump at picosoc/simpleuart.v:68 causes bit-timing error so loopback 0xa5 is mis-sampled as 0xff.\",\n\"CONFIDENCE\": 5}",
+  "raw": {
+    "id": "chatcmpl-01a18591-b11e-77c1-85d7-24308b14c2c6",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"LINE1\": \"UART baud divider numeric bump at picosoc/simpleuart.v:68 causes bit-timing error so loopback 0xa5 is mis-sampled as 0xff.\",\n\"CONFIDENCE\": 5}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793242280,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 2612,
+      "prompt_tokens": 353,
+      "total_tokens": 2965,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2555
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "latency_ms": 28167,
+  "request_id": "chatcmpl-01a18591-b11e-77c1-85d7-24308b14c2c6",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 2612,
+    "prompt_tokens": 353,
+    "total_tokens": 2965,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2555
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

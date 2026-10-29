@@ -1,0 +1,24 @@
+{
+  "run_id": "conf-cal-02",
+  "task": "B9 confidence calibration live validation",
+  "probe_kind": "marker-elicitation probe on real trace excerpt; NOT a full loop diagnosis",
+  "model": "muse-spark-1.3-contributor",
+  "request_id": "chatcmpl-01a18591-b11e-77c1-85d7-24308b14c2c6",
+  "latency_ms": 28167,
+  "usage": {
+    "completion_tokens": 2612,
+    "prompt_tokens": 353,
+    "total_tokens": 2965,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2555
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "parsed_confidence": null,
+  "budget_base_2": 3,
+  "wall_start_utc": "2026-10-29T02:50:52Z",
+  "wall_end_utc": "2026-10-29T02:51:20Z",
+  "git_sha": "b2b3fe3"
+}
