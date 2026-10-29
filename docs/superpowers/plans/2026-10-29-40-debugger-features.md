@@ -68,7 +68,7 @@
 - [x] **Task C1: Repair templates (item 21)** — DONE: 3 guarded shapes with pinned refusals, 25 tests, 732 suite, CI ALL PASS; decode fire disclosed as shape-scoped.
 - [x] **Task C2: Multi-hunk planner (item 22)** — c4dc1f2 (@@-range coverage; live-validated: literal rule flagged real diff 0/2, range rule 2/2; 17/17, 749 suite, CI green) — model emits plan-then-diff; loop validates every planned hunk landed; test: 2-hunk plan with 1 landed → flagged incomplete. Live validation 1 pair case (~$0.10).
 - [ ] **Task C3: Equivalence check (item 23)** — after GREEN, runs fixed vs pristine tree on random stimulus, demands identical traces; test: equivalent pair passes, behavior-changed pair flagged. Sim-only.
-- [ ] **Task C4: Fix ranking (item 24)** — collects up to 3 candidate patches across attempts, resims each, ships smallest passing; test: fixture picks smallest of 3. Uses existing attempt machinery, minimal API.
+- [x] **Task C4: Fix ranking (item 24)** — collects up to 3 candidate patches across attempts, resims each, ships smallest passing; test: fixture picks smallest of 3. Uses existing attempt machinery, minimal API.
 - [ ] **Task C5: Interactive repair (item 25)** — `--interact` pauses after PATCH, dev accepts/edits/rejects hunks, loop continues; test: reject path restores baseline. No API for the mechanism test.
 - [ ] **Task C6: Spec-grounded fix (item 26)** — patch must cite a spec chunk id (from B2); mechanical check rejects uncited patches in strict mode; test: cited passes, uncited rejected. Builds on B2.
 - [ ] **Task C7: Cross-fault transfer (item 27)** — indexes fixed diffs by signal names; tries top match first on new same-signal faults; test: fixture retrieves the known prior fix. No API.
