@@ -85,7 +85,7 @@
 - [x] **Task D5: Cost ledger per bug (item 35)** — DONE: bugcost.py per-case rollup (attempts/tokens/usd/greens/min-time-to-green, pinned arithmetic 13/13); suite 1181, CI green — extends existing cost.py with per-bug rollup across attempts; test: rollup arithmetic pinned. No API.
 - [x] **Task D6: Regression guard (item 36)** — DONE: regguard.py re-fires fixed specs via real Verilator, tamper -> MISMATCH (16/16 incl. live re-fire); suite 1197, CI green — fixed bugs become permanent specs re-fired by CI; test: re-fire of v9 spec stays green. Sim-only (CI integration).
 - [x] **Task D7: Human-readable diff story (item 37)** — DONE: diffstory.py renders patch in design signal names, pinned sentences (8/8); suite 1205, CI green — renders patch explanation in the design's own signal names; test: fixture renders pinned sentence. Uses existing report data, no API.
-- [ ] **Task D8: Audit mode (item 38)** — `--audit` dumps every prompt/response hash chain; test: audit log verifies against bundle. No API.
+- [x] **Task D8: Audit mode (item 38)** — DONE: auditmode.py hash-chained prompt->response->patch->resim dump, tamper names the link (12/12); suite 1217, CI green — `--audit` dumps every prompt/response hash chain; test: audit log verifies against bundle. No API.
 - [ ] **Task D9: Blameless REDs (item 39)** — failure attribution classifier (tool/TB/model/infra) in meta; test: fixture failures classify pinned. No API.
 - [ ] **Task D10: Sign-off gate (item 40)** — `--signoff` requires an approval token file before GREEN is finalized; test: missing token blocks, present token passes. No API.
 
