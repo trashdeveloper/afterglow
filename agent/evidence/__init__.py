@@ -21,3 +21,9 @@ from evidence.spec_rag import (  # noqa: F401  (Task B2 re-export)
     retrieve_for_prompt,
     tokenize,
 )
+from evidence.blame_ctx import (  # noqa: F401  (Task B3 re-export)
+    blame_for_prompt,
+    blame_line,
+    blame_lines,
+    format_prompt_section,
+)
