@@ -80,7 +80,7 @@
 
 - [x] **Task D1: Proof bundle v2 (item 31)** — `runs/<id>/REPLAY.sh` regenerating the verdict from bundle contents alone; test: fresh copy of a bundle replays to identical checksum. Sim-only.
 - [x] **Task D2: False-fix alarm (item 32)** — DONE: falsefix.py runs C3 equivalence post-GREEN, divergence sets needs-review + alarm record with named seeds (10/10 incl. seeds regression); suite 1132, CI green — after GREEN, runs C3 equivalence; divergence → alarm flag in meta, verdict stays but marked `needs-review`; test: fixture divergence alarms. Sim-only.
-- [ ] **Task D3: TB strength score (item 33)** — kill-rate of standard mutant sample by the case TB, written to meta; test: weak TB scores lower than strong TB on fixture. Sim-only.
+- [x] **Task D3: TB strength score (item 33)** — DONE: tbstrength.py mutant-sample kill-rate via C3 equiv, meta tb_strength rollup (21/21 incl. strong>weak fixture); suite 1153, CI green — kill-rate of standard mutant sample by the case TB, written to meta; test: weak TB scores lower than strong TB on fixture. Sim-only.
 - [ ] **Task D4: Fix provenance chain (item 34)** — one JSON trail fault→diagnosis→patch→green with request ids; test: v9 bundle regenerates a complete trail. No API.
 - [ ] **Task D5: Cost ledger per bug (item 35)** — extends existing cost.py with per-bug rollup across attempts; test: rollup arithmetic pinned. No API.
 - [ ] **Task D6: Regression guard (item 36)** — fixed bugs become permanent specs re-fired by CI; test: re-fire of v9 spec stays green. Sim-only (CI integration).
