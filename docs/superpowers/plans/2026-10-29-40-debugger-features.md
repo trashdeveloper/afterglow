@@ -40,7 +40,7 @@
 - [x] **Task A4: Cross-seed differ (item 4)** — DONE: seeddiff.py + 14 tests, deterministic validation, suite 449, CI ALL PASS.
 - [x] **Task A5: Protocol-assertion checker (item 5)** — DONE: protocol.py (VCD parser, UART frame + ready/valid rules) + 19 tests, ALL CLEAR on simpleuart 0xA5 frame, suite 468, CI ALL PASS.
 - [ ] **Task A5b: Differential DUT (item 5 orig)** — runs two CPU trees (picorv32 vs darkriscv stranger) on identical NOP stimulus, diffs tohost/traces; test: same ISA prefix behavior documented, divergence report format pinned. Sim-only.
-- [ ] **Task A6: Assertion synthesizer (item 6)** — model proposes SVA properties from excerpt+spec text; properties stored, bound-check by sim; test: property file format + at least one property falsified by a known mutant (live, ~$0.30).
+- [x] **Task A6: Assertion synthesizer (item 6)** — DONE: assertion_synth.py + 12 tests, 1 prop holds-clean/falsified-by-mutant, live $0.085 (4 attempts disclosed), suite 480, CI ALL PASS.
 - [ ] **Task A7: Spec-vs-RTL differ (item 7)** — checks each documented behavior in a small spec excerpt has a TB path; test: fixture spec with 3 behaviors, 1 uncovered → reported. No API ( retrieval only).
 - [ ] **Task A8: Reset/X-prop hunter (item 8)** — forces X on chosen regs at reset release in sim, reports X reaching committed state; test: clean design → no leak; injected X-leak mutant → caught. Sim-only.
 - [ ] **Task A9: Timing stressor (item 9)** — varies `+seed`/clock-edge sampling params across runs, flags order-dependent PASS/FAIL flips; test: deterministic case → stable; injected race → flagged. Sim-only.
