@@ -37,7 +37,7 @@
 - [x] **Task A1: Input fuzzer (item 1)** — DONE c676866^ (d1d8aee): fuzzer.py + 8/8 tests, suite 411, CI PASS, honest-zero validation.
 - [x] **Task A2: TB blind-spot hunter (item 2)** — DONE c676866: blindspot.py + 10/10 tests, pilot 5/5 killed, suite 421, CI ALL PASS.
 - [x] **Task A3: Coverage-driven explorer (item 3)** — DONE: coverage.py + 14 tests, 120 uncovered lines, top-5 verified, suite 435, CI ALL PASS.
-- [ ] **Task A4: Cross-seed differ (item 4)** — runs same DUT+TB over N seeds, diffs checksums/traces; test: identical seeds → no diff; injected nondeterminism → flagged. Sim-only.
+- [x] **Task A4: Cross-seed differ (item 4)** — DONE: seeddiff.py + 14 tests, deterministic validation, suite 449, CI ALL PASS.
 - [ ] **Task A5: Differential DUT (item 5)** — runs two CPU trees (picorv32 vs darkriscv stranger) on identical NOP stimulus, diffs tohost/traces; test: same ISA prefix behavior documented, divergence report format pinned. Sim-only.
 - [ ] **Task A6: Assertion synthesizer (item 6)** — model proposes SVA properties from excerpt+spec text; properties stored, bound-check by sim; test: property file format + at least one property falsified by a known mutant (live, ~$0.30).
 - [ ] **Task A7: Spec-vs-RTL differ (item 7)** — checks each documented behavior in a small spec excerpt has a TB path; test: fixture spec with 3 behaviors, 1 uncovered → reported. No API ( retrieval only).
