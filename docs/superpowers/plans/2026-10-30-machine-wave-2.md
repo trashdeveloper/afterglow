@@ -204,7 +204,12 @@ sim fixtures; `python3 -m unittest` runner (never pytest — not installed).
 - [ ] **Step 4: Run green + gate.**
 - [ ] **Step 5: Report proof.** No commit.
 
-### Task E8: Stimulus minimizer (item 58)
+**Bonus (unplanned, approved): metastability injector** — dispatched as
+E7 by mistake (item 57 is holerank, below); built `agent/discover/metainject.py`
++ 15 tests, suite 1355 OK, CI green, re-review APPROVE, committing with
+this plan update.
+Kept: copy-first inject + X-detect is genuinely useful. Committing now;
+real E7 (holerank) still open, dispatched next.
 
 **Files:**
 - Create: `agent/discover/stimmin.py`
