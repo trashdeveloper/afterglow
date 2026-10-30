@@ -1,0 +1,10 @@
+{
+  "case": "mut-pair-05",
+  "pass": false,
+  "tohost": null,
+  "checksum": null,
+  "cycles": null,
+  "seed": 42,
+  "sim_time_utc": "2026-10-28T13:31:49Z",
+  "note": "no patch applied"
+}

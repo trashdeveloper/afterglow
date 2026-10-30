@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a182c4-4b23-7264-8d1b-d762cf9fe6b7",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Fetch TB reports TRAP: no progress max_addr=0x00000000 with tohost FAIL 0xdead at CYCLES=2009 vs expected advancing fetches. Default assignment do_waitirq <= 1 at picorv32.v:1450 forces permanent wait-for-interrupt stall so fetch PC never advances. Restoring the default to 0, consistent with decoder_trigger defaults at picorv32.v:1446-1449 and trace_valid at picorv32.v:1452, fixes the stall.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1448,8 +1448,8 @@\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n-\\t\\tdo_waitirq <= 1;\\n+\\t\\tdo_waitirq <= 0;\\n \\n \\t\\ttrace_valid <= 0;\\n \\n \\t\\tif (!ENABLE_TRACE)\\n \\t\\t\\ttrace_data <= 'bx;\\n\", \"expected\": \"tohost PASS with no TRAP: no progress, max_addr advancing beyond 0x00000000\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793195264,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 7876,
+      "prompt_tokens": 2769,
+      "total_tokens": 10645,
+      "completion_tokens_details": {
+        "reasoning_tokens": 7588
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Fetch TB reports TRAP: no progress max_addr=0x00000000 with tohost FAIL 0xdead at CYCLES=2009 vs expected advancing fetches. Default assignment do_waitirq <= 1 at picorv32.v:1450 forces permanent wait-for-interrupt stall so fetch PC never advances. Restoring the default to 0, consistent with decoder_trigger defaults at picorv32.v:1446-1449 and trace_valid at picorv32.v:1452, fixes the stall.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1448,8 +1448,8 @@\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n-\\t\\tdo_waitirq <= 1;\\n+\\t\\tdo_waitirq <= 0;\\n \\n \\t\\ttrace_valid <= 0;\\n \\n \\t\\tif (!ENABLE_TRACE)\\n \\t\\t\\ttrace_data <= 'bx;\\n\", \"expected\": \"tohost PASS with no TRAP: no progress, max_addr advancing beyond 0x00000000\"}",
+  "diagnosis": "Fetch TB reports TRAP: no progress max_addr=0x00000000 with tohost FAIL 0xdead at CYCLES=2009 vs expected advancing fetches. Default assignment do_waitirq <= 1 at picorv32.v:1450 forces permanent wait-for-interrupt stall so fetch PC never advances. Restoring the default to 0, consistent with decoder_trigger defaults at picorv32.v:1446-1449 and trace_valid at picorv32.v:1452, fixes the stall.",
+  "expected": "tohost PASS with no TRAP: no progress, max_addr advancing beyond 0x00000000",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 73441,
+  "request_id": "chatcmpl-01a182c4-4b23-7264-8d1b-d762cf9fe6b7",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 7876,
+    "prompt_tokens": 2769,
+    "total_tokens": 10645,
+    "completion_tokens_details": {
+      "reasoning_tokens": 7588
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

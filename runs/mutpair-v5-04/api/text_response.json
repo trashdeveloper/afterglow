@@ -1,0 +1,41 @@
+{
+  "error": "no successful text call",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 62014,
+      "text_request_id": "chatcmpl-01a1802f-5371-7774-9a43-d7b2aaaa6b16",
+      "diagnosis_chars": 370,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picorv32.v\\nHunk #1 FAILED at 583.\\n1 out of 1 hunk FAILED\\n']; bootstrap refused (diagnosis names no gate signal)"
+    },
+    {
+      "tree_reset": true,
+      "tree_reset_verified": true,
+      "attempt": 2,
+      "text_latency_ms": 52135,
+      "text_request_id": "chatcmpl-01a18036-7f2c-7010-9d5b-005a0f6d7ff4",
+      "diagnosis_chars": 377,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picorv32.v\\nHunk #1 FAILED at 581.\\n1 out of 1 hunk FAILED\\n']; bootstrap refused (diagnosis names no gate signal)"
+    },
+    {
+      "tree_reset": true,
+      "tree_reset_verified": true,
+      "attempt": 3,
+      "text_latency_ms": 75040,
+      "text_request_id": "chatcmpl-01a18038-17f5-743f-ba49-57a892d69d3b",
+      "diagnosis_chars": 401,
+      "salvaged": true,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picorv32.v\\nHunk #1 FAILED at 581.\\n1 out of 1 hunk FAILED\\n']; bootstrap refused (diagnosis names no gate signal)"
+    }
+  ]
+}

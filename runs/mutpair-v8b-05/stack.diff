@@ -1,0 +1,35 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1406,3 +1406,3 @@
+ 		set_mem_do_rinst = 0;
+ 		set_mem_do_rdata = 0;
+-		set_mem_do_wdata = 1;
++		set_mem_do_wdata = 0;
+
+ 		alu_out_0_q <= alu_out_0;
+ 		alu_out_q <= alu_out;
+@@ -1446,5 +1446,5 @@
+ 		decoder_trigger <= mem_do_rinst && mem_done;
+ 		decoder_trigger_q <= decoder_trigger;
+ 		decoder_pseudo_trigger <= 0;
+ 		decoder_pseudo_trigger_q <= decoder_pseudo_trigger;
+-		do_waitirq <= 1;
++		do_waitirq <= 0;
+
+ 		trace_valid <= 0;
+
+ 		if (!ENABLE_TRACE)
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1448,8 +1448,8 @@
+ 		decoder_pseudo_trigger <= 0;
+ 		decoder_pseudo_trigger_q <= decoder_pseudo_trigger;
+-		do_waitirq <= 1;
++		do_waitirq <= 0;
+ 
+ 		trace_valid <= 0;
+ 
+ 		if (!ENABLE_TRACE)
+ 			trace_data <= 'bx;

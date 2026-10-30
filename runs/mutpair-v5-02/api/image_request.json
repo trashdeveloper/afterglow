@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pair-02\nFailing-trace sha256 (first 16 hex): e9d26d206ccc0bf7\nVerbatim diagnosis from the debug agent:\nTrace shows TRAP: no progress max_addr=0x00000000 with tohost FAIL 0xdead vs expected fetch progress. mem_xfer at picorv32.v:373 uses && instead of || so it never asserts without both bus handshake and prefetched word, and mem_done at picorv32.v:376 uses && instead of || so it requires both xfer-path and held-state path. Together they stall the fetch state machine with zero progress, a mut-pair requiring both fixes.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash e9d26d206ccc0bf7 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "d4f83a852734d2ded0db5df7e0d1931272cc95679435b3a7ec73b68066699b53",
+  "trace_sha256": "e9d26d206ccc0bf72bf79372627afe640506dc5b3cc21166c142ec979a371e07",
+  "diagnosis_sha256": "e0974bd92f6a6817a18d5c224e078c1fca0e155dcf7cdc172e5a51f29b73f08b",
+  "case": "mut-pair-02",
+  "attempt": 2
+}
