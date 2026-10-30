@@ -729,13 +729,13 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `route(failure_class) -> "cheap"|"escalate"`;
   `run_with_escalation(task_fn, cheap_fn, strong_fn)`.
 
-- [ ] **Step 1: Write the failing test** — fixture escalates exactly
+- [x] **Step 1: Write the failing test** — fixture escalates exactly
   once on the defined failure class; cheap path used otherwise
   (call counters assert no live calls at all — all fns injected).
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/modelrouter.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/modelrouter.py`.
+- [x] **Step 4: Run green + gate.** (10/10, suite 1853 OK, CI ALL PASS.)
+- [x] **Step 5: Report proof.** Committed d43c5f6 (10/10, 1853, CI, APPROVE).
 
 ### Task H7: Third-party replay certification (item 87)
 
