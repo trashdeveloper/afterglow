@@ -262,23 +262,33 @@ done above.
 - [ ] **Step 4: Run green + gate.**
 - [ ] **Step 5: Report proof.** No commit.
 
-### Task F1: Multi-fault localizer (item 61)
+### Task F1: Multi-fault localizer (item 61) — BUILT AS diagnose/multifault
 
-**Files:**
-- Create: `agent/evidence/multiloc.py`
-- Test: `tests/test_evidence_multiloc.py`
+**Files (as built):**
+- Created: `agent/diagnose/multifault.py` (`localize(fault_signals, cones)`)
+- Test: `tests/test_diagnose_multifault.py` (7 tests)
 
-**Interfaces:**
-- Produces: `rank_sets(candidates, size=2, score_fn) -> [(set, score)]`.
+**Interfaces (as built):** shared-first ranking, union complete,
+cone-overlap tiebreak.
 
-- [ ] **Step 1: Write the failing test** — pair-fault fixture (two
-  known lines): the true pair ranks top-1 above all singletons.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/evidence/multiloc.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+**Files (as built — dispatch order amended plan's path):**
+- Created: `agent/diagnose/multifault.py` (`localize(fault_signals, cones)`)
+- Test: `tests/test_diagnose_multifault.py`
 
-### Task F2: Cone-intersection diagnosis (item 62)
+**Interfaces (as built):**
+- Produces: shared-first ranking, union complete, cone-overlap tiebreak.
+
+- [x] **Step 1: Write the failing test** — shared suspect ranks first.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/diagnose/multifault.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed e455ce1 (7/7, 1432, CI, APPROVE).
+
+### Task F2: Cone-intersection diagnosis (item 62) — BUILT AS diagnose/conecut
+
+**Files (as built):**
+- Created: `agent/diagnose/conecut.py` (`intersect(cones)`, `coverage(cones)`)
+- Test: `tests/test_diagnose_conecut.py` (14 tests)
 
 **Files:**
 - Create: `agent/evidence/coneinter.py`
@@ -288,30 +298,30 @@ done above.
 - Consumes: `agent/discover/cone2.py::slice_cone`.
 - Produces: `intersect(cone_lines, window_lines) -> [line...]`.
 
-- [ ] **Step 1: Write the failing test** — a far-away same-signal line
+- [x] **Step 1: Write the failing test** — a far-away same-signal line
   is excluded while the true line survives the intersection.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/evidence/coneinter.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/diagnose/conecut.py` (as built;
+  plan path amended).
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed in 15e9327 (14/14, suite 1463,
+  CI, APPROVE code+hygiene).
 
-### Task F3: Counterexample-guided excerpt narrowing (item 63)
+### Task F3: Flaky-triage classifier (item 63) — BUILT AS diagnose/flaky
 
-**Files:**
-- Create: `agent/evidence/excerptnarrow.py`
-- Test: `tests/test_evidence_excerptnarrow.py`
+**Files (as built):**
+- Created: `agent/diagnose/flaky.py` (`classify(attempts)`)
+- Test: `tests/test_diagnose_flaky.py` (17 tests)
 
-**Interfaces:**
-- Produces: `narrow(window, failed_resim_first_diff) -> smaller_window`
-  (still contains the fault line).
+**Interfaces (as built):** REAL/FLAKE/SUSPECT with confidence fraction;
+loud on unanimous FLAKE; never invents a diagnosis.
 
-- [ ] **Step 1: Write the failing test** — after one failed attempt with
-  a pinned first-diff line, the window shrinks ≥30% and still contains
-  the fault.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/evidence/excerptnarrow.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 1: Write the failing test** — all-same-checksum REAL;
+  triple-EMPTY loud FLAKE; mixed SUSPECT.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/diagnose/flaky.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed bfd7dca (17/17, 1463, CI, APPROVE).
 
 ### Task F4: Evidence-overlap confidence (item 64)
 
