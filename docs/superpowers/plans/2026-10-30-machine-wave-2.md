@@ -460,12 +460,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `order_hunks(plan) -> ordered | raises on unorderable`
   (second hunk referencing the first's signal must come after).
 
-- [ ] **Step 1: Write the failing test** — out-of-order dependent plan
+- [x] **Step 1: Write the failing test** — out-of-order dependent plan
   rejected; correctly ordered passes; independent hunks any order.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/planhunkdep.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/planhunkdep.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed 9270d8f (12/12, 1595, CI, APPROVE).
 
 ### Task G2: Repair from counterexample (item 72)
 
