@@ -197,19 +197,18 @@ sim fixtures; `python3 -m unittest` runner (never pytest — not installed).
 - Produces: `rank(uncovered_lines, toggles, fanout) -> [line...]`
   (score = fanout × (1 + toggle history)).
 
-- [ ] **Step 1: Write the failing test** — top-ranked fixture line kills
+- [x] **Step 1: Write the failing test** — top-ranked fixture line kills
   when mutated (simulated via injected run_fn), bottom-ranked does not.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/discover/holerank.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/discover/holerank.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed 4624a89 (17/17, 1372, CI, APPROVE).
 
 **Bonus (unplanned, approved): metastability injector** — dispatched as
 E7 by mistake (item 57 is holerank, below); built `agent/discover/metainject.py`
-+ 15 tests, suite 1355 OK, CI green, re-review APPROVE, committing with
-this plan update.
-Kept: copy-first inject + X-detect is genuinely useful. Committing now;
-real E7 (holerank) still open, dispatched next.
++ 15 tests, suite 1355 OK, CI green, re-review APPROVE, committed 2ca5c99.
+Kept: copy-first inject + X-detect is genuinely useful. Real E7 (holerank)
+done above.
 
 **Files:**
 - Create: `agent/discover/stimmin.py`
