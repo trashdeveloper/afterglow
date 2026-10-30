@@ -511,12 +511,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `screen(mutant_tree, pristine_tree, case) ->
   "REAL-FAULT"|"NOT-A-BUG"` (identical traces → NOT-A-BUG, never patched).
 
-- [ ] **Step 1: Write the failing test** — behavior-identical fixture
+- [x] **Step 1: Write the failing test** — behavior-identical fixture
   mutant → NOT-A-BUG; behavior-changed → REAL-FAULT.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/equivfilter.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/equivfilter.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed da9afd3 (11/11, 1626, CI, APPROVE).
 
 ### Task G5: Auto-bisect on regression (item 75)
 
