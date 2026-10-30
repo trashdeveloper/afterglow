@@ -411,7 +411,7 @@ raises TypeError/ValueError; deterministic input order.
 - [x] **Step 2: Run RED.**
 - [x] **Step 3: Implement** in `agent/evidence/diagcite.py`.
 - [x] **Step 4: Run green + gate.**
-- [x] **Step 5: Report proof.** Committed b88099f (20/20, 1538, CI, APPROVE).
+- [x] **Step 5: Report proof.** Committed 7b23857 (20/20, 1538, CI, APPROVE).
 
 ### Task F9: Waveform-shape features (item 69)
 
@@ -429,7 +429,7 @@ raises TypeError/ValueError; deterministic input order.
 - [x] **Step 2: Run RED.**
 - [x] **Step 3: Implement** in `agent/evidence/vcdshape.py`.
 - [x] **Step 4: Run green + gate.**
-- [x] **Step 5: Report proof.** Committed e0dd8e6 (32/32, 1570, CI, APPROVE).
+- [x] **Step 5: Report proof.** Committed edf3081 (32/32, 1570, CI, APPROVE).
 
 ### Task F10: Diagnosis tournament (item 70)
 
@@ -447,7 +447,7 @@ raises TypeError/ValueError; deterministic input order.
 - [x] **Step 3: Implement** in `agent/evidence/diagtourney.py`
   (strategies are injectable callables; no live API).
 - [x] **Step 4: Run green + gate.**
-- [x] **Step 5: Report proof.** Committed b5c486b (13/13, 1583, CI, APPROVE).
+- [x] **Step 5: Report proof.** Committed 32add1d (13/13, 1583, CI, APPROVE).
 
 ### Task G1: Dependent multi-hunk planner (item 71)
 
@@ -465,7 +465,7 @@ raises TypeError/ValueError; deterministic input order.
 - [x] **Step 2: Run RED.**
 - [x] **Step 3: Implement** in `agent/repair/planhunkdep.py`.
 - [x] **Step 4: Run green + gate.**
-- [x] **Step 5: Report proof.** Committed 9270d8f (12/12, 1595, CI, APPROVE).
+- [x] **Step 5: Report proof.** Committed 2c41cd5 (12/12, 1595, CI, APPROVE).
 
 ### Task G2: Repair from counterexample (item 72)
 
@@ -482,7 +482,7 @@ raises TypeError/ValueError; deterministic input order.
 - [x] **Step 2: Run RED.**
 - [x] **Step 3: Implement** in `agent/repair/cexrepair.py`.
 - [x] **Step 4: Run green + gate.**
-- [x] **Step 5: Report proof.** Committed a3fa90b (10/10, 1605, CI, APPROVE).
+- [x] **Step 5: Report proof.** Committed baf15a7 (10/10, 1605, CI, APPROVE).
 
 ### Task G3: Patch minimality enforcer (item 73)
 
@@ -493,12 +493,12 @@ raises TypeError/ValueError; deterministic input order.
 **Interfaces:**
 - Produces: `minimize(patch, still_green_fn) -> smaller_patch`.
 
-- [ ] **Step 1: Write the failing test** — 6-line passing fixture patch
+- [x] **Step 1: Write the failing test** — 6-line passing fixture patch
   minimizes to ≤3 lines still GREEN via the fixture predicate.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/patchmin.py` (ddmin).
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/patchmin.py` (ddmin).
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed 47c5882 (10/10, 1615, CI, APPROVE).
 
 ### Task G4: Equivalent-mutant filter (item 74)
 
