@@ -441,13 +441,13 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `compete(fault, strategy_a, strategy_b, verifier_fn) ->
   {winner, evidence}` (verifier resims both candidate neighborhoods).
 
-- [ ] **Step 1: Write the failing test** — fixture where strategy B's
+- [x] **Step 1: Write the failing test** — fixture where strategy B's
   line verifies and A's does not: B wins with resim evidence logged.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/evidence/diagtourney.py`
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/evidence/diagtourney.py`
   (strategies are injectable callables; no live API).
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed b5c486b (13/13, 1583, CI, APPROVE).
 
 ### Task G1: Dependent multi-hunk planner (item 71)
 
