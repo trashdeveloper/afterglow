@@ -640,14 +640,15 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: a quarantined third target (controller-authored faults/TB;
   no builder authorship — asserted by out-of-band provenance).
 
-- [ ] **Step 1: Controller authors the stranger** (design + TB + oracle
+- [x] **Step 1: Controller authors the stranger** (design + TB + oracle
   + real fault, quarantined dir; NOT delegated).
-- [ ] **Step 2: Write the failing test** — RED reproduces both
+- [x] **Step 2: Write the failing test** — RED reproduces both
   directions on the real fault; quarantine markers hold.
-- [ ] **Step 3: Fire the loop live** (controller-run, key-contained)
+- [x] **Step 3: Fire the loop live** (controller-run, key-contained)
   and record GREEN with verbatim + checksums.
-- [ ] **Step 4: Suite + CI green.**
-- [ ] **Step 5: Commit** the target + bundle + test (controller commit).
+- [x] **Step 4: Suite + CI green.**
+- [x] **Step 5: Commit** the target + bundle + test (controller commit —
+  10293d8, verified).
 
 ### Task H2: Non-CPU stranger (item 82)
 
@@ -693,12 +694,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `transfer_fix(picorv32_fix, darkriscv_fault) -> patch|None`
   without any model call.
 
-- [ ] **Step 1: Write the failing test** — same-class fixture fault on
+- [x] **Step 1: Write the failing test** — same-class fixture fault on
   the second design greens with zero model calls (counter asserted).
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/xferdesign.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/xferdesign.py`.
+- [x] **Step 4: Run green + gate.** (10/10, suite 1833 OK, CI ALL PASS.)
+- [x] **Step 5: Report proof.** Committed 1a9283e (10/10, 1833, CI, APPROVE).
 
 ### Task H5: Prompt-strategy registry (item 85)
 
