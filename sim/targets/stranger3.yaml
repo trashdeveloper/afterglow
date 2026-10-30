@@ -1,0 +1,28 @@
+# stranger3: SERV compare-mux inversion (stranger #3, fresh SERV fault).
+# Fresh fault in olofk/serv (bit-serial RISC-V CPU -- the SERV family
+# precedent is sim/targets/serv-alu-lut.yaml, but this is a DIFFERENT
+# fault line, different TB, different top, different gate: quarantined
+# from serv-alu-lut (BOOL_LUT 16'h8E06 row fault) and from stranger2
+# (darkriscv U2REGX) -- asserted by tests/test_stranger3_quarantine.py,
+# which fails if anchor/bug/top/tb/gate collide with any prior target.
+# Pinned to the post-fix serv tree 727bb40a8784c50b081abdcfd784a5bc7c34e40e
+# (targets.pin serv entry, same pin as serv-alu-lut): anchor is the
+# pristine o_cmp select line, verified verbatim in
+# rtl/serv_alu.v (exactly once, so line-anchored inject fires once);
+# bug swaps the two mux branches (eq gets result_lt, lt gets
+# result_eq). TB drives o_cmp directly through i_cmp_eq with operand
+# pairs where result_eq != result_lt (see sim/tb/serv-cmp-mux_tb.sv):
+# every discriminating check flips under the bug, sanity rows pass
+# under both.
+# QUARANTINE: no fix or baseline material lives in this spec --
+# the loop sees the RED trace alone (same rule as eval/stranger2.yaml).
+project: "serv"
+files: ["rtl/serv_alu.v"]
+top: "tb_serv_cmp"
+tb: "serv-cmp-mux_tb.sv"
+anchor: "assign o_cmp = i_cmp_eq ? result_eq : result_lt;"
+bug: "assign o_cmp = i_cmp_eq ? result_lt : result_eq;"
+gate: "cmp mux eq lt compare select"
+budget_s: 600
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
