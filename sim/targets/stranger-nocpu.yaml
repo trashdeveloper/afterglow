@@ -12,11 +12,13 @@
 # is the pristine ready handshake line, verified verbatim in
 # picosoc/spimemio.v (exactly once, so line-anchored inject fires once);
 # bug swaps the second && for || (ready asserts whenever rd_valid
-# holds, even on an address mismatch -- a stale-data hit on any
-# non-sequential access). TB drives the valid/ready handshake with a
+# holds, even on an address mismatch -- the handshake completes before
+# data is valid, so reads return stale/zero words; the first sequential
+# check already flips). TB drives the valid/ready handshake with a
 # sequential read followed by a jump read
-# (see sim/tb/picosoc-spimemio_tb.sv, controller-authored): every
-# jump-read check flips under the bug, sequential rows pass under both.
+# (see sim/tb/picosoc-spimemio_tb.sv, controller-authored): under the
+# bug the run FAILs (observed: seq read got 0x00000000 want 0x03020100),
+# under pristine all rows pass.
 # QUARANTINE: no fix or baseline material lives in this spec --
 # the loop sees the RED trace alone (same rule as eval/stranger2.yaml).
 project: "picorv32"
@@ -29,3 +31,8 @@ gate: "spimemio flash ready handshake qspi"
 budget_s: 600
 oracle_pass: "tohost: PASS"
 oracle_trap: "TRAP:"
+# Upstream spimemio.v carries pre-existing width/case style warnings
+# (never compiled by this project before H2); scoped downgrades only,
+# same convention as mut-100-*/fetch-highword vflags. The TB itself
+# is warning-clean (single-driver flash model, 8-bit paths).
+vflags: ["-Wno-WIDTHEXPAND", "-Wno-WIDTHTRUNC", "-Wno-CASEOVERLAP", "-Wno-CASEINCOMPLETE"]
