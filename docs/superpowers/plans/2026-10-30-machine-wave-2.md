@@ -584,12 +584,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `verify(story, patch) -> True|{lies}` (each named signal +
   direction checked against the actual hunk).
 
-- [ ] **Step 1: Write the failing test** — a story claiming an inversion
+- [x] **Step 1: Write the failing test** — a story claiming an inversion
   the diff does not contain is rejected naming the lie; a true story passes.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/storyverify.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/storyverify.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committing below (28/28, 1712, CI, APPROVE).
 
 ### Task G9: Safe auto-apply (item 79)
 
