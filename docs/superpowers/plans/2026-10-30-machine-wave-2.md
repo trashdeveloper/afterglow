@@ -477,12 +477,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `focus_from_first_diff(first_diff) -> {file, line, signals}`
   for the next prompt's focus block.
 
-- [ ] **Step 1: Write the failing test** — a pinned first-diff record
+- [x] **Step 1: Write the failing test** — a pinned first-diff record
   yields the diff line as focus with its signals extracted.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/cexrepair.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/cexrepair.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed a3fa90b (10/10, 1605, CI, APPROVE).
 
 ### Task G3: Patch minimality enforcer (item 73)
 
