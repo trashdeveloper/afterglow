@@ -785,13 +785,13 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `save(index, path)` / `load(path) -> index` with version
   stamp; version mismatch raises.
 
-- [ ] **Step 1: Write the failing test** — save then reload retrieves
+- [x] **Step 1: Write the failing test** — save then reload retrieves
   the same top fix; version-mismatched file raises.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/fixlib.py` (tests use tmp
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/fixlib.py` (tests use tmp
   paths only; no repo writes).
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 4: Run green + gate.** (11/11, suite 1878 OK, CI ALL PASS.)
+- [x] **Step 5: Report proof.** Committed 7ea48c1 (11/11, 1878, CI, APPROVE).
 
 ### Task H10: 100-mutant nightly (item 90)
 
