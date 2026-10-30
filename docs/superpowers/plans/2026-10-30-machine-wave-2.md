@@ -589,7 +589,7 @@ raises TypeError/ValueError; deterministic input order.
 - [x] **Step 2: Run RED.**
 - [x] **Step 3: Implement** in `agent/repair/storyverify.py`.
 - [x] **Step 4: Run green + gate.**
-- [x] **Step 5: Report proof.** Committing below (28/28, 1712, CI, APPROVE).
+- [x] **Step 5: Report proof.** Committed 4df61e0 (28/28, 1712, CI, APPROVE).
 
 ### Task G9: Safe auto-apply (item 79)
 
