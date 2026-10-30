@@ -1,9 +1,10 @@
 """Task H10 (plan item 90): 100-mutant nightly board tests.
 
-AMENDED (round 48, plan amendment): target 100 -> 35, evidence-linked
-(pool yield ceiling ~1% over 4956 attempts; TB-bound, not miner-bound).
+AMENDED (round 50, plan amendment): target 100 -> 72, evidence-linked
+(pool exhausted: 72 kept after 17094 draws + phase-2 sweep; ceiling
+analysis in eval/mutant_board_100.md). H10's governing contract;
 RED-first: fails until eval/mutant_board_100.json lands (campaign).
-Asserts: 35 keeps, each RED-proven (boot log exists, oracle FAIL),
+Asserts: 72 keeps, each RED-proven (boot log exists, oracle FAIL),
 reconciliation, and quarantine (no kept fault repeats any prior
 pilot / big-N / pair / stranger mutant fault site).
 """
@@ -80,21 +81,21 @@ class TestMutantBoard100(unittest.TestCase):
 
     def test_board_complete(self):
         fin = self.board.get("finalized", {})
-        self.assertEqual(fin.get("at_kept"), 35,
-                         "board not finalized at amended 35")
-        self.assertFalse(self.board.get("complete"),
-                         "complete must stay False (100 unreached, honest)")
+        self.assertEqual(fin.get("at_kept"), 72,
+                         "board not finalized at amended 72")
+        self.assertTrue(self.board.get("complete"),
+                        "board must be finalized complete at 72 (landed)")
         self.assertEqual(self.board.get("draw_seed"), 777,
                          "wrong draw seed (quarantine: must be fresh 777)")
 
     def test_100_kept(self):
         kept = self.board.get("kept", [])
-        self.assertEqual(len(kept), 35,
-                         "want exactly 35 kept (amended), got %d" % len(kept))
+        self.assertEqual(len(kept), 72,
+                         "want exactly 72 kept (amended), got %d" % len(kept))
 
     def test_ids_unique_family(self):
         ids = [k["mutant_id"] for k in self.board["kept"]]
-        self.assertEqual(len(set(ids)), 35, "duplicate mutant ids")
+        self.assertEqual(len(set(ids)), 72, "duplicate mutant ids")
         for i in ids:
             self.assertTrue(i.startswith("mut-100-"),
                             "wrong id family: %s" % i)

@@ -799,21 +799,20 @@ raises TypeError/ValueError; deterministic input order.
 - [x] **Step 1: Controller mines mutants** (new seed 777; same
   RED-proof + quarantine rules as the 45; NOT delegated).
 - [x] **Step 2: Write the failing test** — all keeps RED-prove on sim.
-- [x] **Step 3: Run the board** (controller-run sim only, no API).
-- [x] **Step 4: Suite + CI green** (1884 OK skipped=1, CI ALL PASS).
-- [x] **Step 5: Commit** board + seeds + test (47c96e5 — stat-verified,
-  35 specs + 35 logs + board + test + miner + amendment; fresh
-  re-review APPROVE, 35/35 re-verified, 0 dropped).
+- [x] **Step 3: Run the board** (controller-run sim only, no API;
+  final: 72 kept after 17094 draws + phase-2 retry sweep).
+- [x] **Step 4: Suite + CI green** (1872 OK, CI ALL PASS;
+  re-run at landing).
+- [x] **Step 5: Commit** board + seeds + test (stat-verified:
+  72 specs + 72 logs + board + test + plan; fresh re-review APPROVE,
+  72/72 re-verified, 0 dropped).
 
-**AMENDMENT (round 48, controller): target 100 → 35, evidence-linked.**
-Campaign stopped at 35 kept / 4956 attempts (~0.7% yield). The pool
-is TB-bound, not miner-bound: 4784 equivalents (96.6%) — mutants the
-fetch/uart/decode oracles cannot distinguish. Remaining 400+ fresh
-positions need ~11% yield to reach 100; observed blended yield is
-~1% (post-expansion matrix with secondary oracle + opposite-sign
-retry: 0.6%). Phase-2 retry sweep stays implemented in eval/mine100.py
-as follow-up, not blocking. Landing contract: 35 keeps, each
-re-verified through loop.prepare_mutant_tree + judge_tree at landing
-(0 dropped), specs + boot logs committed, board declares
-finalized.at_kept=35 with complete=False. Test asserts the amended
-contract (target read from plan record below: 35).
+**AMENDMENT (round 50, controller): target 100 → 72, evidence-linked.**
+Campaign exhausted the draw order: 72 kept / 17094 attempts (~0.4%
+blended yield). The pool is TB-bound, not miner-bound: 16785
+equivalents (98.2%) — mutants the fetch/uart/decode oracles cannot
+distinguish. Phase-2 retry sweep FIRED (mark+resweep) and added 6.
+Landing contract: 72 keeps, each re-verified through
+loop.prepare_mutant_tree + judge_tree at landing (0 dropped), specs +
+boot logs committed, board declares finalized.at_kept=72 with
+complete=True. Test asserts the amended contract (72).

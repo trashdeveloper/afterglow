@@ -5,5 +5,5 @@ TRAP: uart timeout, no byte received
 CYCLES=22023
 - /home/tuncay/afterglow/sim/tb/picosoc-uart-div_tb.sv:86: Verilog $finish
 - S i m u l a t i o n   R e p o r t: Verilator 5.052 2026-09-05
-- Verilator: $finish at 220ns; walltime 0.005 s; speed 46.440 us/s
+- Verilator: $finish at 220ns; walltime 0.005 s; speed 44.627 us/s
 - Verilator: cpu 0.005 s on 1 threads; allocated 4 MB

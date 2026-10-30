@@ -1,0 +1,25 @@
+# SANCTIONED mutant spec mut-100-064 (H10 nightly board, seed 777).
+# Firing rule: agent/loop.py --spec ONLY (line-targeted apply of bug at
+# mutant_line in a runs/scratch copy of the pinned pristine tree).
+# Fault provenance: eval/mutate.py logic_swap on picorv32.v:1083
+# (before "instr_rdinstr  <=  (mem_rdata_q[6:0] == 7'b1110011 && mem_rdata_q[31:12] == 'b11000000001000000010) && ENABLE_COUNTERS;", after "instr_rdinstr  <=  (mem_rdata_q[6:0] == 7'b1110011 && mem_rdata_q[31:12] == 'b11000000001000000010) || ENABLE_COUNTERS;"); kept-tree at
+# /tmp/mutboard100/kept/mut-100-064 is PROVENANCE ONLY -- firing rebuilds
+# byte-identically from anchor/bug+line (see eval/FIRING.md pattern).
+# Parent TB/oracle: picorv32-fetch-decode. Red = oracle FAIL, green = patch restores PASS.
+project: "picorv32"
+files: ["picorv32.v"]
+top: "tb_picorv32_fetch_decode"
+tb: "picorv32-fetch-decode_tb.sv"
+vflags: ["-Wno-PINMISSING"]
+anchor: "instr_rdinstr  <=  (mem_rdata_q[6:0] == 7'b1110011 && mem_rdata_q[31:12] == 'b11000000001000000010) && ENABLE_COUNTERS;"
+bug: "instr_rdinstr  <=  (mem_rdata_q[6:0] == 7'b1110011 && mem_rdata_q[31:12] == 'b11000000001000000010) || ENABLE_COUNTERS;"
+gate: "picorv32-fetch-decode H10 logic_swap"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-100-064"
+mutant_seed: 777
+mutant_op: "logic_swap"
+mutant_file: "picorv32.v"
+mutant_line: 1083
+parent_case: "picorv32-fetch-decode"
+mutant_tree: "/tmp/mutboard100/kept/mut-100-064"

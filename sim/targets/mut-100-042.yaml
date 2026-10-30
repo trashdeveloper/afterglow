@@ -1,0 +1,25 @@
+# SANCTIONED mutant spec mut-100-042 (H10 nightly board, seed 777).
+# Firing rule: agent/loop.py --spec ONLY (line-targeted apply of bug at
+# mutant_line in a runs/scratch copy of the pinned pristine tree).
+# Fault provenance: eval/mutate.py logic_swap on picosoc/simpleuart.v:119
+# (before 'if (send_dummy && !send_bitcnt) begin', after 'if (send_dummy || !send_bitcnt) begin'); kept-tree at
+# /tmp/mutboard100/kept/mut-100-042 is PROVENANCE ONLY -- firing rebuilds
+# byte-identically from anchor/bug+line (see eval/FIRING.md pattern).
+# Parent TB/oracle: picosoc-uart-div. Red = oracle FAIL, green = patch restores PASS.
+project: "picorv32"
+files: ["picosoc/simpleuart.v"]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+vflags: ["-Wno-WIDTH"]
+anchor: "if (send_dummy && !send_bitcnt) begin"
+bug: "if (send_dummy || !send_bitcnt) begin"
+gate: "picosoc-uart-div H10 logic_swap"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-100-042"
+mutant_seed: 777
+mutant_op: "logic_swap"
+mutant_file: "picosoc/simpleuart.v"
+mutant_line: 119
+parent_case: "picosoc-uart-div"
+mutant_tree: "/tmp/mutboard100/kept/mut-100-042"

@@ -1,8 +1,8 @@
 # Mutant board 100 (H10)
 
-Fresh-seed (777) nightly mining: 35 kept RED-proven mutants, quarantined from pilot / big-N / pair / stranger families (new mut-100-* ids, fresh draw).
+Fresh-seed (777) nightly mining: 72 kept RED-proven mutants, quarantined from pilot / big-N / pair / stranger families (new mut-100-* ids, fresh draw).
 
-drawn=4956 kept_new=35 pilot_red=5 equivalent=4784 build_break=130 other=7 untried=0
+drawn=17094 kept_new=72 pilot_red=5 equivalent=16785 build_break=215 other=22 untried=0
 
 | id | file:line | op | parent | cycles |
 |---|---|---|---|---|
@@ -41,4 +41,41 @@ drawn=4956 kept_new=35 pilot_red=5 equivalent=4784 build_break=130 other=7 untri
 | mut-100-033 | picorv32.v:1922 | logic_swap | picorv32-fetch-decode | 2009 |
 | mut-100-034 | picorv32.v:617 | logic_swap | picorv32-fetch-decode | 2009 |
 | mut-100-035 | picorv32.v:574 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-036 | picorv32.v:1560 | num_bump | picorv32-fetch-misalign | 2009 |
+| mut-100-037 | picorv32.v:1322 | num_bump | picorv32-fetch-decode | 2009 |
+| mut-100-038 | picorv32.v:1095 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-039 | picorv32.v:1824 | num_bump | picorv32-fetch-decode | 2009 |
+| mut-100-040 | picosoc/simpleuart.v:53 | num_bump | picosoc-uart-div | 2024 |
+| mut-100-041 | picosoc/simpleuart.v:89 | num_bump | picosoc-uart-div | 2586 |
+| mut-100-042 | picosoc/simpleuart.v:119 | logic_swap | picosoc-uart-div | 22023 |
+| mut-100-043 | picorv32.v:867 | cmp_swap | picorv32-fetch-decode | 2009 |
+| mut-100-044 | picorv32.v:1084 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-045 | picorv32.v:1097 | cmp_swap | picorv32-fetch-decode | 2009 |
+| mut-100-046 | picorv32.v:1102 | constant_flip | picorv32-fetch-decode | 2009 |
+| mut-100-047 | picorv32.v:1704 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-048 | picorv32.v:1102 | cmp_swap | picorv32-fetch-decode | 2009 |
+| mut-100-049 | picorv32.v:883 | num_bump | picorv32-fetch-decode | 2009 |
+| mut-100-050 | picorv32.v:1696 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-051 | picorv32.v:1626 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-052 | picorv32.v:1922 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-053 | picorv32.v:875 | cmp_swap | picorv32-fetch-decode | 2009 |
+| mut-100-054 | picorv32.v:1082 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-055 | picorv32.v:1269 | constant_flip | picorv32-fetch-decode | 2009 |
+| mut-100-056 | picorv32.v:868 | constant_flip | picorv32-fetch-decode | 2009 |
+| mut-100-057 | picorv32.v:1102 | constant_flip | picorv32-fetch-decode | 2009 |
+| mut-100-058 | picorv32.v:868 | cmp_swap | picorv32-fetch-decode | 2009 |
+| mut-100-059 | picorv32.v:1082 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-060 | picorv32.v:875 | constant_flip | picorv32-fetch-decode | 2009 |
+| mut-100-061 | picorv32.v:1096 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-062 | picorv32.v:1352 | num_bump | picorv32-fetch-decode | 2009 |
+| mut-100-063 | picorv32.v:1097 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-064 | picorv32.v:1083 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-065 | picorv32.v:1080 | logic_swap | picorv32-fetch-decode | 2009 |
+| mut-100-066 | picosoc/simpleuart.v:34 | num_bump | picosoc-uart-div | 2024 |
+| mut-100-067 | picorv32.v:1102 | constant_flip | picorv32-fetch-decode | 2009 |
+| mut-100-068 | picorv32.v:1823 | num_bump | picorv32-fetch-decode | 2009 |
+| mut-100-069 | picorv32.v:194 | num_bump | picorv32-fetch-decode | 2009 |
+| mut-100-070 | picorv32.v:1102 | num_bump | picorv32-fetch-decode | 2009 |
+| mut-100-071 | picorv32.v:1315 | constant_flip | picorv32-fetch-decode | 2009 |
+| mut-100-072 | picorv32.v:1101 | logic_swap | picorv32-fetch-decode | 2009 |
 
