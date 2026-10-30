@@ -622,12 +622,12 @@ raises TypeError/ValueError; deterministic input order.
   "promote"|"hold"|"demote"` (standalone recommender; no loop wiring —
   wiring needs a later explicit approval).
 
-- [ ] **Step 1: Write the failing test** — 8/10 above threshold →
+- [x] **Step 1: Write the failing test** — 8/10 above threshold →
   promote; 2 consecutive below → demote; else hold.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/graduate.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/graduate.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed 0be5bf4 (25/25, 1752, CI, APPROVE).
 
 ### Task H1: Third stranger design (item 81)
 
