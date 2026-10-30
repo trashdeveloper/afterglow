@@ -98,7 +98,7 @@ sim fixtures; `python3 -m unittest` runner (never pytest — not installed).
 - [ ] **Step 4: Run green + gate** (new + suite + CI).
 - [ ] **Step 5: Report proof.** No commit.
 
-### Task E3: Temporal assertion miner (item 53)
+### Task E3: Temporal assertion miner (item 53) — DONE
 
 **Files:**
 - Create: `agent/discover/ruleminer.py`
