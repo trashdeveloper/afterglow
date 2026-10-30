@@ -233,14 +233,14 @@ done above.
 **Interfaces:**
 - Produces: `compress(trace, budget=2500) -> {text, tokens, checksum}`.
 
-- [ ] **Step 1: Write the failing test** — compressed trace replays to
+- [x] **Step 1: Write the failing test** — compressed trace replays to
   the identical checksum (via `agent/repair/equiv.py::checksum_log`)
   and estimated tokens ≤ 2500.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/discover/tracecompress.py`
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/discover/tracecompress.py`
   (dedup idle cycles, keep transitions).
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed f72bbee (23/23, 1412, CI, APPROVE).
 
 ### Task E10: Finder portfolio board (item 60)
 
@@ -252,9 +252,12 @@ done above.
 - Produces: `attribute(fault_id, finder, board) -> board`;
   `leaders(board) -> [(finder, count)]` (dedup by fault_id).
 
-- [ ] **Step 1: Write the failing test** — two finders report the same
+- [x] **Step 1: Write the failing test** — two finders report the same
   fault: credited once to the first; leaders() ranks correctly.
-- [ ] **Step 2: Run RED.**
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/discover/finderboard.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed b7b8b9b (13/13, 1425, CI, APPROVE).**
 - [ ] **Step 3: Implement** in `agent/discover/finderboard.py`.
 - [ ] **Step 4: Run green + gate.**
 - [ ] **Step 5: Report proof.** No commit.
