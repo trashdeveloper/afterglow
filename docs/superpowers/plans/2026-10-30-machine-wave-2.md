@@ -104,13 +104,13 @@ sim fixtures; `python3 -m unittest` runner (never pytest — not installed).
   `{antecedent, consequent, support}` for ready→valid style orderings);
   `check_rule(rule, trace) -> True|{violations}`.
 
-- [ ] **Step 1: Write the failing test** — mined rule from 3 honest UART
+- [x] **Step 1: Write the failing test** — mined rule from 3 honest UART
   traces holds on pristine; a doctored trace (valid without ready)
   falsifies it with a named violation.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/discover/ruleminer.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/discover/ruleminer.py`.
+- [x] **Step 4: Run green + gate** — 13/13; suite 1294 OK; CI ALL PASS.
+- [x] **Step 5: Report proof.** Committed 2666501 (verified in git log).
 
 ### Task E4: Multi-hop cone slicer v2 (item 54)
 
