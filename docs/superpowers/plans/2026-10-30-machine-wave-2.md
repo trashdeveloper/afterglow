@@ -174,12 +174,18 @@ sim fixtures; `python3 -m unittest` runner (never pytest — not installed).
 - Produces: `classify_crossing(driver_clock, load_clock, has_sync) ->
   "sync"|"cdc-safe"|"cdc-risk"`.
 
-- [ ] **Step 1: Write the failing test** — fixture pair: synchronized
+- [x] **Step 1: Write the failing test** — fixture pair: synchronized
   crossing → `cdc-safe`; direct cross-clock → `cdc-risk`; same clock → `sync`.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/discover/cdcdetect.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+  (17 tests, ImportError-first red; probed: fully-synced portfolio
+  yields [], sync-flag flips flip verdicts.)
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/discover/cdcdetect.py`.
+  (classify_crossing + find_crossings + check_sync; zero imports;
+  missing has_sync defaults False = risky; bad inputs raise loudly.)
+- [x] **Step 4: Run green + gate.** (17/17, suite 1340 OK, CI ALL PASS.)
+- [x] **Step 5: Report proof.** Committed bdcc047. Fresh re-review
+  APPROVE (determinism + discrimination + fail-safe + scope, all
+  probed independently).
 
 ### Task E7: Coverage-hole prioritizer (item 57)
 
