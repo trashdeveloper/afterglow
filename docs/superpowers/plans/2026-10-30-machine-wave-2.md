@@ -127,13 +127,19 @@ sim fixtures; `python3 -m unittest` runner (never pytest — not installed).
 - Consumes: `agent/evidence/cone_plus.py` one-hop slicer.
 - Produces: `slice_cone(signals, depth=2, cycle_guard=10000) -> {lines}`.
 
-- [ ] **Step 1: Write the failing test** — 2-hop cone contains the fault
+- [x] **Step 1: Write the failing test** — 2-hop cone contains the fault
   line of a 2-deep fixture; 1-hop does not; cycle guard trips on a
-  combinational-loop fixture instead of hanging.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/discover/cone2.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+  combinational-loop fixture instead of hanging. (10 tests: stepping,
+  guard trip, Path accept, twin-site sort; all red-first incl. 2 real
+  bugs found on a real tree: PathLike gate, dict-compare sort.)
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/discover/cone2.py`. (Native build
+  after builder evaporation; site-actual stepping since B5 hop record
+  bottoms out in its own file; real-tree proof: mem_ready depth 2,
+  picorv32.v -> picosoc.v -> hx8kdemo.v.)
+- [x] **Step 4: Run green + gate.** (10/10, suite 1304 OK, CI ALL PASS.)
+- [x] **Step 5: Report proof.** Committed 85dc4d0. Fresh re-review
+  APPROVE (determinism + hop honesty + degenerates probed independently).
 
 ### Task E5: Reset-domain explorer (item 55)
 
