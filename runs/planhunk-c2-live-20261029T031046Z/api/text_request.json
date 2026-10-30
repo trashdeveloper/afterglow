@@ -1,0 +1,7 @@
+{
+ "model": "muse-spark-1.3-contributor",
+ "prompt_sha256": "081aa4650e288bc0a034f0e8f1b708438ae500e5e770a54c64b2a96fdfa31ef7",
+ "prompt_chars": 569,
+ "pilot": "mut-pair-02",
+ "marker_instruction": "PLANNED HUNKS section then unified diff"
+}

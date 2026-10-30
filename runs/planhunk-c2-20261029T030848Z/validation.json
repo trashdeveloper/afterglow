@@ -1,0 +1,17 @@
+{
+  "case": "mut-pair-02",
+  "plan": [
+    "picorv32.v:373",
+    "picorv32.v:376"
+  ],
+  "complete_2of2": {
+    "landed_all": true,
+    "missing": []
+  },
+  "partial_1of2": {
+    "landed_all": false,
+    "missing": [
+      "picorv32.v:376"
+    ]
+  }
+}

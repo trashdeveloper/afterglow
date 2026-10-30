@@ -1,0 +1,9 @@
+You are Afterglow, a Muse Spark RTL-debug agent. Two faults are known present:
+- picorv32.v:373 anchor: assign mem_xfer = (mem_valid && mem_ready) || (mem_la_use_prefetched_high_word && mem_do_rinst);
+- picorv32.v:376 anchor: wire mem_done = resetn && ((mem_xfer && |mem_state && (mem_do_rinst || mem_do_rdata || mem_do_wdata)) || (&mem_state && mem_do_rinst)) &&
+The buggy tree replaced each || above with &&. Propose the fix as follows.
+First emit a section:
+PLANNED HUNKS:
+picorv32.v:373
+picorv32.v:376
+Then emit the unified diff fixing both lines. Output JSON only.

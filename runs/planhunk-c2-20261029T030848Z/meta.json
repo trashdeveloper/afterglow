@@ -1,0 +1,9 @@
+{
+  "run_id": "planhunk-c2-20261029T030848Z",
+  "task": "C2 multi-hunk planner (item 22)",
+  "case": "mut-pair-02",
+  "live": "BLOCKED: no MODEL_API_KEY/SPARK_API_KEY/META_API_KEY in env; loop.api_key() raises LiveAPIError; zero API calls fired",
+  "est_spend_usd": 0.0,
+  "sim_validation": "parse_plan 2-hunk OK; validate_landed 2/2 complete + 1/2 incomplete(missing picorv32.v:376)",
+  "utc": "2026-10-29T03:09:02Z"
+}

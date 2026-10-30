@@ -1,0 +1,13 @@
+LIVE VALIDATION ATTEMPT -- Task C2 (item 22), case mut-pair-02
+UTC: 2026-10-29T03:09Z
+Plan: 1 live run, plan-then-diff prompt variant (see prompt_variant.txt),
+      then validate_landed() on the returned PLANNED HUNKS + diff (~$0.10 est).
+Result: BLOCKED -- no MODEL_API_KEY / SPARK_API_KEY / META_API_KEY in env.
+  loop.api_key() raises LiveAPIError("missing text API key ... refusing to
+  continue without the live decider"). Zero API calls fired, $0.00 spent.
+  No key was written anywhere; nothing committed.
+SIM-ONLY substitute (no API): parse_plan + validate_landed exercised on
+  mut-pair-02 fault lines (see validation.json):
+  - 2/2 landed -> {landed_all: true, missing: []}
+  - 1/2 landed -> {landed_all: false, missing: ["picorv32.v:376"]}
+Honest verdict: live validation BLOCKED (env has no key); SIM validation PASS.
