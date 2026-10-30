@@ -217,12 +217,12 @@ done above.
 **Interfaces:**
 - Produces: `minimize(stimulus, still_red_fn) -> minimal` (ddmin-style).
 
-- [ ] **Step 1: Write the failing test** — 20-step failing stimulus
+- [x] **Step 1: Write the failing test** — 20-step failing stimulus
   minimizes to ≤5 steps still RED via the fixture predicate.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/discover/stimmin.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/discover/stimmin.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed 746292b (17/17, 1389, CI, APPROVE).
 
 ### Task E9: Trace compressor (item 59)
 
