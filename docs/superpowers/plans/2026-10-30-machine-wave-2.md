@@ -406,12 +406,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `check_diagnosis(text, valid_ids, strict=True)` (same
   pass/reject contract as patches).
 
-- [ ] **Step 1: Write the failing test** — cited diagnosis passes both
+- [x] **Step 1: Write the failing test** — cited diagnosis passes both
   modes; uncited rejected in strict; invented id rejected in both.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/evidence/diagcite.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/evidence/diagcite.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed b88099f (20/20, 1538, CI, APPROVE).
 
 ### Task F9: Waveform-shape features (item 69)
 
