@@ -67,17 +67,13 @@ sim fixtures; `python3 -m unittest` runner (never pytest — not installed).
 - Consumes: `sim/vbackend.py` (`ensure_tree`, `build`, `sh`-style run).
 - Produces: `run_pair(tree_a, tree_b, stimulus) -> {match,tohost_a,tohost_b,trace_a,trace_b,divergence}`; `divergence_report(result) -> str` (pinned format).
 
-- [ ] **Step 1: Write the failing test** — `test_same_design_matches` (two
-  pristine picorv32 trees, identical NOP stimulus → `match True`) and
-  `test_tampered_tree_diverges` (one tree with a fixture fault →
-  `match False` + report names the differing line). Also `test_no_loop_wiring`.
-- [ ] **Step 2: Run it to verify RED** — `python3 -m unittest tests.test_discover_diffdut` → ImportError.
-- [ ] **Step 3: Implement** `run_pair` + `divergence_report` in
-  `agent/discover/diffdut.py` (build both trees once, run same stimulus,
-  byte-compare tohost + trace).
-- [ ] **Step 4: Run green + gate** — new tests pass; `python3 -m unittest discover -s tests` green; `bash scripts/ci.sh` ALL PASS.
-- [x] **Step 5: Report proof** — committed with E1 (see git log).
-  both tails. No commit. (Controller also ticks the orphaned A5b box.)
+- [x] **Step 1: Write the failing test** — `test_same_design_matches`
+  (verified in landing review).
+- [x] **Step 2: Run RED** — ImportError pre-implementation.
+- [x] **Step 3: Implement** in `agent/discover/diffdut.py`.
+- [x] **Step 4: Run green + gate** — 17/17; suite 1261 OK; CI ALL PASS.
+- [x] **Step 5: Report proof** — committed 2c2ef8f (verified in git log;
+  adopts orphaned A5b box per objective).
 
 ### Task E2: Seed portfolio scheduler (item 52) — DONE
 
@@ -90,13 +86,12 @@ sim fixtures; `python3 -m unittest` runner (never pytest — not installed).
 - Produces: `schedule(seeds, history) -> [seed...]` (unseen first, then
   by kills desc); `portfolio_kill(seeds, run_fn, is_kill) -> {killed, by_seed}`.
 
-- [ ] **Step 1: Write the failing test** — fixture mutant killed by seed
-  89 but not seed 42: `schedule` puts 89 first given history; `portfolio_kill`
-  reports the kill attributed to 89.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/discover/seedportfolio.py`.
-- [ ] **Step 4: Run green + gate** (new + suite + CI).
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 1: Write the failing test** — fixture kill attribution
+  (verified in landing review).
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/discover/seedportfolio.py`.
+- [x] **Step 4: Run green + gate** — 20/20; suite 1281 OK; CI ALL PASS.
+- [x] **Step 5: Report proof.** Committed 4cd207f (verified in git log).
 
 ### Task E3: Temporal assertion miner (item 53) — DONE
 
@@ -258,9 +253,6 @@ done above.
 - [x] **Step 3: Implement** in `agent/discover/finderboard.py`.
 - [x] **Step 4: Run green + gate.**
 - [x] **Step 5: Report proof.** Committed df6446d (13/13, 1425, CI, APPROVE).**
-- [ ] **Step 3: Implement** in `agent/discover/finderboard.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
 
 ### Task F1: Multi-fault localizer (item 61) — BUILT AS diagnose/multifault
 
@@ -348,17 +340,17 @@ raises TypeError/ValueError; deterministic input order.
   (`diff(glue_lines, rtl_lines)` → {glue_only, rtl_only, common})
 - Test: `tests/test_checks_gluediff.py` (13 tests)
 
-**Interfaces:**
-- Consumes: `agent/evidence/pastfix.py` index format.
-- Produces: `retrieve(fault, index, design_modules) -> [fix]` weighted
-  by module overlap.
+**Interfaces (as built):**
+- Produces: `diff(glue_lines, rtl_lines)` → {glue_only, rtl_only, common}
+  (exact buckets, deterministic order, loud rejects).
 
-- [ ] **Step 1: Write the failing test** — wrapper line flagged
+- [x] **Step 1: Write the failing test** — wrapper line flagged
   glue_only; whitespace-only diff passes empty.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/checks/gluediff.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/checks/gluediff.py`.
+- [x] **Step 4: Run green + gate** — 13/13; suite 1823 OK; CI ALL PASS.
+- [x] **Step 5: Report proof.** Committed 6524fa1 (verified in git log;
+  fresh re-review APPROVE).
 
 ### Task F6: Churn-prioritized diagnosis (item 66)
 
@@ -603,12 +595,13 @@ raises TypeError/ValueError; deterministic input order.
   Honors D10: real-tree apply requires a sign-off token argument;
   fixture-copy proof requires none.
 
-- [ ] **Step 1: Write the failing test** — failing resim triggers
+- [x] **Step 1: Write the failing test** — failing resim triggers
   rollback: tree bytes identical before/after, log shows apply→resim→rollback.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/safeapply.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/safeapply.py`.
+- [x] **Step 4: Run green + gate** — 15/15; suite 1727 OK; CI ALL PASS.
+- [x] **Step 5: Report proof.** Committed bdf5009 (verified in git log;
+  fresh re-review APPROVE).
 
 ### Task G10: Full-auto graduation (item 80)
 
@@ -658,12 +651,12 @@ raises TypeError/ValueError; deterministic input order.
 
 **Interfaces:** Same as H1, for a bus fabric/peripheral block.
 
-- [ ] **Step 1: Controller authors the stranger** (design + TB + oracle
-  + real fault, quarantined; NOT delegated).
-- [ ] **Step 2: Write the failing test** — real injected fault goes RED.
-- [ ] **Step 3: Fire the loop live** unaided to GREEN with receipts.
-- [ ] **Step 4: Suite + CI green.**
-- [ ] **Step 5: Commit** target + bundle + test.
+- [x] **Step 1: Controller authors the stranger** (design + TB + oracle
+  + real fault, quarantined; NOT delegated) — spimemio fault + decoy TB.
+- [x] **Step 2: Write the failing test** — real injected fault goes RED.
+- [x] **Step 3: Fire the loop live** unaided to GREEN with receipts.
+- [x] **Step 4: Suite + CI green** (27 tests 1 honest skip; suite 1804 OK).
+- [x] **Step 5: Commit** target + bundle + test — ad80028 (verified).
 
 ### Task H3: Design-agnostic case spec (item 83)
 
@@ -676,12 +669,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `from_any(verilog_files, tb, oracle_cmd) -> CaseSpec`
   validated (files exist, oracle executable).
 
-- [ ] **Step 1: Write the failing test** — a toy 2-file design +
+- [x] **Step 1: Write the failing test** — a toy 2-file design +
   shell-oracle TB runs end-to-end (fixture sim) through the spec.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/discover/genericase.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/discover/genericase.py`.
+- [x] **Step 4: Run green + gate** — 19/19; suite + CI green.
+- [x] **Step 5: Report proof.** Committed c939132 (verified in git log).
 
 ### Task H4: Cross-design transfer (item 84)
 
