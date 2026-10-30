@@ -530,12 +530,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `bisect_regression(failing_entry, history) -> culprit_commit`
   (standalone reader; no regguard/loop wiring).
 
-- [ ] **Step 1: Write the failing test** — fixture history with a
+- [x] **Step 1: Write the failing test** — fixture history with a
   planted breaking commit: bisect pinpoints it within log2 bounds.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/bisectreg.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/bisectreg.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed 511a49b (17/17, 1643, CI, APPROVE).
 
 ### Task G6: Repair portfolio race (item 76)
 
