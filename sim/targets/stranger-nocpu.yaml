@@ -1,0 +1,31 @@
+# stranger-nocpu: spimemio ready-handshake fault (stranger #4, non-CPU).
+# Fresh block: picosoc/spimemio.v -- the SPI memory-mapped bridge (bus
+# fabric/peripheral) of the picorv32 project. NOT the picorv32.v CPU
+# core and NOT the picosoc/simpleuart.v UART peripheral: no prior
+# single-fault target uses this file (all prior picorv32-project
+# targets pin picorv32.v or picosoc/simpleuart.v), and the
+# top/tb/anchor/bug/gate strings collide with no prior target --
+# asserted by tests/test_stranger_nocpu.py, which fails if any
+# top/tb/anchor/bug/gate or gate token collides with any prior target.
+# Pinned to the picorv32 tree ef203c2b0a3fb793280f5114941416c425c5b461
+# (targets.pin picorv32 entry, same pin as all picosoc-* boards): anchor
+# is the pristine ready handshake line, verified verbatim in
+# picosoc/spimemio.v (exactly once, so line-anchored inject fires once);
+# bug swaps the second && for || (ready asserts whenever rd_valid
+# holds, even on an address mismatch -- a stale-data hit on any
+# non-sequential access). TB drives the valid/ready handshake with a
+# sequential read followed by a jump read
+# (see sim/tb/picosoc-spimemio_tb.sv, controller-authored): every
+# jump-read check flips under the bug, sequential rows pass under both.
+# QUARANTINE: no fix or baseline material lives in this spec --
+# the loop sees the RED trace alone (same rule as eval/stranger2.yaml).
+project: "picorv32"
+files: ["picosoc/spimemio.v"]
+top: "tb_picosoc_spimemio"
+tb: "picosoc-spimemio_tb.sv"
+anchor: "assign ready = valid && (addr == rd_addr) && rd_valid;"
+bug: "assign ready = valid && (addr == rd_addr) || rd_valid;"
+gate: "spimemio flash ready handshake qspi"
+budget_s: 600
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
