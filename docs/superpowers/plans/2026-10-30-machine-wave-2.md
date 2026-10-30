@@ -767,12 +767,12 @@ raises TypeError/ValueError; deterministic input order.
   as a SEPARATE report (no `eval/score.py` edit unless the builder
   justifies it and the reviewer approves).
 
-- [ ] **Step 1: Write the failing test** — fixture score adjusts exactly
+- [x] **Step 1: Write the failing test** — fixture score adjusts exactly
   by the proven-flake count with evidence links attached.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/trust/scoreadjust.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/trust/scoreadjust.py`.
+- [x] **Step 4: Run green + gate.** (7/7, suite 1867 OK, CI ALL PASS.)
+- [x] **Step 5: Report proof.** Committed b587c8c (7/7, 1867, CI, APPROVE).
 
 ### Task H9: Persistent fix library (item 89)
 
