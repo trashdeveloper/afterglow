@@ -39,7 +39,7 @@
 - [x] **Task A3: Coverage-driven explorer (item 3)** — DONE: coverage.py + 14 tests, 120 uncovered lines, top-5 verified, suite 435, CI ALL PASS.
 - [x] **Task A4: Cross-seed differ (item 4)** — DONE: seeddiff.py + 14 tests, deterministic validation, suite 449, CI ALL PASS.
 - [x] **Task A5: Protocol-assertion checker (item 5)** — DONE: protocol.py (VCD parser, UART frame + ready/valid rules) + 19 tests, ALL CLEAR on simpleuart 0xA5 frame, suite 468, CI ALL PASS.
-- [ ] **Task A5b: Differential DUT (item 5 orig)** — runs two CPU trees (picorv32 vs darkriscv stranger) on identical NOP stimulus, diffs tohost/traces; test: same ISA prefix behavior documented, divergence report format pinned. Sim-only.
+- [x] **Task A5b: Differential DUT (item 5 orig)** — ADOPTED by E1 (item 51): diffdut.py + 17/17 tests; suite 1261, CI green — runs two CPU trees (picorv32 vs darkriscv stranger) on identical NOP stimulus, diffs tohost/traces; test: same ISA prefix behavior documented, divergence report format pinned. Sim-only.
 - [x] **Task A6: Assertion synthesizer (item 6)** — DONE: assertion_synth.py + 12 tests, 1 prop holds-clean/falsified-by-mutant, live $0.085 (4 attempts disclosed), suite 480, CI ALL PASS.
 - [x] **Task A7: Spec-vs-RTL differ (item 7)** — DONE: specdiff.py + 14 tests, 4/5 honest split (parity uncovered), suite 492, CI ALL PASS.
 - [x] **Task A8: Reset/X-prop hunter (item 8)** — DONE: xprop.py + 24 tests, pristine inconclusive (honest), positive-control LEAK, suite 518, CI ALL PASS.
