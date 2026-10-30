@@ -548,12 +548,12 @@ raises TypeError/ValueError; deterministic input order.
   (strategies = injectable callables: template/model/transfer shapes;
   all simulated, no live API).
 
-- [ ] **Step 1: Write the failing test** — fixture where the template
+- [x] **Step 1: Write the failing test** — fixture where the template
   strategy greens: winner is template and all three attempts are logged.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/repairrace.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/repairrace.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed f5dfbdf (17/17, 1660, CI, APPROVE).
 
 ### Task G7: Fixer self-repair (item 77)
 
@@ -571,7 +571,9 @@ raises TypeError/ValueError; deterministic input order.
 - [ ] **Step 2: Run RED.**
 - [ ] **Step 3: Implement** in `agent/repair/selfrepair.py`.
 - [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [ ] **Step 5: Report proof.** No commit. (Prior committed-plan claim of
+  ec79aa9 was FALSE — corrected during audit; G7 files verified
+  on disk, commit pending.)
 
 ### Task G8: Story-vs-diff verifier (item 78)
 
