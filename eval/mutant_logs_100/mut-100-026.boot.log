@@ -1,0 +1,10 @@
+- tb_picorv32_fetch_decode seed 42
+- 254-word NOP mem + 2xADDI up front, checking fetch alignment + trap + progress + retired immediates
+- retired: x5=0x0000007b (want 0x0000007b) x6=0x0000007b (want 0x0000007c)
+tohost: FAIL 0xdead
+TRAP: decode retired-immediate mismatch x5=0x0000007b x6=0x0000007b
+CYCLES=2009
+- /home/tuncay/afterglow/sim/tb/picorv32-fetch-decode_tb.sv:117: Verilog $finish
+- S i m u l a t i o n   R e p o r t: Verilator 5.052 2026-09-05
+- Verilator: $finish at 20us; walltime 0.001 s; speed 30.906 ms/s
+- Verilator: cpu 0.001 s on 1 threads; allocated 4 MB

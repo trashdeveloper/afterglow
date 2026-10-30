@@ -1,0 +1,25 @@
+# SANCTIONED mutant spec mut-100-006 (H10 nightly board, seed 777).
+# Firing rule: agent/loop.py --spec ONLY (line-targeted apply of bug at
+# mutant_line in a runs/scratch copy of the pinned pristine tree).
+# Fault provenance: eval/mutate.py num_bump on picosoc/simpleuart.v:41
+# (before 'reg [7:0] recv_pattern;', after 'reg [7:1] recv_pattern;'); kept-tree at
+# /tmp/mutboard100/kept/mut-100-006 is PROVENANCE ONLY -- firing rebuilds
+# byte-identically from anchor/bug+line (see eval/FIRING.md pattern).
+# Parent TB/oracle: picosoc-uart-div. Red = oracle FAIL, green = patch restores PASS.
+project: "picorv32"
+files: ["picosoc/simpleuart.v"]
+top: "tb_picosoc_uart"
+tb: "picosoc-uart-div_tb.sv"
+vflags: ["-Wno-WIDTH"]
+anchor: "reg [7:0] recv_pattern;"
+bug: "reg [7:1] recv_pattern;"
+gate: "picosoc-uart-div H10 num_bump"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-100-006"
+mutant_seed: 777
+mutant_op: "num_bump"
+mutant_file: "picosoc/simpleuart.v"
+mutant_line: 41
+parent_case: "picosoc-uart-div"
+mutant_tree: "/tmp/mutboard100/kept/mut-100-006"

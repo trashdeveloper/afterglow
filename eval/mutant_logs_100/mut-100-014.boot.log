@@ -1,0 +1,9 @@
+- tb_picorv32_fetch seed 42
+- 256-word NOP mem, checking fetch alignment + trap + progress
+tohost: FAIL 0xdead
+TRAP: cpu trap asserted
+CYCLES=2009
+- /home/tuncay/afterglow/sim/tb/picorv32-fetch_tb.sv:91: Verilog $finish
+- S i m u l a t i o n   R e p o r t: Verilator 5.052 2026-09-05
+- Verilator: $finish at 20us; walltime 0.001 s; speed 39.876 ms/s
+- Verilator: cpu 0.001 s on 1 threads; allocated 4 MB

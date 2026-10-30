@@ -1,0 +1,25 @@
+# SANCTIONED mutant spec mut-100-005 (H10 nightly board, seed 777).
+# Firing rule: agent/loop.py --spec ONLY (line-targeted apply of bug at
+# mutant_line in a runs/scratch copy of the pinned pristine tree).
+# Fault provenance: eval/mutate.py logic_swap on picorv32.v:380
+# (before 'assign mem_la_read = resetn && ((!mem_la_use_prefetched_high_word && !mem_state && (mem_do_rinst || mem_do_prefetch || mem_do_rdata)) ||', after 'assign mem_la_read = resetn && ((!mem_la_use_prefetched_high_word && !mem_state && (mem_do_rinst && mem_do_prefetch || mem_do_rdata)) ||'); kept-tree at
+# /tmp/mutboard100/kept/mut-100-005 is PROVENANCE ONLY -- firing rebuilds
+# byte-identically from anchor/bug+line (see eval/FIRING.md pattern).
+# Parent TB/oracle: picorv32-fetch-misalign. Red = oracle FAIL, green = patch restores PASS.
+project: "picorv32"
+files: ["picorv32.v"]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+vflags: ["-Wno-PINMISSING"]
+anchor: "assign mem_la_read = resetn && ((!mem_la_use_prefetched_high_word && !mem_state && (mem_do_rinst || mem_do_prefetch || mem_do_rdata)) ||"
+bug: "assign mem_la_read = resetn && ((!mem_la_use_prefetched_high_word && !mem_state && (mem_do_rinst && mem_do_prefetch || mem_do_rdata)) ||"
+gate: "picorv32-fetch-misalign H10 logic_swap"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-100-005"
+mutant_seed: 777
+mutant_op: "logic_swap"
+mutant_file: "picorv32.v"
+mutant_line: 380
+parent_case: "picorv32-fetch-misalign"
+mutant_tree: "/tmp/mutboard100/kept/mut-100-005"

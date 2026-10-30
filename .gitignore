@@ -8,3 +8,6 @@ sim/obj_afterglow_*/
 *key*.json
 # Work cache lives outside the repo
 runs/scratch/
+# H10 campaign logs (fresh-seed mining; board.json references them relatively)
+eval/mutant_pilot/logs/board100-*
+eval/mutant_pilot/logs/mut-100-*.log

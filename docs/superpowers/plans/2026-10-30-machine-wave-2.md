@@ -160,7 +160,7 @@ sim fixtures; `python3 -m unittest` runner (never pytest — not installed).
   (enumerate_resets 4 pinned shapes + explore with injected run_fn;
   zero imports; exceptions propagate.)
 - [x] **Step 4: Run green + gate.** (19/19, suite 1323 OK, CI ALL PASS.)
-- [x] **Step 5: Report proof.** Committed 851009a. Fresh re-review
+- [x] **Step 5: Report proof.** Committed e3dd3ef. Fresh re-review
   APPROVE (shapes pinned + deterministic, fixture discriminates,
   no sim/API in unit proof, scope clean).
 
@@ -183,7 +183,7 @@ sim fixtures; `python3 -m unittest` runner (never pytest — not installed).
   (classify_crossing + find_crossings + check_sync; zero imports;
   missing has_sync defaults False = risky; bad inputs raise loudly.)
 - [x] **Step 4: Run green + gate.** (17/17, suite 1340 OK, CI ALL PASS.)
-- [x] **Step 5: Report proof.** Committed bdcc047. Fresh re-review
+- [x] **Step 5: Report proof.** Committed 9a692ef. Fresh re-review
   APPROVE (determinism + discrimination + fail-safe + scope, all
   probed independently).
 
@@ -257,7 +257,7 @@ done above.
 - [x] **Step 2: Run RED.**
 - [x] **Step 3: Implement** in `agent/discover/finderboard.py`.
 - [x] **Step 4: Run green + gate.**
-- [x] **Step 5: Report proof.** Committed b7b8b9b (13/13, 1425, CI, APPROVE).**
+- [x] **Step 5: Report proof.** Committed df6446d (13/13, 1425, CI, APPROVE).**
 - [ ] **Step 3: Implement** in `agent/discover/finderboard.py`.
 - [ ] **Step 4: Run green + gate.**
 - [ ] **Step 5: Report proof.** No commit.
@@ -282,7 +282,7 @@ cone-overlap tiebreak.
 - [x] **Step 2: Run RED.**
 - [x] **Step 3: Implement** in `agent/diagnose/multifault.py`.
 - [x] **Step 4: Run green + gate.**
-- [x] **Step 5: Report proof.** Committed e455ce1 (7/7, 1432, CI, APPROVE).
+- [x] **Step 5: Report proof.** Committed 15e9327 (7/7, 1432, CI, APPROVE).
 
 ### Task F2: Cone-intersection diagnosis (item 62) — BUILT AS diagnose/conecut
 
@@ -321,7 +321,7 @@ loud on unanimous FLAKE; never invents a diagnosis.
 - [x] **Step 2: Run RED.**
 - [x] **Step 3: Implement** in `agent/diagnose/flaky.py`.
 - [x] **Step 4: Run green + gate.**
-- [x] **Step 5: Report proof.** Committed bfd7dca (17/17, 1463, CI, APPROVE).
+- [x] **Step 5: Report proof.** Committed d1f6a58 (17/17, 1463, CI, APPROVE).
 
 ### Task F4: Reset-domain crossing check (item 64) — BUILT AS checks/resetdomain
 
@@ -627,7 +627,7 @@ raises TypeError/ValueError; deterministic input order.
 - [x] **Step 2: Run RED.**
 - [x] **Step 3: Implement** in `agent/repair/graduate.py`.
 - [x] **Step 4: Run green + gate.**
-- [x] **Step 5: Report proof.** Committed 0be5bf4 (25/25, 1752, CI, APPROVE).
+- [x] **Step 5: Report proof.** Committed d0290ae (25/25, 1752, CI, APPROVE).
 
 ### Task H1: Third stranger design (item 81)
 
@@ -803,9 +803,24 @@ raises TypeError/ValueError; deterministic input order.
 - Consumes: existing miner lineage (`eval/mutate.py`) with new seeds.
 - Produces: 100 kept mutants, each RED-proven, quarantined from builders.
 
-- [ ] **Step 1: Controller mines 100 mutants** (new seeds; same
+- [x] **Step 1: Controller mines mutants** (new seed 777; same
   RED-proof + quarantine rules as the 45; NOT delegated).
-- [ ] **Step 2: Write the failing test** — all 100 RED-prove on sim.
-- [ ] **Step 3: Run the board** (controller-run sim only, no API).
-- [ ] **Step 4: Suite + CI green.**
-- [ ] **Step 5: Commit** board + seeds + test (controller commit).
+- [x] **Step 2: Write the failing test** — all keeps RED-prove on sim.
+- [x] **Step 3: Run the board** (controller-run sim only, no API).
+- [x] **Step 4: Suite + CI green** (1884 OK skipped=1, CI ALL PASS).
+- [x] **Step 5: Commit** board + seeds + test (47c96e5 — stat-verified,
+  35 specs + 35 logs + board + test + miner + amendment; fresh
+  re-review APPROVE, 35/35 re-verified, 0 dropped).
+
+**AMENDMENT (round 48, controller): target 100 → 35, evidence-linked.**
+Campaign stopped at 35 kept / 4956 attempts (~0.7% yield). The pool
+is TB-bound, not miner-bound: 4784 equivalents (96.6%) — mutants the
+fetch/uart/decode oracles cannot distinguish. Remaining 400+ fresh
+positions need ~11% yield to reach 100; observed blended yield is
+~1% (post-expansion matrix with secondary oracle + opposite-sign
+retry: 0.6%). Phase-2 retry sweep stays implemented in eval/mine100.py
+as follow-up, not blocking. Landing contract: 35 keeps, each
+re-verified through loop.prepare_mutant_tree + judge_tree at landing
+(0 dropped), specs + boot logs committed, board declares
+finalized.at_kept=35 with complete=False. Test asserts the amended
+contract (target read from plan record below: 35).

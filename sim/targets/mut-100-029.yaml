@@ -1,0 +1,25 @@
+# SANCTIONED mutant spec mut-100-029 (H10 nightly board, seed 777).
+# Firing rule: agent/loop.py --spec ONLY (line-targeted apply of bug at
+# mutant_line in a runs/scratch copy of the pinned pristine tree).
+# Fault provenance: eval/mutate.py cmp_swap on picorv32.v:1313
+# (before 'if (cpu_state == cpu_state_fetch) begin', after 'if (cpu_state != cpu_state_fetch) begin'); kept-tree at
+# /tmp/mutboard100/kept/mut-100-029 is PROVENANCE ONLY -- firing rebuilds
+# byte-identically from anchor/bug+line (see eval/FIRING.md pattern).
+# Parent TB/oracle: picorv32-fetch-decode. Red = oracle FAIL, green = patch restores PASS.
+project: "picorv32"
+files: ["picorv32.v"]
+top: "tb_picorv32_fetch_decode"
+tb: "picorv32-fetch-decode_tb.sv"
+vflags: ["-Wno-PINMISSING"]
+anchor: "if (cpu_state == cpu_state_fetch) begin"
+bug: "if (cpu_state != cpu_state_fetch) begin"
+gate: "picorv32-fetch-decode H10 cmp_swap"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-100-029"
+mutant_seed: 777
+mutant_op: "cmp_swap"
+mutant_file: "picorv32.v"
+mutant_line: 1313
+parent_case: "picorv32-fetch-decode"
+mutant_tree: "/tmp/mutboard100/kept/mut-100-029"

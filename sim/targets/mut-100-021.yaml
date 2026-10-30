@@ -1,0 +1,25 @@
+# SANCTIONED mutant spec mut-100-021 (H10 nightly board, seed 777).
+# Firing rule: agent/loop.py --spec ONLY (line-targeted apply of bug at
+# mutant_line in a runs/scratch copy of the pinned pristine tree).
+# Fault provenance: eval/mutate.py num_bump on picorv32.v:617
+# (before 'mem_state <= mem_do_rinst || mem_do_rdata ? 0 : 3;', after 'mem_state <= mem_do_rinst || mem_do_rdata ? 1 : 3;'); kept-tree at
+# /tmp/mutboard100/kept/mut-100-021 is PROVENANCE ONLY -- firing rebuilds
+# byte-identically from anchor/bug+line (see eval/FIRING.md pattern).
+# Parent TB/oracle: picorv32-fetch-misalign. Red = oracle FAIL, green = patch restores PASS.
+project: "picorv32"
+files: ["picorv32.v"]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+vflags: ["-Wno-PINMISSING"]
+anchor: "mem_state <= mem_do_rinst || mem_do_rdata ? 0 : 3;"
+bug: "mem_state <= mem_do_rinst || mem_do_rdata ? 1 : 3;"
+gate: "picorv32-fetch-misalign H10 num_bump"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-100-021"
+mutant_seed: 777
+mutant_op: "num_bump"
+mutant_file: "picorv32.v"
+mutant_line: 617
+parent_case: "picorv32-fetch-misalign"
+mutant_tree: "/tmp/mutboard100/kept/mut-100-021"

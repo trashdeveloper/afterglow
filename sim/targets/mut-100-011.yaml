@@ -1,0 +1,25 @@
+# SANCTIONED mutant spec mut-100-011 (H10 nightly board, seed 777).
+# Firing rule: agent/loop.py --spec ONLY (line-targeted apply of bug at
+# mutant_line in a runs/scratch copy of the pinned pristine tree).
+# Fault provenance: eval/mutate.py constant_flip on picorv32.v:1057
+# (before "instr_addi  <= is_alu_reg_imm && mem_rdata_q[14:12] == 3'b000;", after "instr_addi  <= is_alu_reg_imm && mem_rdata_q[14:12] == 3'b100;"); kept-tree at
+# /tmp/mutboard100/kept/mut-100-011 is PROVENANCE ONLY -- firing rebuilds
+# byte-identically from anchor/bug+line (see eval/FIRING.md pattern).
+# Parent TB/oracle: picorv32-fetch-misalign. Red = oracle FAIL, green = patch restores PASS.
+project: "picorv32"
+files: ["picorv32.v"]
+top: "tb_picorv32_fetch"
+tb: "picorv32-fetch_tb.sv"
+vflags: ["-Wno-PINMISSING"]
+anchor: "instr_addi  <= is_alu_reg_imm && mem_rdata_q[14:12] == 3'b000;"
+bug: "instr_addi  <= is_alu_reg_imm && mem_rdata_q[14:12] == 3'b100;"
+gate: "picorv32-fetch-misalign H10 constant_flip"
+oracle_pass: "tohost: PASS"
+oracle_trap: "TRAP:"
+mutant_id: "mut-100-011"
+mutant_seed: 777
+mutant_op: "constant_flip"
+mutant_file: "picorv32.v"
+mutant_line: 1057
+parent_case: "picorv32-fetch-misalign"
+mutant_tree: "/tmp/mutboard100/kept/mut-100-011"
