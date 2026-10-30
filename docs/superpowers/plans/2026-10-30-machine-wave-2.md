@@ -748,12 +748,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `certify(bundle_dir, clean_checkout) -> {certified, reasons}`
   + stamp file.
 
-- [ ] **Step 1: Write the failing test** — a real GREEN bundle certifies
+- [x] **Step 1: Write the failing test** — a real GREEN bundle certifies
   from a scratch copy; a tampered copy fails naming the broken link.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/trust/replaycert.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/trust/replaycert.py`.
+- [x] **Step 4: Run green + gate.** (7/7, suite 1860 OK, CI ALL PASS.)
+- [x] **Step 5: Report proof.** Committed 608bc6e (7/7, 1860, CI, APPROVE).
 
 ### Task H8: Flake-adjusted scoring (item 88)
 
