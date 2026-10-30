@@ -79,7 +79,7 @@ sim fixtures; `python3 -m unittest` runner (never pytest — not installed).
 - [x] **Step 5: Report proof** — committed with E1 (see git log).
   both tails. No commit. (Controller also ticks the orphaned A5b box.)
 
-### Task E2: Seed portfolio scheduler (item 52)
+### Task E2: Seed portfolio scheduler (item 52) — DONE
 
 **Files:**
 - Create: `agent/discover/seedportfolio.py`
