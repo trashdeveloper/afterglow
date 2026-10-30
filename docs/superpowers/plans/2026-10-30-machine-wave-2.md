@@ -371,12 +371,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `break_ties(scored_lines, churn) -> ordered` (equal scores
   ordered by churn recency).
 
-- [ ] **Step 1: Write the failing test** — two lines with equal scores:
+- [x] **Step 1: Write the failing test** — two lines with equal scores:
   the recently-churned one ranks first; different scores keep order.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/evidence/churnprior.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/evidence/churnprior.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed 262bb87 (18/18, 1504, CI, APPROVE).
 
 ### Task F7: Diagnosis memory (item 67)
 
