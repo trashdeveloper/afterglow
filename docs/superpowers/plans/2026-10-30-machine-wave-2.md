@@ -388,12 +388,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `record(attempt_log, diagnosis)` / `avoid(attempt_log) ->
   [banned_lines]`.
 
-- [ ] **Step 1: Write the failing test** — after recording a failed
+- [x] **Step 1: Write the failing test** — after recording a failed
   line-1446 diagnosis, the next proposal must differ from 1446.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/evidence/diagmemory.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/evidence/diagmemory.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed 9508639 (14/14, 1518, CI, APPROVE).
 
 ### Task F8: Spec-cited diagnosis (item 68)
 
