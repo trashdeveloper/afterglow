@@ -566,14 +566,12 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `fallback_for(attribution) -> strategy`; `retry_with(failure,
   fallback_fn)`.
 
-- [ ] **Step 1: Write the failing test** — unparseable-output failure
+- [x] **Step 1: Write the failing test** — unparseable-output failure
   maps to the re-ask fallback and the retry greens on a fixture.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/repair/selfrepair.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit. (Prior committed-plan claim of
-  ec79aa9 was FALSE — corrected during audit; G7 files verified
-  on disk, commit pending.)
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/repair/selfrepair.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed 1adba1e (24/24, 1684, CI, APPROVE).
 
 ### Task G8: Story-vs-diff verifier (item 78)
 
