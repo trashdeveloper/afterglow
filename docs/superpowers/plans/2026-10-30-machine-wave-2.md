@@ -323,38 +323,40 @@ loud on unanimous FLAKE; never invents a diagnosis.
 - [x] **Step 4: Run green + gate.**
 - [x] **Step 5: Report proof.** Committed bfd7dca (17/17, 1463, CI, APPROVE).
 
-### Task F4: Evidence-overlap confidence (item 64)
+### Task F4: Reset-domain crossing check (item 64) — BUILT AS checks/resetdomain
 
-**Files:**
-- Create: `agent/evidence/overlapconf.py`
-- Test: `tests/test_evidence_overlapconf.py`
+**Files (as built):**
+- Created: `agent/checks/__init__.py`, `agent/checks/resetdomain.py`
+  (`check(modules, reset_map)` → violations {register, expected, actual})
+- Test: `tests/test_checks_resetdomain.py` (10 tests)
 
-**Interfaces:**
-- Produces: `score(failing_signals, cone_lines, candidate_line) -> 0..1`
-  (Jaccard × cone membership).
+**Interfaces (as built):** unknown domain raises KeyError; malformed
+raises TypeError/ValueError; deterministic input order.
 
-- [ ] **Step 1: Write the failing test** — true line scores strictly
-  above a decoy line sharing one signal.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/evidence/overlapconf.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 1: Write the failing test** — mismatched reset flagged;
+  consistent passes.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/checks/resetdomain.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committing below (10/10, 1473, CI, APPROVE).
 
-### Task F5: Weighted past-fix retrieval (item 65)
+### Task F5: Glue-logic vs RTL diff (item 65) — BUILT AS checks/gluediff
+(controller dispatch overrode plan path; accepting built reality)
 
-**Files:**
-- Create: `agent/evidence/pastfixw.py`
-- Test: `tests/test_evidence_pastfixw.py`
+**Files (as built):**
+- Created: `agent/checks/gluediff.py`
+  (`diff(glue_lines, rtl_lines)` → {glue_only, rtl_only, common})
+- Test: `tests/test_checks_gluediff.py` (13 tests)
 
 **Interfaces:**
 - Consumes: `agent/evidence/pastfix.py` index format.
 - Produces: `retrieve(fault, index, design_modules) -> [fix]` weighted
   by module overlap.
 
-- [ ] **Step 1: Write the failing test** — same-design prior fix
-  outranks a higher-Jaccard cross-design fix.
+- [ ] **Step 1: Write the failing test** — wrapper line flagged
+  glue_only; whitespace-only diff passes empty.
 - [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/evidence/pastfixw.py`.
+- [ ] **Step 3: Implement** in `agent/checks/gluediff.py`.
 - [ ] **Step 4: Run green + gate.**
 - [ ] **Step 5: Report proof.** No commit.
 
