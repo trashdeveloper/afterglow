@@ -423,13 +423,13 @@ raises TypeError/ValueError; deterministic input order.
 - Produces: `features(signal_trace) -> {toggle_density, first_change}`;
   `classify(feats) -> "stuck-at"|"wrong-constant"|"unknown"`.
 
-- [ ] **Step 1: Write the failing test** — stuck-at fixture →
+- [x] **Step 1: Write the failing test** — stuck-at fixture →
   `stuck-at`; wrong-constant fixture → `wrong-constant`; flatline with
   no driver → `unknown`.
-- [ ] **Step 2: Run RED.**
-- [ ] **Step 3: Implement** in `agent/evidence/vcdshape.py`.
-- [ ] **Step 4: Run green + gate.**
-- [ ] **Step 5: Report proof.** No commit.
+- [x] **Step 2: Run RED.**
+- [x] **Step 3: Implement** in `agent/evidence/vcdshape.py`.
+- [x] **Step 4: Run green + gate.**
+- [x] **Step 5: Report proof.** Committed e0dd8e6 (32/32, 1570, CI, APPROVE).
 
 ### Task F10: Diagnosis tournament (item 70)
 
