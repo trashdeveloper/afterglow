@@ -134,6 +134,25 @@ STRATEGY_CHANGE_DIRECTIVE = (
 CONSENSUS_WINDOW_LINES = 10
 CONSENSUS_VOTES = 3
 
+# Waveform-diagnosis wiring (opt-in --waveform, default OFF): on a failing
+# case whose TB carries an ifdef-guarded DUMP_WAVES dump block, rebuild
+# with --trace + define DUMP_WAVES, render waves.vcd to waveform.png via
+# agent/waveform/vcdrender.py, and attach the PNG bytes to the diagnosis
+# image-model call alongside the existing explainer. Default OFF executes
+# no new imports and writes no new bundle keys, so the proven
+# RED->...->VERIFY path stays byte-identical (see
+# tests/test_waveform_diagnosis.py).
+WAVEFORM_VCD_NAME = "waves.vcd"
+WAVEFORM_PNG_NAME = "waveform.png"
+WAVEFORM_TIME_PER_CYCLE = 10
+WAVEFORM_FAIL_PAD = 200  # VCD time units of context around the fail point
+# Render signal map keyed by case top (fully-qualified VCD names; short
+# names are loudly ambiguous on real dumps, so only tops with a proven
+# pair are listed -- unknown tops degrade loudly instead of guessing).
+WAVEFORM_SIGNALS = {
+    "tb_picosoc_uart": ("tb_picosoc_uart.clk", "tb_picosoc_uart.ser_tx"),
+}
+
 # Full-auto-by-default loop mode: every run attempts PATCH->RESIM->VERIFY
 # (mode "live", exit 0/1) unless --triage / --stop-before-patch selects
 # the old stop-before-PATCH behavior (mode "triage", exit 2). --auto is
@@ -189,6 +208,173 @@ def resolve_mode(args) -> str:
 def should_withhold_patch(args) -> bool:
     """True when the run must stop after DIAGNOSE+EXPLAIN (triage)."""
     return resolve_mode(args) != MODE_LIVE
+
+
+class WaveformError(RuntimeError):
+    """Waveform capture/render failed -- caller degrades loudly to
+    text-only with a meta note, never silently and never fatally."""
+
+
+def tb_supports_dump_waves(tb_name: str) -> bool:
+    """True iff sim/tb/<tb_name> carries an ifdef-guarded DUMP_WAVES
+    dump block (the pilot contract: $dumpfile + DUMP_WAVES + endif).
+    Pure file read, no imports beyond stdlib os."""
+    tb_path = os.path.join(ROOT, "sim", "tb", str(tb_name))
+    try:
+        with open(tb_path, encoding="utf-8") as fh:
+            src = fh.read()
+    except OSError:
+        return False
+    return ("DUMP_WAVES" in src and "$dumpfile" in src
+            and "`ifdef" in src)
+
+
+def waveform_plan(args, case: dict) -> dict:
+    """Waveform go/no-go (pure, no imports, no builds).
+
+    Returns {"status", "reason"} with status one of:
+      disabled -- flag OFF (default); caller must run the proven path
+        byte-identically (no capture, no new bundle keys).
+      ready    -- flag ON and the case TB is DUMP_WAVES-capable with a
+        known render signal map.
+      degraded -- flag ON but this case cannot carry a waveform (TB has
+        no DUMP_WAVES block, or no signal map for its top); caller
+        degrades loudly to text-only with this reason in meta.
+    """
+    if not bool(getattr(args, "waveform", False)):
+        return {"status": "disabled", "reason": "flag OFF (default)"}
+    tb_name = str((case or {}).get("tb", ""))
+    if not tb_name or not tb_supports_dump_waves(tb_name):
+        return {"status": "degraded",
+                "reason": "TB %r has no DUMP_WAVES dump block: "
+                          "text-only" % (tb_name,)}
+    top = str((case or {}).get("top", ""))
+    if top not in WAVEFORM_SIGNALS:
+        return {"status": "degraded",
+                "reason": "no waveform signal map for top %r: "
+                          "text-only" % (top,)}
+    return {"status": "ready", "reason": "TB %s dump-capable" % (tb_name,)}
+
+
+def _wave_fail_window(boot_log_text: str, oracle_trap: str = "TRAP:"):
+    """Fail-window (VCD time units) around the first FAIL marker.
+
+    Same marker rule as the collector: oracle_trap line wins, else the
+    first "tohost: FAIL" line; per-line cycle stamps convert via
+    WAVEFORM_TIME_PER_CYCLE, else the CYCLES= end count. Raises
+    WaveformError (loud, never guessed) when no marker or no stamp
+    exists -- the caller degrades to text-only.
+    """
+    if not isinstance(boot_log_text, str) or not boot_log_text.strip():
+        raise WaveformError("empty sim log: refusing to invent a fail point")
+    lines = boot_log_text.splitlines()
+    idx = next((i for i, ln in enumerate(lines) if oracle_trap in ln), -1)
+    if idx < 0:
+        idx = next((i for i, ln in enumerate(lines)
+                    if "tohost: FAIL" in ln), -1)
+    if idx < 0:
+        raise WaveformError("no FAIL marker in sim log: refusing to "
+                            "invent a fail point")
+    m = re.search(r"(?:cycles?|cyc)\s*[=:\s]?\s*(\d+)",
+                  lines[idx], re.IGNORECASE)
+    cycle = int(m.group(1)) if m else None
+    if cycle is None:
+        m = re.search(r"CYCLES=(\d+)", boot_log_text)
+        cycle = int(m.group(1)) if m else None
+    if cycle is None:
+        raise WaveformError("sim log carries no cycle stamp and no "
+                            "CYCLES=: refusing to invent a fail window")
+    fail_t = cycle * WAVEFORM_TIME_PER_CYCLE
+    return (max(0, fail_t - WAVEFORM_FAIL_PAD), fail_t + WAVEFORM_FAIL_PAD)
+
+
+def capture_waves_vcd(*, case: dict, tree: str, out_dir: str,
+                      seed: int, build_timeout: int = 900,
+                      run_timeout: int = 300) -> dict:
+    """Trace build+run for the TB-native DUMP_WAVES path.
+
+    Builds case sources + TB with --trace + define DUMP_WAVES into a
+    dedicated mdir (obj_afterglow_<name>_waves -- never the RED obj
+    dir), runs the binary with cwd=out_dir so waves.vcd lands there.
+    Returns {"vcd", "log", "tohost", "seed"}. Raises WaveformError
+    loudly on build failure, run timeout, or a missing/empty VCD --
+    the caller degrades to text-only, never proceeds without one.
+    """
+    # NOTE: waveform.vcdrender is imported LAZILY by render_waveform_png,
+    # never here and never at module top, so the default (flag-OFF) path
+    # executes no new imports.
+    for key in ("files", "top", "tb", "name"):
+        if key not in case:
+            raise WaveformError("case missing key %r" % (key,))
+    if not os.path.isdir(str(tree)):
+        raise WaveformError("tree not a directory: %r" % (tree,))
+    os.makedirs(out_dir, exist_ok=True)
+    tb_path = os.path.join(ROOT, "sim", "tb", case["tb"])
+    if not os.path.isfile(tb_path):
+        raise WaveformError("missing testbench: %s" % (tb_path,))
+    srcs = []
+    for rel in case["files"]:
+        p = os.path.join(str(tree), rel)
+        if not os.path.isfile(p):
+            raise WaveformError("missing RTL source: %s" % (p,))
+        srcs.append(p)
+    name = str(case["name"])
+    mdir = os.path.join(str(tree), "obj_afterglow_%s_waves" % name)
+    binary = os.path.join(mdir, "V%s" % case["top"])
+    cmd = ["verilator", "--binary", "--timing", "--trace", "-j", "4",
+           "--top-module", str(case["top"]), "-Mdir", mdir,
+           "-o", "V%s" % case["top"]]
+    cmd += srcs + [tb_path, "+define+DUMP_WAVES"]
+    cmd += list(case.get("vflags", []))
+    proc = subprocess.run(cmd, stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT, text=True,
+                          timeout=build_timeout, cwd=str(tree))
+    if proc.returncode != 0 or not os.path.isfile(binary):
+        raise WaveformError("waveform trace build failed (exit %d):\n%s"
+                            % (proc.returncode, proc.stdout[-2000:]))
+    try:
+        run = subprocess.run(
+            [binary, "+seed=%d" % int(seed)], stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, text=True, timeout=run_timeout,
+            cwd=out_dir)
+    except subprocess.TimeoutExpired:
+        raise WaveformError("waveform trace run timed out after %ds"
+                            % (run_timeout,))
+    log = run.stdout
+    vcd_path = os.path.join(out_dir, WAVEFORM_VCD_NAME)
+    if not os.path.isfile(vcd_path):
+        raise WaveformError("trace run produced no %s; log tail:\n%s"
+                            % (WAVEFORM_VCD_NAME, log[-2000:]))
+    if os.path.getsize(vcd_path) == 0:
+        raise WaveformError("%s is empty: refusing to render nothing"
+                            % (WAVEFORM_VCD_NAME,))
+    tohost = None
+    for ln in log.splitlines():
+        if "tohost:" in ln:
+            tohost = ln.split("tohost:", 1)[1].strip()
+    return {"vcd": vcd_path, "log": log, "tohost": tohost,
+            "seed": int(seed), "binary": binary}
+
+
+def render_waveform_png(*, vcd_path: str, out_path: str, signals,
+                        fail_start=None, fail_end=None,
+                        title: str | None = None) -> dict:
+    """Render a captured waves.vcd to PNG via agent/waveform/vcdrender.py.
+
+    The ONLY place waveform.vcdrender (and its protocol/Pillow chain) is
+    imported -- lazily, so the flag-OFF path never executes it. Raises
+    WaveformError (wrapping vcdrender ValueErrors) when the VCD is
+    missing, empty, or carries none of the requested signals.
+    """
+    from waveform import vcdrender  # noqa: E402  (lazy: flag-ON only)
+    try:
+        return vcdrender.render_vcd_file(
+            vcd_path, list(signals), out_path,
+            fail_start=fail_start, fail_end=fail_end, title=title)
+    except ValueError as exc:
+        raise WaveformError("waveform render refused: %s" % (exc,))
+    except OSError as exc:
+        raise WaveformError("waveform render I/O failed: %s" % (exc,))
 
 
 def case_to_spec(case: dict) -> "CaseSpec":
@@ -1471,6 +1657,17 @@ def parse_args(argv=None):
                          "read-only over runs/; a miss logs recall: MISS "
                          "and changes nothing. Default OFF keeps the "
                          "proven prompt path byte-identical.")
+    ap.add_argument("--waveform", action="store_true", default=False,
+                    help="waveform-diagnosis wiring (opt-in): on a failing "
+                         "case whose TB carries an ifdef-guarded DUMP_WAVES "
+                         "dump block, rebuild with --trace + define "
+                         "DUMP_WAVES, render waves.vcd to waveform.png via "
+                         "agent/waveform/vcdrender.py, and attach the PNG "
+                         "bytes to the diagnosis image-model call "
+                         "alongside the existing explainer. TBs without "
+                         "DUMP_WAVES degrade loudly to text-only with a "
+                         "meta note. Default OFF keeps the proven path "
+                         "byte-identical.")
     return ap.parse_args(argv)
 
 
@@ -3063,6 +3260,64 @@ def main(argv=None) -> int:
                  "top1_is_true": counts.get("top1_is_true", ""),
                  "trace_sha256": trace_sha})
 
+    # ---- WAVEFORM (opt-in --waveform, default OFF): capture + render
+    # ONCE per run from the RED tree, BEFORE any patch lands. Default
+    # path executes NOTHING here except the flag test (no imports, no
+    # builds, no new bundle keys) so bundles stay byte-identical.
+    # Flag-ON failures degrade LOUDLY to text-only (meta note + print),
+    # never fatally and never silently.
+    wave_info: dict | None = None
+    wave_png_bytes: bytes | None = None
+    if bool(getattr(args, "waveform", False)):
+        _wplan = waveform_plan(args, case)
+        if _wplan["status"] != "ready":
+            wave_info = {"status": "degraded", "reason": _wplan["reason"],
+                         "attachments": []}
+            print("[WAVEFORM] degraded (%s)" % (_wplan["reason"],),
+                  flush=True)
+        else:
+            try:
+                _waves_dir = os.path.join(run_dir, "waves")
+                _cap = capture_waves_vcd(
+                    case=case, tree=tree, out_dir=_waves_dir,
+                    seed=args.seed)
+                _fs, _fe = _wave_fail_window(
+                    boot_log, str(case.get("oracle_trap", "TRAP:")))
+                _png_path = os.path.join(run_dir, WAVEFORM_PNG_NAME)
+                _rend = render_waveform_png(
+                    vcd_path=_cap["vcd"], out_path=_png_path,
+                    signals=WAVEFORM_SIGNALS[str(case["top"])],
+                    fail_start=_fs, fail_end=_fe,
+                    title="waveform %s fail=[%g,%g]" % (
+                        args.case, _fs, _fe))
+                with open(_png_path, "rb") as _fh:
+                    wave_png_bytes = _fh.read()
+                wave_info = {
+                    "status": "attached",
+                    "reason": "TB %s dump-capable" % (case["tb"],),
+                    "vcd": _cap["vcd"],
+                    "vcd_tohost": _cap["tohost"],
+                    "png": _png_path,
+                    "png_sha256": hashlib.sha256(wave_png_bytes).hexdigest(),
+                    "png_bytes": len(wave_png_bytes),
+                    "signals": list(_rend["signals"]),
+                    "fail_window": [_fs, _fe],
+                    "attachments": [{"name": WAVEFORM_PNG_NAME,
+                                     "sha256": hashlib.sha256(wave_png_bytes).hexdigest(),
+                                     "bytes": len(wave_png_bytes)}],
+                }
+                print("[WAVEFORM] attached %s (%d bytes, signals=%s)" % (
+                    WAVEFORM_PNG_NAME, len(wave_png_bytes),
+                    ",".join(_rend["signals"])), flush=True)
+            except WaveformError as _wexc:
+                wave_png_bytes = None
+                wave_info = {"status": "degraded",
+                             "reason": "capture/render failed: %s" % (_wexc,),
+                             "attachments": []}
+                print("[WAVEFORM] degraded (capture/render failed: %s)"
+                      % (_wexc,), flush=True)
+        meta["waveform"] = wave_info
+
     # ---- DIAGNOSE -> EXPLAIN -> PATCH -> RESIM (<=2 retries = 3 base
     # attempts, then the ladder gate: at most 2 extra attempts unlock
     # ONLY on 3 signal-bearing REDs with zero flakes and est under cap;
@@ -3628,17 +3883,29 @@ def main(argv=None) -> int:
 
         # EXPLAIN (live image; failure recorded, never silent)
         img_prompt = visual.build_prompt(args.case, trace_sha, diagnosis_text)
+        _img_req = {"model": visual.IMAGE_MODEL,
+                    "endpoint": visual.image_url(),
+                    "prompt": img_prompt,
+                    "prompt_sha256": sha256_text(img_prompt),
+                    "trace_sha256": trace_sha,
+                    "diagnosis_sha256": sha256_text(diagnosis_text),
+                    "case": args.case, "attempt": attempt + 1}
+        # Waveform attachment (flag-ON only): the rendered waveform PNG
+        # travels with the image-model call record alongside the
+        # explainer prompt (status + sha, never raw bytes in JSON).
+        # Flag-OFF writes the exact pre-waveform record (no new keys).
+        _wave_att = None
+        if wave_info is not None:
+            _img_req["waveform"] = wave_info
+            if wave_png_bytes is not None:
+                _wave_att = [{"name": WAVEFORM_PNG_NAME,
+                              "png_bytes": wave_png_bytes}]
         with open(api("image_request.json"), "w", encoding="utf-8") as fh:
-            fh.write(json.dumps(
-                {"model": visual.IMAGE_MODEL, "endpoint": visual.image_url(),
-                 "prompt": img_prompt,
-                 "prompt_sha256": sha256_text(img_prompt),
-                 "trace_sha256": trace_sha,
-                 "diagnosis_sha256": sha256_text(diagnosis_text),
-                 "case": args.case, "attempt": attempt + 1}, indent=2) + "\n")
+            fh.write(json.dumps(_img_req, indent=2) + "\n")
         try:
             img_info = visual.generate(
-                img_prompt, os.path.join(run_dir, "explain.png"))
+                img_prompt, os.path.join(run_dir, "explain.png"),
+                attachments=_wave_att)
             meta["explain"] = "ok"
             tracked_spend_usd += float(cost_ledger.PRICING.get(
                 img_info.get("model", visual.IMAGE_MODEL), {}).get(
@@ -3654,6 +3921,10 @@ def main(argv=None) -> int:
                         "transport": img_info["transport"],
                         "raw_note": "b64 payload replaced by sha256+bytes; "
                                     "explain.png is the provenance artifact"}
+            # Waveform provenance (flag-ON + attached only): attachment
+            # record without bytes. Flag-OFF never sets this key.
+            if "attachments" in img_info:
+                img_resp["attachments"] = img_info["attachments"]
         except visual.LiveImageError as exc:
             meta["explain"] = "FAILED"
             img_resp = {"error": str(exc), "status": "FAILED"}

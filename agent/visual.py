@@ -153,8 +153,16 @@ def _extract_image_bytes(parsed: dict, url: str, key: str,
 
 
 def generate(prompt: str, out_path: str, model: str = IMAGE_MODEL,
-             timeout: int = 180) -> dict:
+             timeout: int = 180, attachments: list | None = None) -> dict:
     """Live image call. Saves normalized PNG to out_path. Returns provenance.
+
+    attachments (optional, default None): list of {"name", "png_bytes"}
+    waveform/diagram PNGs attached to this image-model call alongside the
+    explainer prompt. The generations endpoint is prompt-only, so the
+    POST body is UNCHANGED; attachments travel as recorded provenance
+    (name + sha256 + byte count in the returned dict, full bytes stay
+    in the bundle next to explain.png). None (default) returns the
+    exact pre-waveform provenance (no new keys).
 
     Normalizes webp/jpeg/etc to PNG via Pillow. Raises LiveImageError on
     missing key, transport failure, empty payload, or bad image bytes --
@@ -197,7 +205,7 @@ def generate(prompt: str, out_path: str, model: str = IMAGE_MODEL,
                              % (exc,))
     with open(out_path, "rb") as fh:
         saved = fh.read()
-    return {
+    info = {
         "prompt": prompt,
         "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
         "model": parsed.get("model") or model,
@@ -208,6 +216,19 @@ def generate(prompt: str, out_path: str, model: str = IMAGE_MODEL,
         "transport": transport.get("transport", "?"),
         "out_path": out_path,
     }
+    if attachments:
+        att_rec = []
+        for att in attachments:
+            name = att.get("name", "?") if isinstance(att, dict) else "?"
+            blob = att.get("png_bytes", b"") if isinstance(att, dict) else b""
+            if not isinstance(blob, (bytes, bytearray)) or not blob:
+                raise LiveImageError(
+                    "attachment %r carries no PNG bytes" % (name,))
+            att_rec.append({"name": name,
+                            "sha256": hashlib.sha256(bytes(blob)).hexdigest(),
+                            "bytes": len(blob)})
+        info["attachments"] = att_rec
+    return info
 
 
 def main(argv=None) -> int:
