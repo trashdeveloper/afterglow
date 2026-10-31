@@ -63,7 +63,7 @@ def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(
         prog="afterglow",
         description="Afterglow proof-first RTL debug loop "
-                    "(run | explain | init).")
+                    "(run | explain | init | watch).")
     ap.add_argument("--version", action="version",
                     version="afterglow %s" % __version__)
     sub = ap.add_subparsers(dest="command", required=True)
@@ -120,6 +120,34 @@ def build_parser() -> argparse.ArgumentParser:
     ini.add_argument("--force", action="store_true", default=False,
                      help="overwrite sim/targets/my-first-case.yaml "
                           "if it already exists")
+    wat = sub.add_parser(
+        "watch", help="run a sim command, draft sim/targets/<name>.yaml "
+                      "from its log, confirm, then chain into triage",
+        description="Run the user's sim command after --, capture exit "
+                    "code + full log + argv, draft a CaseSpec (RTL files "
+                    "from .v/.sv args, oracle markers from the strongest "
+                    "FAIL-like lines with an exit-code fallback), print "
+                    "it for confirm (--yes skips), write "
+                    "sim/targets/<name>.yaml, then chain into the triage "
+                    "path (heuristic draft + user confirm; no model "
+                    "calls here). Options must precede --.")
+    wat.add_argument("--name", default=None,
+                     help="spec stem for sim/targets/<name>.yaml "
+                          "(default: sanitized argv[0] basename)")
+    wat.add_argument("--project", default="picorv32",
+                     help="pinned project for the chained triage run "
+                          "(must be in targets.pin)")
+    wat.add_argument("--seed", type=int, default=42)
+    wat.add_argument("--timeout", type=int, default=600,
+                     help="sim command timeout in seconds")
+    wat.add_argument("--yes", action="store_true", default=False,
+                     help="skip the confirm prompt (print draft, write, "
+                          "chain)")
+    wat.add_argument("--force", action="store_true", default=False,
+                     help="overwrite an existing sim/targets/<name>.yaml")
+    wat.add_argument("cmd", nargs=argparse.REMAINDER,
+                     help="sim command after --, e.g. -- ./obj_dir/Vtb "
+                          "+seed=1")
     return ap
 
 
@@ -172,6 +200,22 @@ def main(argv=None) -> int:
         return cmd_explain(args.run_dir)
     if args.command == "init":
         return cmd_init(force=args.force)
+    if args.command == "watch":
+        from agent import watch as watch_mod
+        fwd = []
+        if args.name:
+            fwd += ["--name", args.name]
+        fwd += ["--project", args.project, "--seed", str(args.seed),
+                "--timeout", str(args.timeout)]
+        if args.yes:
+            fwd.append("--yes")
+        if args.force:
+            fwd.append("--force")
+        # args.cmd may already start with the `--` separator (REMAINDER
+        # keeps it); watch.main strips leading `--` itself, so forward
+        # verbatim -- never prepend another one.
+        fwd += list(args.cmd or [])
+        return watch_mod.main(fwd)
     if args.command == "run":
         if args.explain:
             return cmd_explain(args.explain)

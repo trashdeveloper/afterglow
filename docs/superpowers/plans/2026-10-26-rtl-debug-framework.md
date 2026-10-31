@@ -126,3 +126,18 @@
 - [ ] **Step 3: Write `docs/ADAPTER.md`** from what the run actually required (no invented steps).
 - [ ] **Step 4: Verify gate set** `bash scripts/ci.sh` ALL PASS + `python3 eval/score.py` unchanged 8/8 + stranger board numbers present.
 - [ ] **Step 5: Commit** `git add docs/ADAPTER.md eval/ACCEPTANCE.md && git commit -m "docs: adapter guide + fresh-design acceptance log"` (in-window date).
+
+### Task 7: `afterglow watch` — no-YAML entry (plan addendum Oct 31)
+
+**Files:**
+- Create: `agent/watch.py`, `tests/test_watch.py`
+- Modify: `afterglow` (watch subcommand, +43/-1)
+
+**Interfaces:**
+- Consumes: existing `loop.main(["--spec", path, "--triage", ...])` entry point only.
+- Produces: CaseSpec draft from user's own sim argv + log output, confirmed before write.
+
+- [x] **Step 1: Write the failing tests** (15 tests, red-first ModuleNotFoundError).
+- [x] **Step 2: Implement** (run_cmd/exit capture, rtl extraction, marker pick, loud placeholders, confirm/--yes, write_spec, chain_to_triage; stdlib only, no model calls in plumbing).
+- [x] **Step 3: Run green + gate** (15/15, 1933 suite OK, CI ALL PASS, independent re-review APPROVE).
+- [x] **Step 4: Report proof.** Committed 3ac584d (15/15, 1933, CI, APPROVE).
