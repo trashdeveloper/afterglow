@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: serv-alu-lut\nFailing-trace sha256 (first 16 hex): 4517ef6a46dbd2d7\nVerbatim diagnosis from the debug agent:\no_rd/result_bool with bo=01 and rs1==op_b returns 1 while the trace expects 0 for both rs1=op_b=0 and rs1=op_b=1. Unequal-operand bo=01 cases already read 0 and all bo=00/10/11 cases pass. Root cause is BOOL_LUT=16'h8E96 whose bo=01 nibble is 0x9 (equality/XNOR) so equal inputs index a 1 instead of required 0.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 4517ef6a46dbd2d7 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "4bc24248817115665837066f584864b74fd96a5889a7048414616a2e126b03a7",
+  "trace_sha256": "4517ef6a46dbd2d727c4470b30d06d482772901e96ab64b5ef1deb2c86fcee38",
+  "diagnosis_sha256": "4edfa0760551d7af542b31c2c86c2269cda86089639579d11f78aee156e9c943",
+  "case": "serv-alu-lut",
+  "attempt": 1
+}

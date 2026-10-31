@@ -1,0 +1,137 @@
+{
+  "run_id": "verbatim-mut-bigN-34",
+  "case_id": "mut-bigN-34",
+  "case": "mut-bigN-34",
+  "mode": "live",
+  "status": "green",
+  "retries": 1,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-30T16:30:43Z",
+  "wall_end_utc": "2026-10-30T16:43:03Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 29459,
+      "text_request_id": "chatcmpl-01a18da6-ada6-72cf-91f4-858d759ec4b8",
+      "diagnosis_chars": 251,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picosoc/simpleuart.v\\nHunk #1 FAILED at 66.\\n1 out of 1 hunk FAILED\\n']; bootstrap refused (diagnosis names no gate signal)"
+    },
+    {
+      "tree_reset": true,
+      "tree_reset_verified": true,
+      "attempt": 2,
+      "text_latency_ms": 83554,
+      "text_request_id": "chatcmpl-01a18db1-5045-754d-a017-f19d89e9e0d5",
+      "diagnosis_chars": 445,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged",
+      "stale-build-suspect": false,
+      "stale_build_reason": ""
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-34.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/verbatim-mut-bigN-34",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 72,
+    "before": "recv_buf_valid <= 0;",
+    "after": "recv_buf_valid <= 1;",
+    "seed": "1234",
+    "op": "num_bump",
+    "faults": [
+      {
+        "file": "picosoc/simpleuart.v",
+        "line": 72,
+        "before": "recv_buf_valid <= 0;",
+        "after": "recv_buf_valid <= 1;"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-bigN-34",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "1a01e3dd7554c28fc4f88add55dab14e0af721c0bb643827dbea0abf6c429e3c",
+  "cycles_before": 2024,
+  "red_baseline_tree_sha256": "9612880ca317333ed7d022ccc3ad3fa6fdffdc10e892819a454dfa84c830de0e",
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 717,
+  "context_tokens": 163,
+  "context_dropped": "none",
+  "localization_top1": "picosoc/spiflash_tb.v",
+  "top1_is_true": false,
+  "trace_sha256": "322ce540833fc714469c13028dde9bfda5250ec90f7b779749074c51a2b46628",
+  "attempts_consumed": 2,
+  "transport_retries": [
+    5.153528049859171,
+    17.117238470447354,
+    5.817593056346779,
+    17.855997642139357
+  ],
+  "transport_failures": 1,
+  "stack": [],
+  "stacked": false,
+  "stack_depth": 0,
+  "image_latency_ms": 12604,
+  "image_request_id": "8120a93e-8c18-4bfe-98ed-385b7f01cd80",
+  "image_bytes": 1322046,
+  "text_latency_ms": 83554,
+  "text_request_id": "chatcmpl-01a18db1-5045-754d-a017-f19d89e9e0d5",
+  "api_usage": {
+    "completion_tokens": 7235,
+    "prompt_tokens": 1837,
+    "total_tokens": 9072,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6992
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 1777
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 739.6,
+  "est_usd": 0.091554,
+  "text_tokens": 9072,
+  "image_calls": 1
+}

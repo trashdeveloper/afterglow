@@ -1,0 +1,12 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1442,7 +1442,7 @@
+ 		if (ENABLE_IRQ && ENABLE_IRQ_TIMER && timer) begin
+ 			timer <= timer - 1;
+ 		end
+-		decoder_trigger <= mem_do_rinst || mem_done;
++		decoder_trigger <= mem_do_rinst;
+ 		decoder_trigger_q <= decoder_trigger;
+ 		decoder_pseudo_trigger <= 0;
+ 		decoder_pseudo_trigger_q <= decoder_pseudo_trigger;

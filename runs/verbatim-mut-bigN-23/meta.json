@@ -1,0 +1,125 @@
+{
+  "run_id": "verbatim-mut-bigN-23",
+  "case_id": "mut-bigN-23",
+  "case": "mut-bigN-23",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-30T16:16:09Z",
+  "wall_end_utc": "2026-10-30T16:23:47Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "canonical-bootstrap-gated",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 70476,
+      "text_request_id": "chatcmpl-01a18d9f-a1b1-706e-bf76-e9d22c881a4f",
+      "diagnosis_chars": 404,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "canonical-bootstrap-gated",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picorv32.v\\nHunk #1 FAILED at 1580.\\n1 out of 1 hunk FAILED\\n']; applied via canonical-bootstrap-gated",
+      "gate_signal": "fetch",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged",
+      "stale-build-suspect": false,
+      "stale_build_reason": ""
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-23.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/verbatim-mut-bigN-23",
+  "mutant_record": {
+    "file": "picorv32.v",
+    "line": 1584,
+    "before": "case (1'b1)",
+    "after": "case (1'b0)",
+    "seed": "1234",
+    "op": "constant_flip",
+    "faults": [
+      {
+        "file": "picorv32.v",
+        "line": 1584,
+        "before": "case (1'b1)",
+        "after": "case (1'b0)"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "mut-bigN-23",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+  "cycles_before": 2009,
+  "red_baseline_tree_sha256": "3b334d6d7dc9e39728f778c59dcd2d5c7ededb3f7238aee2fe7e99e9f35fde2d",
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 633,
+  "context_tokens": 89,
+  "context_dropped": "none",
+  "localization_top1": "picosoc/picosoc.v",
+  "top1_is_true": false,
+  "trace_sha256": "2f421614dbb46270cea7956db89ec6a1104dd2aafe0838897fd3ad50b5aefadf",
+  "attempts_consumed": 1,
+  "transport_retries": [
+    8.061942630938086,
+    24.19151819396709,
+    7.975586582694934
+  ],
+  "transport_failures": 1,
+  "stack": [],
+  "stacked": false,
+  "stack_depth": 0,
+  "image_latency_ms": 15363,
+  "image_request_id": "64d9cde6-d44d-4583-bf03-94150ed7d377",
+  "image_bytes": 1331810,
+  "text_latency_ms": 70476,
+  "text_request_id": "chatcmpl-01a18d9f-a1b1-706e-bf76-e9d22c881a4f",
+  "api_usage": {
+    "completion_tokens": 6555,
+    "prompt_tokens": 1563,
+    "total_tokens": 8118,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6266
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "time_to_green_s": 458.0,
+  "est_usd": 0.085566,
+  "text_tokens": 8118,
+  "image_calls": 1
+}

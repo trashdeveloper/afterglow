@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-15\nFailing-trace sha256 (first 16 hex): 5a59db1d00bf7162\nVerbatim diagnosis from the debug agent:\nLoopback send 0xa5 never completes: recv_buf_valid stays 0 instead of 1, causing uart timeout with no byte received. In recv_state 10 completion the code assigns recv_buf_valid <= 2 which truncates to 0 for a 1-bit valid flag. Thus recv_buf_data is captured from recv_pattern but never marked valid.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 5a59db1d00bf7162 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "d9723940e2e4ec20362c2f7e9a6c86aa9e1340d73f01c128072a84e6af4c23e4",
+  "trace_sha256": "5a59db1d00bf7162c8c6140eb89e8bd23bf68d8073bfb4e8c8ed1def52f8fab8",
+  "diagnosis_sha256": "ec468a31eef637f215da06aa288a44585bf1ea906a743247d7d59db8f2cbcc82",
+  "case": "mut-bigN-15",
+  "attempt": 1
+}

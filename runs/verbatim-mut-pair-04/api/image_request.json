@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pair-04\nFailing-trace sha256 (first 16 hex): 3c451be6b79fd646\nVerbatim diagnosis from the debug agent:\nFetch TB stalls with max_addr=0x00000000 and FAIL 0xdead after 2009 cycles instead of advancing PC through NOPs. Expected mem_valid/mem_xfer handshake to progress fetches but FSM never reaches the wait-for-ack handling. Root cause is reset mem_state<=1 at line 568 combined with duplicated case 1: at line 582 (request state should be 0), leaving state 0 dead and state 1 shadowing the transfer branch so mem_xfer is never serviced.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 3c451be6b79fd646 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "1a0547db9f78591c268b9c9d592906ecbe10b3a913c62b7a6c17fcc54435330b",
+  "trace_sha256": "3c451be6b79fd64621d9d16df1c6e6ed4609d72ba4491e9bbcd945f5777a6dda",
+  "diagnosis_sha256": "47113f9eaf325370430415a0f7de7da82e4f6127d2cb6cb92d6fec3dbda337fb",
+  "case": "mut-pair-04",
+  "attempt": 1
+}

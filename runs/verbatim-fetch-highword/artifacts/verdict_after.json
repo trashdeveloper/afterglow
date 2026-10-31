@@ -1,0 +1,10 @@
+{
+  "case": "fetch-highword",
+  "pass": false,
+  "tohost": null,
+  "checksum": null,
+  "cycles": null,
+  "seed": 42,
+  "sim_time_utc": "2026-10-30T15:28:16Z",
+  "note": "no patch applied"
+}

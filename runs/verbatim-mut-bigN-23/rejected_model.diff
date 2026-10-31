@@ -1,0 +1,11 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1580,6 +1580,6 @@
+ 				reg_op1 <= 'bx;
+ 				reg_op2 <= 'bx;
+ 
+ 				(* parallel_case *)
+-				case (1'b0)
++				case (1'b1)
+ 					(CATCH_ILLINSN || WITH_PCPI) && instr_trap: begin

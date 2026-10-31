@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a18d97-8b5f-77a6-abbf-3e62fd5bf199",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Trace window is sparse showing only TRAP asserted with tohost FAIL 0xdead on 256-word NOP stream where no trap is expected and fetch progress is expected. CYCLES=2009 indicates the core ran to trap/timeout instead of clean progress. Root cause in excerpt line 1446 is decoder_trigger <= mem_do_rinst || mem_done, which retriggers the decoder on mem_done and can mis-decode a NOP as illegal, raising the observed trap.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1442,8 +1442,8 @@\\n \\t\\tif (ENABLE_IRQ && ENABLE_IRQ_TIMER && timer) begin\\n \\t\\t\\ttimer <= timer - 1;\\n \\t\\tend\\n-\\t\\tdecoder_trigger <= mem_do_rinst || mem_done;\\n+\\t\\tdecoder_trigger <= mem_do_rinst;\\n \\t\\tdecoder_trigger_q <= decoder_trigger;\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n\", \"expected\": \"tohost PASS (not FAIL 0xdead), no TRAP asserted, fetch progress completes through 256 NOPs\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793376881,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 7428,
+      "prompt_tokens": 1454,
+      "total_tokens": 8882,
+      "completion_tokens_details": {
+        "reasoning_tokens": 7138
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 1393
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Trace window is sparse showing only TRAP asserted with tohost FAIL 0xdead on 256-word NOP stream where no trap is expected and fetch progress is expected. CYCLES=2009 indicates the core ran to trap/timeout instead of clean progress. Root cause in excerpt line 1446 is decoder_trigger <= mem_do_rinst || mem_done, which retriggers the decoder on mem_done and can mis-decode a NOP as illegal, raising the observed trap.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1442,8 +1442,8 @@\\n \\t\\tif (ENABLE_IRQ && ENABLE_IRQ_TIMER && timer) begin\\n \\t\\t\\ttimer <= timer - 1;\\n \\t\\tend\\n-\\t\\tdecoder_trigger <= mem_do_rinst || mem_done;\\n+\\t\\tdecoder_trigger <= mem_do_rinst;\\n \\t\\tdecoder_trigger_q <= decoder_trigger;\\n \\t\\tdecoder_pseudo_trigger <= 0;\\n \\t\\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\\n\", \"expected\": \"tohost PASS (not FAIL 0xdead), no TRAP asserted, fetch progress completes through 256 NOPs\"}",
+  "diagnosis": "Trace window is sparse showing only TRAP asserted with tohost FAIL 0xdead on 256-word NOP stream where no trap is expected and fetch progress is expected. CYCLES=2009 indicates the core ran to trap/timeout instead of clean progress. Root cause in excerpt line 1446 is decoder_trigger <= mem_do_rinst || mem_done, which retriggers the decoder on mem_done and can mis-decode a NOP as illegal, raising the observed trap.",
+  "expected": "tohost PASS (not FAIL 0xdead), no TRAP asserted, fetch progress completes through 256 NOPs",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 80972,
+  "request_id": "chatcmpl-01a18d97-8b5f-77a6-abbf-3e62fd5bf199",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 7428,
+    "prompt_tokens": 1454,
+    "total_tokens": 8882,
+    "completion_tokens_details": {
+      "reasoning_tokens": 7138
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 1393
+    }
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "run_id": "verbatim-mut-bigN-04",
+  "case_id": "mut-bigN-04",
+  "case": "mut-bigN-04",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-30T15:29:27Z",
+  "wall_end_utc": "2026-10-30T15:30:41Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 40884,
+      "text_request_id": "chatcmpl-01a18d6e-c356-7026-8465-848ad97cfb48",
+      "diagnosis_chars": 359,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged",
+      "stale-build-suspect": false,
+      "stale_build_reason": ""
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-04.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/verbatim-mut-bigN-04",
+  "mutant_record": {
+    "file": "picorv32.v",
+    "line": 568,
+    "before": "mem_state <= 0;",
+    "after": "mem_state <= 1;",
+    "seed": "1234",
+    "op": "num_bump",
+    "faults": [
+      {
+        "file": "picorv32.v",
+        "line": 568,
+        "before": "mem_state <= 0;",
+        "after": "mem_state <= 1;"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "mut-bigN-04",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+  "cycles_before": 2009,
+  "red_baseline_tree_sha256": "c5df6091f2f6c8b74b6f1ec17a65489f697f3b388f69d477d843641c80527f4a",
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 612,
+  "context_tokens": 74,
+  "context_dropped": "none",
+  "localization_top1": "dhrystone/testbench.v",
+  "top1_is_true": false,
+  "trace_sha256": "ffbfefdd3279ae6a6dffccf8c0c33d6e1e31dacb4b022bfd10e9f85aed1004d9",
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "stack": [],
+  "stacked": false,
+  "stack_depth": 0,
+  "image_latency_ms": 31675,
+  "image_request_id": "a24f6b43-7473-4794-81cc-48b4c568c25e",
+  "image_bytes": 1640820,
+  "text_latency_ms": 40884,
+  "text_request_id": "chatcmpl-01a18d6e-c356-7026-8465-848ad97cfb48",
+  "api_usage": {
+    "completion_tokens": 3824,
+    "prompt_tokens": 1437,
+    "total_tokens": 5261,
+    "completion_tokens_details": {
+      "reasoning_tokens": 3538
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "time_to_green_s": 73.3,
+  "est_usd": 0.063466,
+  "text_tokens": 5261,
+  "image_calls": 1
+}

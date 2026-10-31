@@ -1,0 +1,9 @@
+{
+  "case": "serv-alu-lut",
+  "pass": true,
+  "tohost": "PASS",
+  "checksum": "b028b1819a27c7c25a0f35f0416adc6b11b8397bf873b993fb7495fde58f7276",
+  "cycles": 24,
+  "seed": 42,
+  "sim_time_utc": "2026-10-30T17:52:44Z"
+}

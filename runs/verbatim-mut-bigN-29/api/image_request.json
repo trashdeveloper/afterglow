@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-29\nFailing-trace sha256 (first 16 hex): 93f454ae1b45eb9a\nVerbatim diagnosis from the debug agent:\nLoopback UART sent 0xa5 but recv_buf_data latched 0xd2, causing TRAP uart data mismatch and tohost FAIL 0xdead. Root cause is duplicate case label 0 in recv_state case: the half-bit start-center wait (2*recv_divcnt > cfg_divider) is labeled 0 instead of 1 so state 1 is dead and falls to default full-bit wait. This half-bit sampling offset corrupts received bits.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 93f454ae1b45eb9a in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "322ad0fb737e3dbd5db472120b8475f04cae457f72677e6997104ef3c8aa470b",
+  "trace_sha256": "93f454ae1b45eb9abb2fca905323672b5275a2218ca75ee8a8be83439df8b91f",
+  "diagnosis_sha256": "aa9da138386a7c6eaef2a62e7b33a20963ee85efa056fe2756445ff16c34e395",
+  "case": "mut-bigN-29",
+  "attempt": 1
+}

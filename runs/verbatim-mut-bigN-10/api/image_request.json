@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-10\nFailing-trace sha256 (first 16 hex): 103ba3993ff1c2a3\nVerbatim diagnosis from the debug agent:\nFetch makes no progress with tohost FAIL 0xdead and TRAP no progress max_addr=0x00000000 vs expected sequential advance through 256 NOPs. launch_next_insn never advances because set_mem_do_wdata is cleared to 1 instead of 0 in the per-cycle clear block. This leaves the write-data strobe asserted every cycle and stalls the fetch handshake at address zero.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 103ba3993ff1c2a3 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "0923bdcb2f1e201c566fce8732c0d0d2afecce836d6df4175511568d38e34e2a",
+  "trace_sha256": "103ba3993ff1c2a33e4e19adcebe15b50fd710420f1155ba81fb33a5c3722de2",
+  "diagnosis_sha256": "b6de8bbbaeb18aad1657de0e7e005b340e12ad92f1adf11555da61a9b673190d",
+  "case": "mut-bigN-10",
+  "attempt": 1
+}

@@ -1,0 +1,12 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -71,7 +71,7 @@
+ 			recv_buf_data <= 0;
+ 			recv_buf_valid <= 0;
+ 		end else begin
+-			recv_divcnt <= recv_divcnt + 0;
++			recv_divcnt <= recv_divcnt + 1;
+ 			if (reg_dat_re)
+ 				recv_buf_valid <= 0;
+ 			case (recv_state)

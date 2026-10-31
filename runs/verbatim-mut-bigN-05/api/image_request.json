@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-05\nFailing-trace sha256 (first 16 hex): 61d6ede5a134b8c3\nVerbatim diagnosis from the debug agent:\nCPU trap asserted with tohost FAIL 0xdead on 256-word NOP memory where no trap and steady fetch progress was expected. NOP is ADDI x0,x0,0 with opcode 7'b0010011 but is_alu_reg_imm never asserted so the instruction fell through to illegal/trap. Root cause is line 877 comparing mem_rdata_latched[6:0] to 7'b0010010 instead of 7'b0010011, off by one LSB.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 61d6ede5a134b8c3 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "7b1d36e1c95318b87261be026af41d7f414b814374aa24c517da29daf0c1a1f0",
+  "trace_sha256": "61d6ede5a134b8c316e32fb1b12e35a5ec3168c73e7f06b5cce8bac803fcf75c",
+  "diagnosis_sha256": "08d6166e668a07753196bf446334f0c6e389e6648401c1fc1a5e36da57a3a417",
+  "case": "mut-bigN-05",
+  "attempt": 1
+}

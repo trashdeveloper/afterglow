@@ -1,0 +1,12 @@
+{
+  "text_tokens": 3135,
+  "image_calls": 1,
+  "est_usd": 0.046884,
+  "text_model": "muse-spark-1.3-contributor",
+  "text_input_tokens": 1366,
+  "text_output_tokens": 1769,
+  "image_model": "muse-image-1.0",
+  "budget_usd": 100.0,
+  "pricing_note": "ESTIMATES ONLY -- placeholder rates, not billed prices. Edit PRICING in afterglow_core/cost.py when contract rates land.",
+  "computed_utc": "2026-10-30T16:45:15Z"
+}

@@ -1,0 +1,42 @@
+{
+  "error": "no successful text call",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 40627,
+      "text_request_id": "chatcmpl-01a18d5e-a75f-71a2-8b89-6799a88db121",
+      "diagnosis_chars": 351,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picorv32.v\\nHunk #1 FAILED at 582.\\n1 out of 1 hunk FAILED\\n']; bootstrap impossible: bootstrap: bug line not found in tree (already fixed or unexpected tree state)"
+    },
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "non-mutant tree: no recorded pristine baseline",
+      "attempt": 2,
+      "summary": "unparseable model output: salvage failed: surviving bytes yield no complete diagnosis+diff (strict: model output is not a JSON object: '{\"diagnosis\": \"Trace shows no fetch progress (max_addr=0x000000')",
+      "text_latency_ms": 73723,
+      "text_request_id": "chatcmpl-01a18d6a-e28c-7471-acd3-4da31a8b1a79",
+      "salvaged": false
+    },
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "non-mutant tree: no recorded pristine baseline",
+      "attempt": 3,
+      "text_latency_ms": 54555,
+      "text_request_id": "chatcmpl-01a18d6c-6994-75a1-9990-174a0531be1e",
+      "diagnosis_chars": 360,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picorv32.v\\nHunk #1 FAILED at 582.\\n1 out of 1 hunk FAILED\\n']; bootstrap impossible: bootstrap: bug line not found in tree (already fixed or unexpected tree state)",
+      "duplicate_direction": true,
+      "duplicate_patch": "@@ -581,7 +581,7 @@ / -\t\t\t\t\t\tmem_valid <= mem_la_use_prefetched_high_word;",
+      "duplicate_key": "picorv32.v:584:replace",
+      "reasked": true
+    }
+  ]
+}

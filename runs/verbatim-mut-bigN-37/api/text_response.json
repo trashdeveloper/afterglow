@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a18db4-79e5-7364-899c-7b998dfe0727",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Loopback send 0xa5 was latched as 0x00 in recv_buf_data, causing TRAP uart data mismatch got 0x00 want 0xa5. The default-state shift uses {ser_rx, recv_pattern[7:0]} which is 9 bits and truncates to the old recv_pattern, so ser_rx is never shifted in. Thus recv_pattern stays at reset and state 10 copies 0x00 to recv_buf_data.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -96,7 +96,7 @@\\n \\t\\t\\t\\tdefault: begin\\n \\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n-\\t\\t\\t\\t\\t\\trecv_pattern <= {ser_rx, recv_pattern[7:0]};\\n+\\t\\t\\t\\t\\t\\trecv_pattern <= {ser_rx, recv_pattern[7:1]};\\n \\t\\t\\t\\t\\t\\trecv_state <= recv_state + 1;\\n \\t\\t\\t\\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n\", \"expected\": \"tohost PASS 0x1, loopback got 0xa5 want 0xa5 with no TRAP\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793378777,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 5851,
+      "prompt_tokens": 1567,
+      "total_tokens": 7418,
+      "completion_tokens_details": {
+        "reasoning_tokens": 5535
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Loopback send 0xa5 was latched as 0x00 in recv_buf_data, causing TRAP uart data mismatch got 0x00 want 0xa5. The default-state shift uses {ser_rx, recv_pattern[7:0]} which is 9 bits and truncates to the old recv_pattern, so ser_rx is never shifted in. Thus recv_pattern stays at reset and state 10 copies 0x00 to recv_buf_data.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -96,7 +96,7 @@\\n \\t\\t\\t\\tdefault: begin\\n \\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n-\\t\\t\\t\\t\\t\\trecv_pattern <= {ser_rx, recv_pattern[7:0]};\\n+\\t\\t\\t\\t\\t\\trecv_pattern <= {ser_rx, recv_pattern[7:1]};\\n \\t\\t\\t\\t\\t\\trecv_state <= recv_state + 1;\\n \\t\\t\\t\\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n\", \"expected\": \"tohost PASS 0x1, loopback got 0xa5 want 0xa5 with no TRAP\"}",
+  "diagnosis": "Loopback send 0xa5 was latched as 0x00 in recv_buf_data, causing TRAP uart data mismatch got 0x00 want 0xa5. The default-state shift uses {ser_rx, recv_pattern[7:0]} which is 9 bits and truncates to the old recv_pattern, so ser_rx is never shifted in. Thus recv_pattern stays at reset and state 10 copies 0x00 to recv_buf_data.",
+  "expected": "tohost PASS 0x1, loopback got 0xa5 want 0xa5 with no TRAP",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 61833,
+  "request_id": "chatcmpl-01a18db4-79e5-7364-899c-7b998dfe0727",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 5851,
+    "prompt_tokens": 1567,
+    "total_tokens": 7418,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5535
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

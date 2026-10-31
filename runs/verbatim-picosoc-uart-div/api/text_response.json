@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a18dd9-87ea-74a9-b264-3dec98b221c6",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Loopback send 0xa5 was received as 0xe0, causing TRAP uart data mismatch and tohost FAIL 0xdead. States 2-10 sample/shift in excerpt use `recv_divcnt > (cfg_divider >> 4)` on lines 90 and 97, i.e. ~1/16th of a bit period instead of full `cfg_divider`. With divider 64 this samples ~16x too fast and corrupts the byte, so root cause is the erroneous `>> 4` divide.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -89,14 +89,14 @@\\n \\t\\t\\t\\t10: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_buf_data <= recv_pattern;\\n \\t\\t\\t\\t\\t\\trecv_buf_valid <= 1;\\n \\t\\t\\t\\t\\t\\trecv_state <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n \\t\\t\\t\\tdefault: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_pattern <= {ser_rx, recv_pattern[7:1]};\\n \\t\\t\\t\\t\\t\\trecv_state <= recv_state + 1;\\n \\t\\t\\t\\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n\", \"expected\": \"tohost PASS, no TRAP uart data mismatch, loopback 0xa5 matches\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793381205,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 3716,
+      "prompt_tokens": 2029,
+      "total_tokens": 5745,
+      "completion_tokens_details": {
+        "reasoning_tokens": 3280
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Loopback send 0xa5 was received as 0xe0, causing TRAP uart data mismatch and tohost FAIL 0xdead. States 2-10 sample/shift in excerpt use `recv_divcnt > (cfg_divider >> 4)` on lines 90 and 97, i.e. ~1/16th of a bit period instead of full `cfg_divider`. With divider 64 this samples ~16x too fast and corrupts the byte, so root cause is the erroneous `>> 4` divide.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -89,14 +89,14 @@\\n \\t\\t\\t\\t10: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_buf_data <= recv_pattern;\\n \\t\\t\\t\\t\\t\\trecv_buf_valid <= 1;\\n \\t\\t\\t\\t\\t\\trecv_state <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n \\t\\t\\t\\tdefault: begin\\n-\\t\\t\\t\\t\\tif (recv_divcnt > (cfg_divider >> 4)) begin\\n+\\t\\t\\t\\t\\tif (recv_divcnt > cfg_divider) begin\\n \\t\\t\\t\\t\\t\\trecv_pattern <= {ser_rx, recv_pattern[7:1]};\\n \\t\\t\\t\\t\\t\\trecv_state <= recv_state + 1;\\n \\t\\t\\t\\t\\t\\trecv_divcnt <= 0;\\n \\t\\t\\t\\t\\tend\\n \\t\\t\\t\\tend\\n\", \"expected\": \"tohost PASS, no TRAP uart data mismatch, loopback 0xa5 matches\"}",
+  "diagnosis": "Loopback send 0xa5 was received as 0xe0, causing TRAP uart data mismatch and tohost FAIL 0xdead. States 2-10 sample/shift in excerpt use `recv_divcnt > (cfg_divider >> 4)` on lines 90 and 97, i.e. ~1/16th of a bit period instead of full `cfg_divider`. With divider 64 this samples ~16x too fast and corrupts the byte, so root cause is the erroneous `>> 4` divide.",
+  "expected": "tohost PASS, no TRAP uart data mismatch, loopback 0xa5 matches",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 42483,
+  "request_id": "chatcmpl-01a18dd9-87ea-74a9-b264-3dec98b221c6",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 3716,
+    "prompt_tokens": 2029,
+    "total_tokens": 5745,
+    "completion_tokens_details": {
+      "reasoning_tokens": 3280
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

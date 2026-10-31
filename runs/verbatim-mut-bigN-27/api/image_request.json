@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-27\nFailing-trace sha256 (first 16 hex): 90f3f8ab8b1541bf\nVerbatim diagnosis from the debug agent:\nLoopback 0xa5 was never received so recv_buf_valid never asserted, causing TRAP uart timeout FAIL 0xdead. Expected recv_divcnt to increment each clk to time baud periods, but it stays at 0. Root cause is line 74 `recv_divcnt <= recv_divcnt + 0` which never counts, so condition `2*recv_divcnt > cfg_divider` in state 1 never becomes true and recv_state stalls.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 90f3f8ab8b1541bf in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "b88d97017656365ef83788d56456c96285314b3714f8fb1d13c05761729d88f0",
+  "trace_sha256": "90f3f8ab8b1541bf1523cc3eea3ebed427d634e2a2914b98a3beedf53438c9bf",
+  "diagnosis_sha256": "245fcff76ab0c7f9afdcc09ff10892075a185aa6382ab66efc95503f7a435fa6",
+  "case": "mut-bigN-27",
+  "attempt": 1
+}

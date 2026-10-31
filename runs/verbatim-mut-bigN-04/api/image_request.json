@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-04\nFailing-trace sha256 (first 16 hex): ffbfefdd3279ae6a\nVerbatim diagnosis from the debug agent:\nFetch makes no progress (max_addr 0x00000000, FAIL 0xdead) because mem_valid stays low so mem_ready never returns. The excerpt resets mem_state <= 1 while clearing mem_valid <= 0, entering the wait state instead of idle 0. With mem_state stuck at 1 with mem_valid low, the state 0 branch that asserts mem_valid and moves to 1 can never run, deadlocking fetch.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash ffbfefdd3279ae6a in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "d315db743b6752c01e7a4489577bd39cdb2a1df2320a15f8a31cc9f39f1a01a5",
+  "trace_sha256": "ffbfefdd3279ae6a6dffccf8c0c33d6e1e31dacb4b022bfd10e9f85aed1004d9",
+  "diagnosis_sha256": "7d0bd32948ed6df1204e7287385ccddb134402a05680b08286893585ca992055",
+  "case": "mut-bigN-04",
+  "attempt": 1
+}

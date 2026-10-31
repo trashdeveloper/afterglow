@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a18da5-b0f0-771a-b673-cedae3785c9e",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"TRAP asserted with tohost FAIL 0xdead instead of clean NOP fetch progress. mem_rdata_latched_noshuffle holds stale mem_rdata_q instead of live mem_rdata during mem_xfer, so mem_rdata_latched decodes illegal. Root cause is line 384 gating with (mem_xfer && LATCHED_MEM_RDATA) which never selects mem_rdata for unlatched memory; it must be OR.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -382,5 +382,5 @@\\n \\tassign mem_la_addr = (mem_do_prefetch || mem_do_rinst) ? {next_pc[31:2] + mem_la_firstword_xfer, 2'b00} : {reg_op1[31:2], 2'b00};\\n \\n-\\tassign mem_rdata_latched_noshuffle = (mem_xfer && LATCHED_MEM_RDATA) ? mem_rdata : mem_rdata_q;\\n+\\tassign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata : mem_rdata_q;\\n \\n \\tassign mem_rdata_latched = COMPRESSED_ISA && mem_la_use_prefetched_high_word ? {16'bx, mem_16bit_buffer} :\\n\", \"expected\": \"tohost PASS with no TRAP asserted, fetch alignment progress instead of FAIL 0xdead\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793377808,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 6502,
+      "prompt_tokens": 1719,
+      "total_tokens": 8221,
+      "completion_tokens_details": {
+        "reasoning_tokens": 6169
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"TRAP asserted with tohost FAIL 0xdead instead of clean NOP fetch progress. mem_rdata_latched_noshuffle holds stale mem_rdata_q instead of live mem_rdata during mem_xfer, so mem_rdata_latched decodes illegal. Root cause is line 384 gating with (mem_xfer && LATCHED_MEM_RDATA) which never selects mem_rdata for unlatched memory; it must be OR.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -382,5 +382,5 @@\\n \\tassign mem_la_addr = (mem_do_prefetch || mem_do_rinst) ? {next_pc[31:2] + mem_la_firstword_xfer, 2'b00} : {reg_op1[31:2], 2'b00};\\n \\n-\\tassign mem_rdata_latched_noshuffle = (mem_xfer && LATCHED_MEM_RDATA) ? mem_rdata : mem_rdata_q;\\n+\\tassign mem_rdata_latched_noshuffle = (mem_xfer || LATCHED_MEM_RDATA) ? mem_rdata : mem_rdata_q;\\n \\n \\tassign mem_rdata_latched = COMPRESSED_ISA && mem_la_use_prefetched_high_word ? {16'bx, mem_16bit_buffer} :\\n\", \"expected\": \"tohost PASS with no TRAP asserted, fetch alignment progress instead of FAIL 0xdead\"}",
+  "diagnosis": "TRAP asserted with tohost FAIL 0xdead instead of clean NOP fetch progress. mem_rdata_latched_noshuffle holds stale mem_rdata_q instead of live mem_rdata during mem_xfer, so mem_rdata_latched decodes illegal. Root cause is line 384 gating with (mem_xfer && LATCHED_MEM_RDATA) which never selects mem_rdata for unlatched memory; it must be OR.",
+  "expected": "tohost PASS with no TRAP asserted, fetch alignment progress instead of FAIL 0xdead",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 68468,
+  "request_id": "chatcmpl-01a18da5-b0f0-771a-b673-cedae3785c9e",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 6502,
+    "prompt_tokens": 1719,
+    "total_tokens": 8221,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6169
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

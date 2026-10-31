@@ -1,0 +1,121 @@
+{
+  "run_id": "verbatim-mut-bigN-36",
+  "case_id": "mut-bigN-36",
+  "case": "mut-bigN-36",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-30T16:44:05Z",
+  "wall_end_utc": "2026-10-30T16:45:15Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "canonical-bootstrap-gated",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 20221,
+      "text_request_id": "chatcmpl-01a18db2-c6e8-7128-a776-87c6e93576f5",
+      "diagnosis_chars": 369,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "canonical-bootstrap-gated",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picosoc/simpleuart.v\\nHunk #1 FAILED at 96.\\n1 out of 1 hunk FAILED\\n']; applied via canonical-bootstrap-gated",
+      "gate_signal": "uart",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged",
+      "stale-build-suspect": false,
+      "stale_build_reason": ""
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-36.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/verbatim-mut-bigN-36",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 99,
+    "before": "recv_state <= recv_state + 1;",
+    "after": "recv_state <= recv_state + 0;",
+    "seed": "1234",
+    "op": "num_bump",
+    "faults": [
+      {
+        "file": "picosoc/simpleuart.v",
+        "line": 99,
+        "before": "recv_state <= recv_state + 1;",
+        "after": "recv_state <= recv_state + 0;"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-bigN-36",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+  "cycles_before": 22023,
+  "red_baseline_tree_sha256": "7f5b843bc73ef047e4cb401ea277548e0f2a956eccb6955dc2f4c34e928ff5f7",
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 66,
+  "prompt_tokens": 598,
+  "context_tokens": 74,
+  "context_dropped": "none",
+  "localization_top1": "dhrystone/testbench.v",
+  "top1_is_true": false,
+  "trace_sha256": "b60951b872d8ca95ecdab9a5367bc21dd3f84398c1e7fd2115b8dc6507d8c9e8",
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "stack": [],
+  "stacked": false,
+  "stack_depth": 0,
+  "image_latency_ms": 48899,
+  "image_request_id": "bdfd5e3f-215f-4edc-91a0-27575060c391",
+  "image_bytes": 1422039,
+  "text_latency_ms": 20221,
+  "text_request_id": "chatcmpl-01a18db2-c6e8-7128-a776-87c6e93576f5",
+  "api_usage": {
+    "completion_tokens": 1769,
+    "prompt_tokens": 1366,
+    "total_tokens": 3135,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1476
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 69.7,
+  "est_usd": 0.046884,
+  "text_tokens": 3135,
+  "image_calls": 1
+}

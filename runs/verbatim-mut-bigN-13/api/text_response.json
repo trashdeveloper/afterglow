@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a18d8b-bb0d-7761-b293-a37132d1832d",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Fetch makes no progress (max_addr 0x00000000, tohost FAIL 0xdead) instead of sequential NOP fetches. mem_do_wdata is driven to 1 on !resetn || mem_done where 0 is expected, falsely holding a write request after every transaction. Root cause is line 1953 `mem_do_wdata <= 1` in the clear block, blocking the rinst fetch path from re-arming.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1949,7 +1949,7 @@\\n \\t\\tif (!resetn || mem_done) begin\\n \\t\\t\\tmem_do_prefetch <= 0;\\n \\t\\t\\tmem_do_rinst <= 0;\\n \\t\\t\\tmem_do_rdata <= 0;\\n-\\t\\t\\tmem_do_wdata <= 1;\\n+\\t\\t\\tmem_do_wdata <= 0;\\n \\t\\tend\", \"expected\": \"tohost PASS (not FAIL 0xdead) with forward progress max_addr > 0x00000000\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793376107,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 2412,
+      "prompt_tokens": 1513,
+      "total_tokens": 3925,
+      "completion_tokens_details": {
+        "reasoning_tokens": 2144
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Fetch makes no progress (max_addr 0x00000000, tohost FAIL 0xdead) instead of sequential NOP fetches. mem_do_wdata is driven to 1 on !resetn || mem_done where 0 is expected, falsely holding a write request after every transaction. Root cause is line 1953 `mem_do_wdata <= 1` in the clear block, blocking the rinst fetch path from re-arming.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1949,7 +1949,7 @@\\n \\t\\tif (!resetn || mem_done) begin\\n \\t\\t\\tmem_do_prefetch <= 0;\\n \\t\\t\\tmem_do_rinst <= 0;\\n \\t\\t\\tmem_do_rdata <= 0;\\n-\\t\\t\\tmem_do_wdata <= 1;\\n+\\t\\t\\tmem_do_wdata <= 0;\\n \\t\\tend\", \"expected\": \"tohost PASS (not FAIL 0xdead) with forward progress max_addr > 0x00000000\"}",
+  "diagnosis": "Fetch makes no progress (max_addr 0x00000000, tohost FAIL 0xdead) instead of sequential NOP fetches. mem_do_wdata is driven to 1 on !resetn || mem_done where 0 is expected, falsely holding a write request after every transaction. Root cause is line 1953 `mem_do_wdata <= 1` in the clear block, blocking the rinst fetch path from re-arming.",
+  "expected": "tohost PASS (not FAIL 0xdead) with forward progress max_addr > 0x00000000",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 24979,
+  "request_id": "chatcmpl-01a18d8b-bb0d-7761-b293-a37132d1832d",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 2412,
+    "prompt_tokens": 1513,
+    "total_tokens": 3925,
+    "completion_tokens_details": {
+      "reasoning_tokens": 2144
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

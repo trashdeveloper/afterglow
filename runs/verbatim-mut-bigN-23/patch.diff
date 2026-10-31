@@ -1,0 +1,12 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1581,7 +1581,7 @@
+ 				reg_op2 <= 'bx;
+ 
+ 				(* parallel_case *)
+-				case (1'b0)
++				case (1'b1)
+ 					(CATCH_ILLINSN || WITH_PCPI) && instr_trap: begin
+ 						if (WITH_PCPI) begin
+ 							`debug($display("LD_RS1: %2d 0x%08x", decoded_rs1, cpuregs_rs1);)

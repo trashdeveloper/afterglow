@@ -1,0 +1,9 @@
+{
+  "case": "pc-incr",
+  "pass": false,
+  "tohost": "FAIL 0xdead",
+  "checksum": "2380078a93590da06f8e9ac7ff4e6eb90974634703b56ca2bacd5dcc122b9516",
+  "cycles": 2009,
+  "seed": 42,
+  "sim_time_utc": "2026-10-30T17:30:09Z"
+}

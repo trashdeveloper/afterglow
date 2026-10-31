@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: uart-tx-div\nFailing-trace sha256 (first 16 hex): c0ee51dd8f616bad\nVerbatim diagnosis from the debug agent:\nLoopback RX got 0xff (idle) instead of 0xa5, so ser_tx never presented correct start/data bits. TX bit-advance on line 130 uses (cfg_divider >> 4) - the 16x RX oversample tick - instead of full cfg_divider. With divider 64 TX shifts every ~5 cycles vs 64 expected, so the peer samples idle and the transfer fails.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash c0ee51dd8f616bad in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "9049c47f85fe7cfb4ae0784753e287d376cf317c6521598a00a624e371037b60",
+  "trace_sha256": "c0ee51dd8f616bad654e7bb4f327a91778d99e70abf1be8357ef07e12c200844",
+  "diagnosis_sha256": "8e62e69d44d997214568dd73fb0b123473a1974397c35a6da3384a1df7424b4c",
+  "case": "uart-tx-div",
+  "attempt": 1
+}

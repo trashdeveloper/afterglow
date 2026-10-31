@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-01\nFailing-trace sha256 (first 16 hex): ff5427016aa947c9\nVerbatim diagnosis from the debug agent:\nFetch shows no progress (max_addr=0x00000000, tohost FAIL 0xdead) instead of advancing through NOP memory. mem_done stays low so mem_busy never clears and fetch never completes. Root cause is line 376 combining the mem_xfer with |mem_state term and the &mem_state with mem_do_rinst term using && instead of ||, requiring both simultaneously and blocking mem_done.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash ff5427016aa947c9 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "955c3a2286c84cb0b1c451e52ab584251c58e4b756c72e382267bb0d76e3bc23",
+  "trace_sha256": "ff5427016aa947c935bf78f4ea15ed5e83e6b705c06f09fb7c61668ec4b9a219",
+  "diagnosis_sha256": "88cac25c9386531e0ee8956bd946587f676ede950a533a9dd585c8e62fd1c107",
+  "case": "mut-bigN-01",
+  "attempt": 1
+}

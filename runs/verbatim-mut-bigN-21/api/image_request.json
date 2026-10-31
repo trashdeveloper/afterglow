@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-21\nFailing-trace sha256 (first 16 hex): f61137432f7f2d8e\nVerbatim diagnosis from the debug agent:\nTrace window is sparse showing only TRAP asserted with tohost FAIL 0xdead on 256-word NOP stream where no trap is expected and fetch progress is expected. CYCLES=2009 indicates the core ran to trap/timeout instead of clean progress. Root cause in excerpt line 1446 is decoder_trigger <= mem_do_rinst || mem_done, which retriggers the decoder on mem_done and can mis-decode a NOP as illegal, raising the observed trap.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash f61137432f7f2d8e in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "5b0bf69101505845316f5a8b13badf79774d76fbd556f29894e81f79a7eda6e8",
+  "trace_sha256": "f61137432f7f2d8e9fe3dea452995423352208859cf6519c0fea5fb182d769c7",
+  "diagnosis_sha256": "5f7263da1d34477843b4020881e200b0be83265295161d9314f94b2a73e52932",
+  "case": "mut-bigN-21",
+  "attempt": 1
+}

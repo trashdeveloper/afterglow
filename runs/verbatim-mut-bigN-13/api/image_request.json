@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-13\nFailing-trace sha256 (first 16 hex): d3c61eebdcfeaba0\nVerbatim diagnosis from the debug agent:\nFetch makes no progress (max_addr 0x00000000, tohost FAIL 0xdead) instead of sequential NOP fetches. mem_do_wdata is driven to 1 on !resetn || mem_done where 0 is expected, falsely holding a write request after every transaction. Root cause is line 1953 `mem_do_wdata <= 1` in the clear block, blocking the rinst fetch path from re-arming.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash d3c61eebdcfeaba0 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "a7a186fcfb69237852abe92d11857fe04f55e831f417425e9f4c2b3fe85a0360",
+  "trace_sha256": "d3c61eebdcfeaba0ac79728c653e0009fa6d16d7262ad6ffe4406fba861d5a25",
+  "diagnosis_sha256": "7f0462be61dcb245201247e7a27f59edc11856bb53e0dc9199d80fa572076f00",
+  "case": "mut-bigN-13",
+  "attempt": 1
+}

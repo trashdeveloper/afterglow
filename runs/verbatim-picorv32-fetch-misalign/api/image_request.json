@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: picorv32-fetch-misalign\nFailing-trace sha256 (first 16 hex): 1fa958bbddabcc6f\nVerbatim diagnosis from the debug agent:\nFailing signal is mem_la_addr with low bits 2'b10 vs expected 2'b00, causing TRAP: fetch misalign addr low bits nonzero. Line 382 hardcodes {..,2'b10} for both fetch and data addresses so every access is misaligned by 2 bytes. This directly explains FAIL 0xdead on aligned NOP fetch.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 1fa958bbddabcc6f in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "781f4fab60245d8ffea825757df94dbdcc1b76c2afae433353d6f2c785e5020a",
+  "trace_sha256": "1fa958bbddabcc6f8edfd929831f9ade594dacbaf24c6aeb7a6055d70b0498d9",
+  "diagnosis_sha256": "72e83f92c2d42e466eff3555445182ff60128e291e982864c845670a5dbdd76e",
+  "case": "picorv32-fetch-misalign",
+  "attempt": 1
+}

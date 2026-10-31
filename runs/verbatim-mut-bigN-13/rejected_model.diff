@@ -1,0 +1,11 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1949,7 +1949,7 @@
+ 		if (!resetn || mem_done) begin
+ 			mem_do_prefetch <= 0;
+ 			mem_do_rinst <= 0;
+ 			mem_do_rdata <= 0;
+-			mem_do_wdata <= 1;
++			mem_do_wdata <= 0;
+ 		end

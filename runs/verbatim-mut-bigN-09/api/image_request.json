@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-09\nFailing-trace sha256 (first 16 hex): a2809796e111101a\nVerbatim diagnosis from the debug agent:\nFetch test with 256 NOPs (ADDI) asserted cpu trap and returned FAIL 0xdead instead of forward progress. instr_trap was 1 for a legal instruction instead of 0. Root cause at line 679: `assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) || !{...}` uses OR so with CATCH_ILLINSN set every decode traps; it must be AND to trap only on illegal opcode.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash a2809796e111101a in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "c74c4f986c6039e2d878e12acf95b8734a054a697918493a4a6b61aaa023523c",
+  "trace_sha256": "a2809796e111101a981de739454146afe9264d1867d6767838f02a6a023bc73b",
+  "diagnosis_sha256": "8c1dee0194aaae757a8ef68571e98a976888c534a74426b9ebbdda85548df474",
+  "case": "mut-bigN-09",
+  "attempt": 1
+}

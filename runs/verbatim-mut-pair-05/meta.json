@@ -1,0 +1,168 @@
+{
+  "run_id": "verbatim-mut-pair-05",
+  "case_id": "mut-pair-05",
+  "case": "mut-pair-05",
+  "mode": "live",
+  "status": "green",
+  "retries": 1,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-30T17:20:22Z",
+  "wall_end_utc": "2026-10-30T17:25:05Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 4,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 92016,
+      "text_request_id": "chatcmpl-01a18dd6-8fd1-7253-9133-6e66bb304b5a",
+      "diagnosis_chars": 320,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 1,
+      "no_behavioral_effect": true,
+      "integrity_detail": "all 1 file(s) unchanged; stale-build suspect (pre-build content differs from RED baseline but checksum 563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15 / tohost FAIL 0xdead unchanged: build likely never recompiled the edit), clean rebuild forced (obj dir dropped, resim x2)",
+      "stale-build-suspect": true,
+      "stale_build_reason": "pre-build content differs from RED baseline but checksum 563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15 / tohost FAIL 0xdead unchanged: build likely never recompiled the edit"
+    },
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "compositional stack: continue from improved tree (stack depth 1; no reset)",
+      "stacked_continue": true,
+      "stack_depth": 1,
+      "attempt": 2,
+      "text_latency_ms": 59539,
+      "text_request_id": "chatcmpl-01a18dd7-bfaf-7275-a68e-2309f510205a",
+      "diagnosis_chars": 364,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged",
+      "stale-build-suspect": false,
+      "stale_build_reason": ""
+    }
+  ],
+  "no_behavioral_effect": true,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-pair-05.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/verbatim-mut-pair-05",
+  "mutant_record": {
+    "file": "picorv32.v",
+    "line": 1408,
+    "before": "set_mem_do_wdata = 0;",
+    "after": "set_mem_do_wdata = 1;",
+    "seed": "1234",
+    "op": "pair",
+    "faults": [
+      {
+        "file": "picorv32.v",
+        "line": 1408,
+        "before": "set_mem_do_wdata = 0;",
+        "after": "set_mem_do_wdata = 1;"
+      },
+      {
+        "file": "picorv32.v",
+        "line": 1450,
+        "before": "do_waitirq <= 0;",
+        "after": "do_waitirq <= 1;"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "mut-pair-05",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+  "cycles_before": 2009,
+  "red_baseline_tree_sha256": "890a26ac65fd5babb7732e182a5401baa67d1b881eece6e2221bf98f6cc99af3",
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 896,
+  "context_tokens": 74,
+  "context_dropped": "none",
+  "localization_top1": "dhrystone/testbench.v",
+  "top1_is_true": false,
+  "trace_sha256": "394308d00b88e5d5cf2a156cb6b43b6b574d1c76482d928d88b695be9cec7f79",
+  "attempts_consumed": 2,
+  "transport_retries": [
+    5.403341737200728
+  ],
+  "transport_failures": 0,
+  "stack": [
+    {
+      "attempt": 1,
+      "patch": "diff --git a/picorv32.v b/picorv32.v\n--- a/picorv32.v\n+++ b/picorv32.v\n@@ -1446,9 +1446,9 @@\n \t\tdecoder_trigger <= mem_do_rinst && mem_done;\n \t\tdecoder_trigger_q <= decoder_trigger;\n \t\tdecoder_pseudo_trigger <= 0;\n \t\tdecoder_pseudo_trigger_q <= decoder_pseudo_trigger;\n-\t\tdo_waitirq <= 1;\n+\t\tdo_waitirq <= 0;\n \n \t\ttrace_valid <= 0;\n \n \t\tif (!ENABLE_TRACE)\n",
+      "direction": "picorv32.v:1450:replace",
+      "checksum_before": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "checksum_after": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "patch_lines": 2,
+      "trigger": "applied-clean"
+    },
+    {
+      "attempt": 2,
+      "patch": "diff --git a/picorv32.v b/picorv32.v\n--- a/picorv32.v\n+++ b/picorv32.v\n@@ -1405,7 +1405,7 @@\n \t\treg_out <= 'bx;\n \t\tset_mem_do_rinst = 0;\n \t\tset_mem_do_rdata = 0;\n-\t\tset_mem_do_wdata = 1;\n+\t\tset_mem_do_wdata = 0;\n \n \t\talu_out_0_q <= alu_out_0;\n \t\talu_out_q <= alu_out;\n",
+      "direction": "picorv32.v:1408:replace",
+      "checksum_before": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+      "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "patch_lines": 2,
+      "trigger": "applied-clean"
+    }
+  ],
+  "stacked": true,
+  "stack_depth": 2,
+  "image_latency_ms": 15608,
+  "image_request_id": "5864ecaf-cb9b-4222-bc47-fa9009f06133",
+  "image_bytes": 1046026,
+  "text_latency_ms": 59539,
+  "text_request_id": "chatcmpl-01a18dd7-bfaf-7275-a68e-2309f510205a",
+  "api_usage": {
+    "completion_tokens": 4798,
+    "prompt_tokens": 2574,
+    "total_tokens": 7372,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4521
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "replay_verified": true,
+  "time_to_green_s": 283.0,
+  "est_usd": 0.073532,
+  "text_tokens": 7372,
+  "image_calls": 1
+}

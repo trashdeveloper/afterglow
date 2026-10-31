@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pair-05\nFailing-trace sha256 (first 16 hex): 394308d00b88e5d5\nVerbatim diagnosis from the debug agent:\nFetch test reports TRAP: no progress max_addr=0x00000000 with tohost FAIL 0xdead after 2009 cycles, expected sequential NOP fetch to advance PC. Default set_mem_do_wdata=1 every clock forces the memory interface into write state instead of idle. Root cause is line 1408 in the excerpt which should clear to 0 like rinst/rdata, stalling fetch and blocking progress.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 394308d00b88e5d5 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "6edc0d03b8da194aa8016e8f9d42ca1611cf283a94daaa8fde43b19e267b433e",
+  "trace_sha256": "394308d00b88e5d5cf2a156cb6b43b6b574d1c76482d928d88b695be9cec7f79",
+  "diagnosis_sha256": "703c3ac63da6f4dd6053dcd734f300502bda7b855fa92d86ba351b990156b7ba",
+  "case": "mut-pair-05",
+  "attempt": 2
+}

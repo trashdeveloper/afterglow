@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-22\nFailing-trace sha256 (first 16 hex): f840e45bcb81be9b\nVerbatim diagnosis from the debug agent:\nLoopback send of 0xa5 never appears on ser_tx; sim ends with uart timeout, no byte received (FAIL 0xdead vs expected RX 0xa5). ser_tx stays idle because send_pattern is repeatedly reloaded with ~0. Root cause in excerpt line 123: send_dummy <= 1 never clears the dummy-preamble state, so send_dummy && !send_bitcnt always wins over reg_dat_we and the TX engine loops 15 idle bits forever.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash f840e45bcb81be9b in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "08e505f6cba7b04f32b4031b5515c13daffb779f10fb5dde56549d2b5ee16542",
+  "trace_sha256": "f840e45bcb81be9b87c136d3423de32cc95815cfad749e0d7d6ac83b02e11945",
+  "diagnosis_sha256": "a6eca9ad17595758515fb9b1a31814f66dd36745a02315b6dc00a8e5f250843c",
+  "case": "mut-bigN-22",
+  "attempt": 1
+}

@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-34\nFailing-trace sha256 (first 16 hex): 322ce540833fc714\nVerbatim diagnosis from the debug agent:\nLoopback read via reg_dat_do returned recv_buf_data 0x00 instead of expected 0xa5, causing TRAP uart data mismatch and tohost FAIL 0xdead. The gate recv_buf_valid is 1 at reset so reg_dat_do = recv_buf_valid ? recv_buf_data : ~0 reports stale zero as valid before any RX completes. Root cause is reset assignment recv_buf_valid <= 1 in the recv always @(posedge clk) block; it must be 0 to gate reg_dat_do until state 10 loads real recv_pattern.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 322ce540833fc714 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "f516a213938c96b2650eff0c9f607eb08b780fd7b4da3f8e22a1eea2c32450d4",
+  "trace_sha256": "322ce540833fc714469c13028dde9bfda5250ec90f7b779749074c51a2b46628",
+  "diagnosis_sha256": "2f2dd6059648c5bfe08dcf9589a59cecaca4ee69c04eaa3c25ac91111d2a50dc",
+  "case": "mut-bigN-34",
+  "attempt": 2
+}
