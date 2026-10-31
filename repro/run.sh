@@ -3,6 +3,8 @@
 #   ./repro/run.sh --case picosoc-uart-div [--seed 42]
 #                  [--prompt agent/prompts/v1.txt] [--run-id ID] [--rtl path]
 #
+# (The loop entry point is ./afterglow run --spec; --case names resolve to
+# sim/targets/<case>.yaml here for the one-command repro.)
 # Live mode is the DEFAULT (and only) mode: requires MODEL_API_KEY in the
 # environment (SPARK_API_KEY / META_API_KEY also accepted). There is no
 # replay/verify mode here -- a replay log must NEVER be presented as live.
@@ -15,7 +17,7 @@ cd "$ROOT"
 
 CASE="picosoc-uart-div"
 SEED="42"
-PROMPT="agent/prompts/v1.txt"
+PROMPT="agent/prompts/v2.txt"
 RUN_ID=""
 RTL_ARGS=()
 while [ $# -gt 0 ]; do
@@ -45,8 +47,8 @@ if [ -z "$RUN_ID" ]; then
 fi
 
 echo "=== afterglow repro: case=${CASE} seed=${SEED} run=${RUN_ID} ==="
-python3 agent/loop.py --case "$CASE" --seed "$SEED" --prompt "$PROMPT" \
-  --run-id "$RUN_ID" "${RTL_ARGS[@]:-}"
+./afterglow run --spec "sim/targets/${CASE}.yaml" --seed "$SEED" \
+  --prompt "$PROMPT" --run-id "$RUN_ID" ${RTL_ARGS[@]+"${RTL_ARGS[@]}"} --auto
 LOOP_RC=$?
 
 BEFORE_SHA="$(python3 -c "import json;print(json.load(open('runs/${RUN_ID}/artifacts/verdict_before.json')).get('checksum') or 'MISSING')" 2>/dev/null || echo MISSING)"
