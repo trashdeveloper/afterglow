@@ -1,0 +1,34 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pair-01\nFailing-trace sha256 (first 16 hex): df8c670bce3f22cf\nVerbatim diagnosis from the debug agent:\nLoopback read returned 0xff (reg_dat_do = ~0 with recv_buf_valid=0) instead of 0xa5, causing tohost FAIL 0xdead and TRAP uart data mismatch. TX idle is wrong because reset does send_pattern <= ~1 so ser_tx = send_pattern[0] = 0 instead of idle-high. That false start corrupts framing at divider 64 and prevents the receiver from ever validating the 0xa5 byte.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash df8c670bce3f22cf in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "cd24a71c1ec18c78ecebe36bf13790d7b22f9266daea105a6b99b68e914957f3",
+  "trace_sha256": "df8c670bce3f22cfb5a29200c2290d4832162cab0a8058aae383e9e3a5762477",
+  "diagnosis_sha256": "aad82fed5a1e02d0973d505c075a82afca0f854f0bf71ca7961aae7a529f2e02",
+  "case": "mut-pair-01",
+  "attempt": 2,
+  "waveform": {
+    "status": "attached",
+    "reason": "TB picosoc-uart-div_tb.sv dump-capable",
+    "vcd": "/home/tuncay/afterglow/runs/wave-on-mut-pair-01-43/waves/waves.vcd",
+    "vcd_tohost": "FAIL 0xdead",
+    "png": "/home/tuncay/afterglow/runs/wave-on-mut-pair-01-43/waveform.png",
+    "png_sha256": "34acd5267b37f27792b16f74a5679f4d48f5d53ae71527b19b3688f90e3cc446",
+    "png_bytes": 7470,
+    "signals": [
+      "tb_picosoc_uart.clk",
+      "tb_picosoc_uart.ser_tx"
+    ],
+    "fail_window": [
+      220030,
+      220430
+    ],
+    "attachments": [
+      {
+        "name": "waveform.png",
+        "sha256": "34acd5267b37f27792b16f74a5679f4d48f5d53ae71527b19b3688f90e3cc446",
+        "bytes": 7470
+      }
+    ]
+  }
+}

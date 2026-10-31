@@ -69,4 +69,34 @@ Cost estimate: 12 x ~$0.07 = ~$0.85. Firing is the CONTROLLER's call.
 
 **WAVEFORM WINS** (binding rule satisfied): ON converted mut-pair-01 (OFF RED after 3 full attempts → ON GREEN model-verbatim 4-line, unaided, 0 touches, waveform PNG attached and sent with sha 34acd526…, clean resim VERIFY PASS), and neither GREEN control regressed (uart-div + uart-tx-div both verbatim GREEN in both arms). mut-bigN-12 RED in both arms (compositional miss stands; wave attached but didn't convert). mut-pair-03 OFF TRIAGE → ON GREEN is a second recovery but wf-degraded (picorv32 TB has no VCD path), so it does NOT count as wave-caused — the verdict rests on 01 alone. Caveats recorded: (a) single seed (42), n=1 conversion; (b) ON-01 used the compositional stack (stacked=True) — fully unaided/model-authored, prereg didn't exclude it; (c) only uart-TB cases currently receive wave input (others degrade loudly per design). Per the rule as bound ("Equality is a result, not a failure" — and this wasn't equality): keep the claim, waveform stays default-OFF pending a confirm-or-revise follow-up, record stands.
 
+## Results, seed 43 (FIRED 2026-10-31, controller-run, run-ids wave-*-43)
+
+| case | OFF (wave-off-*-43) | ON (wave-on-*-43) |
+| mut-bigN-12 | RED (3 attempts) | GREEN (model-verbatim 2-line, 1 attempt) |
+| mut-pair-01 | GREEN (model-verbatim 4-line) | RED (3 attempts, compositional miss) |
+| mut-pair-03 | GREEN (stacked depth 2: attempt-1 line-679 fix stayed RED, attempt-2 stacked line-877 fix → GREEN) | TRIAGE (3 transport flakes, patch withheld; separate re-fire -43b GREEN model-verbatim bootstrap-gated) |
+| pc-incr | GREEN (canonical-bootstrap-gated) | RED (1 attempt, patch applied, resim FAIL) |
+| picosoc-uart-div | GREEN (model-verbatim 4-line) | GREEN (model-verbatim 4-line) |
+| uart-tx-div | GREEN (model-verbatim 2-line) | GREEN (model-verbatim 2-line) |
+
+## Decision, seed 43 (binding rule: 03 = replicate check, 01 = no-win check)
+
+**MIXED — replicates the controls, splits the faults, does not strengthen.**
+Per the binding rule: mut-pair-03 = NO CLEAN READ (ON-43 TRIAGE on transport
+flakes, patch withheld by design; the -43b re-fire went GREEN model-verbatim
+bootstrap-gated, but a re-fire is not the arm as bound — recorded, not counted).
+mut-pair-01: ON-43 RED after 3 attempts while OFF-43 went GREEN verbatim — per
+the rule as written ("ON-43-01 RED → no win, report"), no win claimed on 01
+for this seed. New information both ways: mut-bigN-12 converted OFF-RED →
+ON-GREEN (model-verbatim, 1 attempt), but pc-incr went OFF-GREEN(gated) →
+ON-RED. The two GREEN controls held verbatim in both arms on both seeds.
+Net seed-43: ON 3 GREEN (+1 re-fire GREEN) + 2 RED + 1 TRIAGE vs OFF 5 GREEN
++ 1 RED. Aggregate across seeds: seed-42 WINS (one clean conversion, 01) +
+seed-43 MIXED (one conversion 12, one reversal 01, one reversal pc-incr, one
+transport-mud 03). The WAVEFORM WINS claim stands as recorded for seed 42
+with the honest bound now widened: wave input converts some compositional
+cases on some seeds and loses others — n=2 conversions (01@42, 12@43),
+n=2 reversals (01@43, pc-incr@43). Waveform stays a diagnostic input with
+measured, seed-dependent effect — not a universal upgrade. Recorded as is.
+
 ## Costs (measured)

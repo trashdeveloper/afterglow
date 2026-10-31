@@ -1,0 +1,144 @@
+{
+  "run_id": "wave-on-mut-bigN-12-43",
+  "case_id": "mut-bigN-12",
+  "case": "mut-bigN-12",
+  "mode": "live",
+  "status": "green",
+  "retries": 0,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-31T16:36:55Z",
+  "wall_end_utc": "2026-10-31T16:38:37Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 70100,
+      "text_request_id": "chatcmpl-01a192d3-5556-7000-8ddc-9755ffd12259",
+      "diagnosis_chars": 327,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged",
+      "stale-build-suspect": false,
+      "stale_build_reason": ""
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-12.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/wave-on-mut-bigN-12-43",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 114,
+    "before": "send_pattern <= ~0;",
+    "after": "send_pattern <= ~1;",
+    "seed": "1234",
+    "op": "num_bump",
+    "faults": [
+      {
+        "file": "picosoc/simpleuart.v",
+        "line": 114,
+        "before": "send_pattern <= ~0;",
+        "after": "send_pattern <= ~1;"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-bigN-12",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+  "cycles_before": 2024,
+  "red_baseline_tree_sha256": "e77be3e42bbd1122afa3e53ffa7540d50faea6d8e5e0e3809d07fab69bfb4806",
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 689,
+  "context_tokens": 147,
+  "context_dropped": "none",
+  "localization_top1": "picosoc/spiflash_tb.v",
+  "top1_is_true": false,
+  "trace_sha256": "e9615d108cc52a9a20d0d0240161509462596d4b7ea68de7790c170b0bf8cb49",
+  "waveform": {
+    "status": "attached",
+    "reason": "TB picosoc-uart-div_tb.sv dump-capable",
+    "vcd": "/home/tuncay/afterglow/runs/wave-on-mut-bigN-12-43/waves/waves.vcd",
+    "vcd_tohost": "FAIL 0xdead",
+    "png": "/home/tuncay/afterglow/runs/wave-on-mut-bigN-12-43/waveform.png",
+    "png_sha256": "09e5f6bab4dd2a90bb27cb59b3e20b17fc09bb130df1775fcb650e3cad560f46",
+    "png_bytes": 7654,
+    "signals": [
+      "tb_picosoc_uart.clk",
+      "tb_picosoc_uart.ser_tx"
+    ],
+    "fail_window": [
+      20040,
+      20440
+    ],
+    "attachments": [
+      {
+        "name": "waveform.png",
+        "sha256": "09e5f6bab4dd2a90bb27cb59b3e20b17fc09bb130df1775fcb650e3cad560f46",
+        "bytes": 7654
+      }
+    ]
+  },
+  "attempts_consumed": 1,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "stack": [],
+  "stacked": false,
+  "stack_depth": 0,
+  "image_latency_ms": 31514,
+  "image_request_id": "ccf4c0e1-9d9b-49f8-92bf-9a95f1c13816",
+  "image_bytes": 1204379,
+  "text_latency_ms": 70100,
+  "text_request_id": "chatcmpl-01a192d3-5556-7000-8ddc-9755ffd12259",
+  "api_usage": {
+    "completion_tokens": 7473,
+    "prompt_tokens": 1573,
+    "total_tokens": 9046,
+    "completion_tokens_details": {
+      "reasoning_tokens": 7222
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "time_to_green_s": 102.5,
+  "est_usd": 0.09293,
+  "text_tokens": 9046,
+  "image_calls": 1
+}

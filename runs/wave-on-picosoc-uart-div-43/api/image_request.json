@@ -1,0 +1,34 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: picosoc-uart-div\nFailing-trace sha256 (first 16 hex): 0114045b980d8dd4\nVerbatim diagnosis from the debug agent:\nLoopback with divider 64 sent 0xa5 but recv returned 0xe0 (TRAP uart data mismatch, tohost FAIL 0xdead). Start state 1 waits half-bit with 2*recv_divcnt > cfg_divider but states 10/default advance on recv_divcnt > (cfg_divider >> 4), 16x too short. This early sampling shifts ser_rx into recv_pattern before full bit periods elapse, corrupting recv_buf_data to 0xe0.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 0114045b980d8dd4 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "64b1c107ebd3d9ffdb7655a8aaae2bf9496d6b40a1acc021bd6c11f76620c70d",
+  "trace_sha256": "0114045b980d8dd4d7915198e8a0f3681f96cf0a3b0d82c1714a0c7471f67608",
+  "diagnosis_sha256": "1fe83409a74b18cf0d5aab9393c9eaccd3f8b46cb076fe6a2e910bbd8f8ca699",
+  "case": "picosoc-uart-div",
+  "attempt": 1,
+  "waveform": {
+    "status": "attached",
+    "reason": "TB picosoc-uart-div_tb.sv dump-capable",
+    "vcd": "/home/tuncay/afterglow/runs/wave-on-picosoc-uart-div-43/waves/waves.vcd",
+    "vcd_tohost": "FAIL 0xdead",
+    "png": "/home/tuncay/afterglow/runs/wave-on-picosoc-uart-div-43/waveform.png",
+    "png_sha256": "18b65e830df9f967eaff6a6c638c798262c6a422353308e3c2540ad29f5e96f9",
+    "png_bytes": 7864,
+    "signals": [
+      "tb_picosoc_uart.clk",
+      "tb_picosoc_uart.ser_tx"
+    ],
+    "fail_window": [
+      20920,
+      21320
+    ],
+    "attachments": [
+      {
+        "name": "waveform.png",
+        "sha256": "18b65e830df9f967eaff6a6c638c798262c6a422353308e3c2540ad29f5e96f9",
+        "bytes": 7864
+      }
+    ]
+  }
+}

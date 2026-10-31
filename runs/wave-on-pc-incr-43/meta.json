@@ -1,0 +1,134 @@
+{
+  "run_id": "wave-on-pc-incr-43",
+  "case_id": "pc-incr",
+  "case": "pc-incr",
+  "mode": "live",
+  "status": "red",
+  "retries": 1,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-31T17:00:35Z",
+  "wall_end_utc": "2026-10-31T17:15:35Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": false,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 46848,
+      "text_request_id": "chatcmpl-01a192e8-aea3-732c-bd25-91e3854c06dc",
+      "diagnosis_chars": 355,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged",
+      "stale-build-suspect": false,
+      "stale_build_reason": ""
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "transport-failures-present (3 transport failures; flakes never unlock the ladder)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/pc-incr.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "pc-incr",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "563b7c10626ff25de2b3c430956c7c113e448c4efaea068f9b83a198d4322b15",
+  "cycles_before": 2009,
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 628,
+  "context_tokens": 58,
+  "context_dropped": "none",
+  "localization_top1": "dhrystone/testbench.v",
+  "top1_is_true": false,
+  "trace_sha256": "6fb539cd49c1c88b5c80cb9ec7a88d5980609812c3802546efb9ac2560d404e4",
+  "waveform": {
+    "status": "attached",
+    "reason": "TB picorv32-fetch_tb.sv dump-capable",
+    "vcd": "/home/tuncay/afterglow/runs/wave-on-pc-incr-43/waves/waves.vcd",
+    "vcd_tohost": "FAIL 0xdead",
+    "png": "/home/tuncay/afterglow/runs/wave-on-pc-incr-43/waveform.png",
+    "png_sha256": "8df6e29e929bcf24c5a31de610adce7155eba7cacc3799afbd4db94c248c488b",
+    "png_bytes": 10518,
+    "signals": [
+      "tb_picorv32_fetch.clk",
+      "tb_picorv32_fetch.mem_la_read",
+      "tb_picorv32_fetch.mem_la_addr"
+    ],
+    "fail_window": [
+      19890,
+      20290
+    ],
+    "attachments": [
+      {
+        "name": "waveform.png",
+        "sha256": "8df6e29e929bcf24c5a31de610adce7155eba7cacc3799afbd4db94c248c488b",
+        "bytes": 10518
+      }
+    ]
+  },
+  "attempts_consumed": 1,
+  "transport_retries": [
+    9.56716349767148,
+    20.733537823821166,
+    9.188809881689075,
+    27.599461523636542,
+    8.511260152491392,
+    27.250792069758603
+  ],
+  "transport_failures": 3,
+  "stack": [],
+  "stacked": false,
+  "stack_depth": 0,
+  "image_latency_ms": 20373,
+  "image_request_id": "5892bfcf-bc9d-4bee-9b50-4b6e8b258f25",
+  "image_bytes": 1503173,
+  "text_latency_ms": 46848,
+  "text_request_id": "chatcmpl-01a192e8-aea3-732c-bd25-91e3854c06dc",
+  "api_usage": {
+    "completion_tokens": 5479,
+    "prompt_tokens": 1480,
+    "total_tokens": 6959,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5249
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "FAIL 0xdead",
+  "checksum_after": "2380078a93590da06f8e9ac7ff4e6eb90974634703b56ca2bacd5dcc122b9516",
+  "cycles_after": 2009,
+  "error": "live text API failed after 3 transport failures (1 diagnostic attempts completed): live text call returned EMPTY content (latency 83968ms, request chatcmpl-01a192f5-a94c-7437-823d-8559253fc28d); refusing to invent a diagnosis (no heuristic fallback)",
+  "time_to_green_s": 899.8,
+  "est_usd": 0.076792,
+  "text_tokens": 6959,
+  "image_calls": 1
+}

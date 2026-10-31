@@ -1,0 +1,35 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: pc-incr\nFailing-trace sha256 (first 16 hex): 6fb539cd49c1c88b\nVerbatim diagnosis from the debug agent:\nFetch makes no progress: max_addr stays 0x00000000 vs expected sequential fetch through 256 NOP words, ending in FAIL 0xdead and 'no progress' TRAP after 2009 cycles. Both reg_pc and reg_next_pc hold current_pc so the fetch address never advances. Root cause is lines 1526-1527 where reg_next_pc <= current_pc lacks the +4 increment, stalling PC at reset.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 6fb539cd49c1c88b in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "c94be186e2af531e240f24aed6e95b321bf894f4d2a169270bea4ce2dfe88f8c",
+  "trace_sha256": "6fb539cd49c1c88b5c80cb9ec7a88d5980609812c3802546efb9ac2560d404e4",
+  "diagnosis_sha256": "a6798f934ba75b1edc3d86d761a6ade3e6a37590740e6f31f44a10f575106a8c",
+  "case": "pc-incr",
+  "attempt": 1,
+  "waveform": {
+    "status": "attached",
+    "reason": "TB picorv32-fetch_tb.sv dump-capable",
+    "vcd": "/home/tuncay/afterglow/runs/wave-on-pc-incr-43/waves/waves.vcd",
+    "vcd_tohost": "FAIL 0xdead",
+    "png": "/home/tuncay/afterglow/runs/wave-on-pc-incr-43/waveform.png",
+    "png_sha256": "8df6e29e929bcf24c5a31de610adce7155eba7cacc3799afbd4db94c248c488b",
+    "png_bytes": 10518,
+    "signals": [
+      "tb_picorv32_fetch.clk",
+      "tb_picorv32_fetch.mem_la_read",
+      "tb_picorv32_fetch.mem_la_addr"
+    ],
+    "fail_window": [
+      19890,
+      20290
+    ],
+    "attachments": [
+      {
+        "name": "waveform.png",
+        "sha256": "8df6e29e929bcf24c5a31de610adce7155eba7cacc3799afbd4db94c248c488b",
+        "bytes": 10518
+      }
+    ]
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-12\nFailing-trace sha256 (first 16 hex): e9615d108cc52a9a\nVerbatim diagnosis from the debug agent:\nLoopback send 0xa5 with divider 64 trapped as uart data mismatch got 0xff want 0xa5. ser_tx is driven low during reset because send_pattern resets to ~1 whose LSB is 0 instead of idle-high ~0, injecting a false start on loopback. This desyncs recv_state/recv_pattern sampling so the real frame is missed and RX holds idle 0xff.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash e9615d108cc52a9a in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "97c42ea089bb3f2c717ecf918a430e83e3cba4e78f4eb4fe8d7ffe8ed7671bad",
+  "trace_sha256": "e9615d108cc52a9a20d0d0240161509462596d4b7ea68de7790c170b0bf8cb49",
+  "diagnosis_sha256": "05a7c28c393164fc4a60a2cdb61fe16c205ad05f986c6482bc4e520d309f4562",
+  "case": "mut-bigN-12",
+  "attempt": 1,
+  "waveform": {
+    "status": "attached",
+    "reason": "TB picosoc-uart-div_tb.sv dump-capable",
+    "vcd": "/home/tuncay/afterglow/runs/wave-on-mut-bigN-12-43/waves/waves.vcd",
+    "vcd_tohost": "FAIL 0xdead",
+    "png": "/home/tuncay/afterglow/runs/wave-on-mut-bigN-12-43/waveform.png",
+    "png_sha256": "09e5f6bab4dd2a90bb27cb59b3e20b17fc09bb130df1775fcb650e3cad560f46",
+    "png_bytes": 7654,
+    "signals": [
+      "tb_picosoc_uart.clk",
+      "tb_picosoc_uart.ser_tx"
+    ],
+    "fail_window": [
+      20040,
+      20440
+    ],
+    "attachments": [
+      {
+        "name": "waveform.png",
+        "sha256": "09e5f6bab4dd2a90bb27cb59b3e20b17fc09bb130df1775fcb650e3cad560f46",
+        "bytes": 7654
+      }
+    ]
+  }
+}

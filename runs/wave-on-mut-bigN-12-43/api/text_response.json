@@ -1,0 +1,54 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a192d3-5556-7000-8ddc-9755ffd12259",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Loopback send 0xa5 with divider 64 trapped as uart data mismatch got 0xff want 0xa5. ser_tx is driven low during reset because send_pattern resets to ~1 whose LSB is 0 instead of idle-high ~0, injecting a false start on loopback. This desyncs recv_state/recv_pattern sampling so the real frame is missed and RX holds idle 0xff.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -113,7 +113,7 @@\\n \\t\\tif (!resetn) begin\\n-\\t\\t\\tsend_pattern <= ~1;\\n+\\t\\t\\tsend_pattern <= ~0;\\n \\t\\t\\tsend_bitcnt <= 0;\\n \\t\\t\\tsend_divcnt <= 0;\\n \\t\\t\\tsend_dummy <= 1;\", \"expected\": \"tohost PASS (not FAIL 0xdead), no uart data mismatch trap, loopback got 0xa5\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793464685,
+    "model": "muse-spark-1.3-contributor",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 7473,
+      "prompt_tokens": 1573,
+      "total_tokens": 9046,
+      "completion_tokens_details": {
+        "reasoning_tokens": 7222
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Loopback send 0xa5 with divider 64 trapped as uart data mismatch got 0xff want 0xa5. ser_tx is driven low during reset because send_pattern resets to ~1 whose LSB is 0 instead of idle-high ~0, injecting a false start on loopback. This desyncs recv_state/recv_pattern sampling so the real frame is missed and RX holds idle 0xff.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -113,7 +113,7 @@\\n \\t\\tif (!resetn) begin\\n-\\t\\t\\tsend_pattern <= ~1;\\n+\\t\\t\\tsend_pattern <= ~0;\\n \\t\\t\\tsend_bitcnt <= 0;\\n \\t\\t\\tsend_divcnt <= 0;\\n \\t\\t\\tsend_dummy <= 1;\", \"expected\": \"tohost PASS (not FAIL 0xdead), no uart data mismatch trap, loopback got 0xa5\"}",
+  "diagnosis": "Loopback send 0xa5 with divider 64 trapped as uart data mismatch got 0xff want 0xa5. ser_tx is driven low during reset because send_pattern resets to ~1 whose LSB is 0 instead of idle-high ~0, injecting a false start on loopback. This desyncs recv_state/recv_pattern sampling so the real frame is missed and RX holds idle 0xff.",
+  "expected": "tohost PASS (not FAIL 0xdead), no uart data mismatch trap, loopback got 0xa5",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 70100,
+  "request_id": "chatcmpl-01a192d3-5556-7000-8ddc-9755ffd12259",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 7473,
+    "prompt_tokens": 1573,
+    "total_tokens": 9046,
+    "completion_tokens_details": {
+      "reasoning_tokens": 7222
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

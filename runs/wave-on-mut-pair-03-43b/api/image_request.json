@@ -1,0 +1,35 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-pair-03\nFailing-trace sha256 (first 16 hex): d6fa908d28e8f5f9\nVerbatim diagnosis from the debug agent:\nFetch test fills memory with NOP (ADDI x0,x0,0, opcode 0010011) but cpu trap is asserted and tohost reports FAIL 0xdead instead of progress. Line 877 compares mem_rdata_latched[6:0] to 7'b0010010 so is_alu_reg_imm never asserts, leaving OP-IMM undecodable and instr_trap asserted via line 679. Root cause is wrong opcode constant; correct RV32I OP-IMM is 7'b0010011 matching is_alu_reg_reg 0110011 pattern.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash d6fa908d28e8f5f9 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "838586899b43f8f9780bf3bd1cb0700c7574bbee58c3c0b920fc36362fcbc4c0",
+  "trace_sha256": "d6fa908d28e8f5f9c95338369ad3a68d8cf3d8375695edeca2a35ad5eb183cee",
+  "diagnosis_sha256": "591322f6c31f8eaa577a8a70e641a1db3e6ad2e98dee7c4cbab4ac25d4b824ad",
+  "case": "mut-pair-03",
+  "attempt": 3,
+  "waveform": {
+    "status": "attached",
+    "reason": "TB picorv32-fetch_tb.sv dump-capable",
+    "vcd": "/home/tuncay/afterglow/runs/wave-on-mut-pair-03-43b/waves/waves.vcd",
+    "vcd_tohost": "FAIL 0xdead",
+    "png": "/home/tuncay/afterglow/runs/wave-on-mut-pair-03-43b/waveform.png",
+    "png_sha256": "d2f5904691ba73fba4045abb6632309c3272a535657413c3f7b2e8d161e101ab",
+    "png_bytes": 10720,
+    "signals": [
+      "tb_picorv32_fetch.clk",
+      "tb_picorv32_fetch.mem_la_read",
+      "tb_picorv32_fetch.mem_la_addr"
+    ],
+    "fail_window": [
+      19890,
+      20290
+    ],
+    "attachments": [
+      {
+        "name": "waveform.png",
+        "sha256": "d2f5904691ba73fba4045abb6632309c3272a535657413c3f7b2e8d161e101ab",
+        "bytes": 10720
+      }
+    ]
+  }
+}
