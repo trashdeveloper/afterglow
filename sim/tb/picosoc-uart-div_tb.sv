@@ -3,10 +3,23 @@
 // return recv_buf_valid + recv_buf_data == 0xA5 (observed via reg_dat_do).
 // Prints "tohost: PASS" or "tohost: FAIL 0xdead" + "TRAP: ..." + "CYCLES=<n>".
 // Deterministic. Accepts +seed=<n> (logged only). Verilator --binary --timing.
+//
+// WAVEFORM-VISION PILOT (opt-in VCD dump, default builds untouched):
+// build with `+define+DUMP_WAVES` AND Verilator `--trace`, and the sim
+// writes waves.vcd into its cwd (see `ifdef DUMP_WAVES below).
+// Default `vbackend.build` passes neither flag, so normal runs never
+// dump. Render with agent/waveform/vcdrender.py. No model/API involved.
 module tb_picosoc_uart;
 	reg clk = 0;
 	reg resetn = 0;
 	always #5 clk = ~clk;
+
+`ifdef DUMP_WAVES
+	initial begin
+		$dumpfile("waves.vcd");
+		$dumpvars(0, tb_picosoc_uart);
+	end
+`endif
 
 	wire ser_tx;
 	reg [3:0] reg_div_we = 0;
