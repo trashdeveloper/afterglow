@@ -16,6 +16,14 @@ Design: 6 cases x 2 arms (OFF default, ON --waveform) x 1 seed (42) =
 12 runs. Same prompt file, same guard, same oracle, same seed both
 arms. Reserved run-ids: wave-off-<case>-42, wave-on-<case>-42.
 
+Seed-43 confirmatory extension (amended 2026-10-31, BEFORE firing
+seed 43): same 6x2 design, seed 43, reserved run-ids wave-off-*-43 /
+wave-on-*-43. Same decision rule applied independently to seed 43;
+combined verdict = WINS iff won on either seed with no contradictions
+(a seed where ON fixes a RED OFF misses and no green regresses;
+contradiction = a RED fixed ON in one seed but a GREEN regressing
+ON in the other). Cost +~$0.85.
+
 Cases (from eval/verbatim-batch-ledger.md, genuine verbatim evidence):
 RED arm (all model-verbatim applied, resim stayed RED — not flakes,
 not guard blocks):

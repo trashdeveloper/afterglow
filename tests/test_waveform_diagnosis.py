@@ -214,14 +214,26 @@ class TestWaveformFlag(unittest.TestCase):
         self.assertEqual(plan["status"], "ready")
         self.assertTrue(loop.tb_supports_dump_waves(case["tb"]))
 
-    def test_plan_degraded_for_plain_tb(self):
+    def test_plan_ready_for_fetch_tb(self):
+        args = SimpleNamespace(waveform=True)
+        plan = loop.waveform_plan(
+            args, {"tb": "picorv32-fetch_tb.sv",
+                   "top": "tb_picorv32_fetch"})
+        self.assertEqual(plan["status"], "ready")
+        self.assertTrue(
+            loop.tb_supports_dump_waves("picorv32-fetch_tb.sv"))
+        self.assertEqual(
+            list(loop.WAVEFORM_SIGNALS["tb_picorv32_fetch"]),
+            ["tb_picorv32_fetch.clk",
+             "tb_picorv32_fetch.mem_la_read",
+             "tb_picorv32_fetch.mem_la_addr"])
+
+    def test_plan_degraded_for_wrong_top_on_fetch_tb(self):
         args = SimpleNamespace(waveform=True)
         plan = loop.waveform_plan(
             args, {"tb": "picorv32-fetch_tb.sv", "top": "tb_picorv32"})
         self.assertEqual(plan["status"], "degraded")
-        self.assertIn("DUMP_WAVES", plan["reason"])
-        self.assertFalse(
-            loop.tb_supports_dump_waves("picorv32-fetch_tb.sv"))
+        self.assertIn("tb_picorv32", plan["reason"])
 
     def test_plan_degraded_for_missing_tb(self):
         args = SimpleNamespace(waveform=True)

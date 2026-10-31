@@ -4,10 +4,21 @@
 // output, and requires PC progress (max fetch addr >= 64).
 // Prints "tohost: PASS" or "tohost: FAIL 0xdead" + "TRAP: ..." + "CYCLES=<n>".
 // Deterministic. Accepts +seed=<n> (logged only). Verilator --binary --timing.
+// Waveform: build with `+define+DUMP_WAVES` AND Verilator `--trace`, and
+// the sim writes waves.vcd into its cwd (see `ifdef DUMP_WAVES below).
+// Default `vbackend.build` passes neither flag, so normal runs never
+// dump. Render with agent/waveform/vcdrender.py. No model/API involved.
 module tb_picorv32_fetch;
 	reg clk = 0;
 	reg resetn = 0;
 	always #5 clk = ~clk;
+
+`ifdef DUMP_WAVES
+	initial begin
+		$dumpfile("waves.vcd");
+		$dumpvars(0, tb_picorv32_fetch);
+	end
+`endif
 
 	wire trap;
 	wire mem_valid, mem_instr;

@@ -151,6 +151,9 @@ WAVEFORM_FAIL_PAD = 200  # VCD time units of context around the fail point
 # pair are listed -- unknown tops degrade loudly instead of guessing).
 WAVEFORM_SIGNALS = {
     "tb_picosoc_uart": ("tb_picosoc_uart.clk", "tb_picosoc_uart.ser_tx"),
+    "tb_picorv32_fetch": ("tb_picorv32_fetch.clk",
+                           "tb_picorv32_fetch.mem_la_read",
+                           "tb_picorv32_fetch.mem_la_addr"),
 }
 
 # Full-auto-by-default loop mode: every run attempts PATCH->RESIM->VERIFY

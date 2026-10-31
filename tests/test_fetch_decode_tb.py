@@ -75,10 +75,15 @@ SPEC_NEW = os.path.join(ROOT, "sim", "targets",
 CASES_YAML = os.path.join(ROOT, "eval", "cases.yaml")
 BOARD = os.path.join(ROOT, "eval", "mutant_pilot", "board.json")
 
-# sha256 of sim/tb/picorv32-fetch_tb.sv at HEAD 617f227 (tree clean;
-# `git diff HEAD` empty). Pins "leave the original TB byte-identical".
+# sha256 of sim/tb/picorv32-fetch_tb.sv: ORIGINAL was pinned at HEAD
+# 617f227 (tree clean). Amended once, explicitly: the ONLY delta is the
+# ifdef-guarded DUMP_WAVES dump block (+11 lines, no behavior change;
+# default builds preprocess it out: oracle output identical
+# PASS + CYCLES=2009, only $finish source-line refs shift).
+# Purpose of the pin stands: any OTHER edit to the original TB fails
+# loudly here and must be justified the same way.
 ORIGINAL_TB_SHA256 = (
-    "60bff8d4b2b402024742252a8f9fbcff7fd0b4a75cb2e796df41e22eacd5cee3")
+    "231f47f85bd6e862a98e55364f78d73484ba1d6cfe2783b8aebe973ad6c19be4")
 
 FETCH_GOLDEN = ("5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a")
 
