@@ -100,6 +100,9 @@ def build_parser() -> argparse.ArgumentParser:
                           "after a GREEN fix, run ONE optimize pass that "
                           "must reduce SIMULATED CYCLES with IDENTICAL "
                           "checksum/tohost (rejected opt never ungreens)")
+    run.add_argument("--waveform", action="store_true", default=False,
+                     help="attach fail-window waveform PNG to diagnosis "
+                          "(uart-TB cases only; others degrade loudly)")
     exp = sub.add_parser(
         "explain", help="render a finished bundle as a human story: "
                          "RED symptom -> diagnosis -> patch -> VERIFY -> cost")
@@ -192,6 +195,8 @@ def main(argv=None) -> int:
             loop_argv.append("--stop-before-patch")
         if args.goals:
             loop_argv += ["--goals", args.goals]
+        if args.waveform:
+            loop_argv.append("--waveform")
         if args.run_id:
             loop_argv += ["--run-id", args.run_id]
         if args.prompt:
