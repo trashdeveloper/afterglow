@@ -1,0 +1,34 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-12\nFailing-trace sha256 (first 16 hex): 108a921fefb580f9\nVerbatim diagnosis from the debug agent:\nLoopback TX stayed idle so RX sampled 0xff instead of 0xa5, causing tohost FAIL 0xdead. Excerpt lines 110-111 assert send_dummy on reg_div_we, starting a 15-bit idle burst with send_bitcnt=15. The following reg_dat_we is then ignored by the `reg_dat_we && !send_bitcnt` guard, so send_pattern never loads 0xa5.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 108a921fefb580f9 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "a63777ef7d4b199a528f64fc7b9bc945dc5ca74b237e2f4990a596f22c1672e1",
+  "trace_sha256": "108a921fefb580f9a83c063b9756ea934acb411a5cd8f76e397b1ba5d0e386a1",
+  "diagnosis_sha256": "3343496a14f0e74166ddda5846d8a1f5cdbcdfe57e0a36e4ab4ea1de3ce3956f",
+  "case": "mut-bigN-12",
+  "attempt": 1,
+  "waveform": {
+    "status": "attached",
+    "reason": "TB picosoc-uart-div_tb.sv dump-capable",
+    "vcd": "/home/tuncay/afterglow/runs/wave-on-mut-bigN-12-42/waves/waves.vcd",
+    "vcd_tohost": "FAIL 0xdead",
+    "png": "/home/tuncay/afterglow/runs/wave-on-mut-bigN-12-42/waveform.png",
+    "png_sha256": "09e5f6bab4dd2a90bb27cb59b3e20b17fc09bb130df1775fcb650e3cad560f46",
+    "png_bytes": 7654,
+    "signals": [
+      "tb_picosoc_uart.clk",
+      "tb_picosoc_uart.ser_tx"
+    ],
+    "fail_window": [
+      20040,
+      20440
+    ],
+    "attachments": [
+      {
+        "name": "waveform.png",
+        "sha256": "09e5f6bab4dd2a90bb27cb59b3e20b17fc09bb130df1775fcb650e3cad560f46",
+        "bytes": 7654
+      }
+    ]
+  }
+}

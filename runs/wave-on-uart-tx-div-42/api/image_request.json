@@ -1,0 +1,34 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: uart-tx-div\nFailing-trace sha256 (first 16 hex): 643deb6cad636eac\nVerbatim diagnosis from the debug agent:\nLoopback RX got 0xff (idle) instead of 0xa5 for divider 64. TX advances on line 130 with `send_divcnt > (cfg_divider >> 4)`, making the bit period ~16x too short, so TX finishes before RX samples and RX reads idle 1s. Root cause is the `>> 4` divide on cfg_divider in the send_bitcnt shift condition.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 643deb6cad636eac in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "85e99b55f72753ece7c69ef1523ade1c7517285343eac3262876a42757e9a409",
+  "trace_sha256": "643deb6cad636eacce63ad91b831f6a04cb0b17b952e7ded8661c93f83f93ef9",
+  "diagnosis_sha256": "d31f2638f7eb079393eefd2526ad3629d3fd1b0b8c2cc856cd3683f0e2c538c2",
+  "case": "uart-tx-div",
+  "attempt": 1,
+  "waveform": {
+    "status": "attached",
+    "reason": "TB picosoc-uart-div_tb.sv dump-capable",
+    "vcd": "/home/tuncay/afterglow/runs/wave-on-uart-tx-div-42/waves/waves.vcd",
+    "vcd_tohost": "FAIL 0xdead",
+    "png": "/home/tuncay/afterglow/runs/wave-on-uart-tx-div-42/waveform.png",
+    "png_sha256": "2c354de0a345e7c6d5aaefad5f224605724270b9125957519eda083515ac76e6",
+    "png_bytes": 7590,
+    "signals": [
+      "tb_picosoc_uart.clk",
+      "tb_picosoc_uart.ser_tx"
+    ],
+    "fail_window": [
+      26320,
+      26720
+    ],
+    "attachments": [
+      {
+        "name": "waveform.png",
+        "sha256": "2c354de0a345e7c6d5aaefad5f224605724270b9125957519eda083515ac76e6",
+        "bytes": 7590
+      }
+    ]
+  }
+}

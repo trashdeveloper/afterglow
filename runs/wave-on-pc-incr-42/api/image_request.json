@@ -1,0 +1,15 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: pc-incr\nFailing-trace sha256 (first 16 hex): 44a1d032b3b2723e\nVerbatim diagnosis from the debug agent:\nFetch makes no progress with max_addr=0x00000000 vs expected advancing fetch. reg_next_pc <= current_pc mirrors current_pc with no stride so reg_next_pc never leaves 0. Root cause in excerpt at lines 1526-1527 is missing +2/+4 increment using latched_compr for compressed vs normal instr.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 44a1d032b3b2723e in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "b4938ab315fb020cc2db46f56243cfdb890810b625c7ebff67cc7fa3ffa71297",
+  "trace_sha256": "44a1d032b3b2723e413e76a071168dd043350c3495ef7289ab7a40d4ddfa1559",
+  "diagnosis_sha256": "17f96bedd499c5307b5644eb80256e0deb66210bca263ec64bb3990c7c7eed27",
+  "case": "pc-incr",
+  "attempt": 3,
+  "waveform": {
+    "status": "degraded",
+    "reason": "TB 'picorv32-fetch_tb.sv' has no DUMP_WAVES dump block: text-only",
+    "attachments": []
+  }
+}

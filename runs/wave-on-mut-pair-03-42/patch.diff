@@ -1,0 +1,20 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -679,3 +679,3 @@
+-	assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) || !{instr_lui, instr_auipc, instr_jal, instr_jalr,
++	assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) && !{instr_lui, instr_auipc, instr_jal, instr_jalr,
+ 			instr_beq, instr_bne, instr_blt, instr_bge, instr_bltu, instr_bgeu,
+ 			instr_lb, instr_lh, instr_lw, instr_lbu, instr_lhu, instr_sb, instr_sh, instr_sw,
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -874,7 +874,7 @@
+ 			is_beq_bne_blt_bge_bltu_bgeu <= mem_rdata_latched[6:0] == 7'b1100011;
+ 			is_lb_lh_lw_lbu_lhu          <= mem_rdata_latched[6:0] == 7'b0000011;
+ 			is_sb_sh_sw                  <= mem_rdata_latched[6:0] == 7'b0100011;
+-			is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010010;
++			is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;
+ 			is_alu_reg_reg               <= mem_rdata_latched[6:0] == 7'b0110011;
+ 
+ 			{ decoded_imm_j[31:20], decoded_imm_j[10:1], decoded_imm_j[11], decoded_imm_j[19:12], decoded_imm_j[0] } <= $signed({mem_rdata_latched[31:12], 1'b0});

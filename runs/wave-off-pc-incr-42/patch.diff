@@ -1,0 +1,21 @@
+diff --git a/picorv32.v b/picorv32.v
+--- a/picorv32.v
++++ b/picorv32.v
+@@ -1549,7 +1549,7 @@
+ 					if (irq_pending) begin
+ 						latched_store <= 1;
+ 						reg_out <= irq_pending;
+-						reg_next_pc <= current_pc;
++						reg_next_pc <= current_pc + (compressed_instr ? 2 : 4);
+ 						mem_do_rinst <= 1;
+ 					end else
+ 						do_waitirq <= 1;
+@@ -1557,7 +1557,7 @@
+ 				if (decoder_trigger) begin
+ 					`debug($display("-- %-0t", $time);)
+ 					irq_delay <= irq_active;
+-					reg_next_pc <= current_pc;
++					reg_next_pc <= current_pc + (compressed_instr ? 2 : 4);
+ 					if (ENABLE_TRACE)
+ 						latched_trace <= 1;
+ 					if (ENABLE_COUNTERS) begin

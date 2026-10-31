@@ -1,0 +1,20 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -39,5 +39,5 @@
+-	reg [3:1] recv_state;
++	reg [3:0] recv_state;
+ 	reg [31:0] recv_divcnt;
+ 	reg [7:0] recv_pattern;
+ 	reg [7:0] recv_buf_data;
+ 	reg recv_buf_valid;
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -112,5 +112,5 @@
+ 		send_divcnt <= send_divcnt + 1;
+ 		if (!resetn) begin
+-			send_pattern <= ~1;
++			send_pattern <= ~0;
+ 			send_bitcnt <= 0;
+ 			send_divcnt <= 0;

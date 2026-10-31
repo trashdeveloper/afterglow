@@ -1,0 +1,173 @@
+{
+  "run_id": "wave-on-mut-pair-03-42",
+  "case_id": "mut-pair-03",
+  "case": "mut-pair-03",
+  "mode": "live",
+  "status": "green",
+  "retries": 1,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-31T05:16:32Z",
+  "wall_end_utc": "2026-10-31T05:19:53Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 4,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 49983,
+      "text_request_id": "chatcmpl-01a19065-3649-733e-bdc7-85c7fdad11f1",
+      "diagnosis_chars": 314,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 1,
+      "no_behavioral_effect": true,
+      "integrity_detail": "all 1 file(s) unchanged; stale-build suspect (pre-build content differs from RED baseline but checksum c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659 / tohost FAIL 0xdead unchanged: build likely never recompiled the edit), clean rebuild forced (obj dir dropped, resim x2)",
+      "stale-build-suspect": true,
+      "stale_build_reason": "pre-build content differs from RED baseline but checksum c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659 / tohost FAIL 0xdead unchanged: build likely never recompiled the edit"
+    },
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "compositional stack: continue from improved tree (stack depth 1; no reset)",
+      "stacked_continue": true,
+      "stack_depth": 1,
+      "attempt": 2,
+      "text_latency_ms": 49724,
+      "text_request_id": "chatcmpl-01a19066-30ce-7591-80eb-160f904d739d",
+      "diagnosis_chars": 346,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged",
+      "stale-build-suspect": false,
+      "stale_build_reason": ""
+    }
+  ],
+  "no_behavioral_effect": true,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-pair-03.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/wave-on-mut-pair-03-42",
+  "mutant_record": {
+    "file": "picorv32.v",
+    "line": 679,
+    "before": "assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) && !{instr_lui, instr_auipc, instr_jal, instr_jalr,",
+    "after": "assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) || !{instr_lui, instr_auipc, instr_jal, instr_jalr,",
+    "seed": "1234",
+    "op": "pair",
+    "faults": [
+      {
+        "file": "picorv32.v",
+        "line": 679,
+        "before": "assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) && !{instr_lui, instr_auipc, instr_jal, instr_jalr,",
+        "after": "assign instr_trap = (CATCH_ILLINSN || WITH_PCPI) || !{instr_lui, instr_auipc, instr_jal, instr_jalr,"
+      },
+      {
+        "file": "picorv32.v",
+        "line": 877,
+        "before": "is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;",
+        "after": "is_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010010;"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picorv32.v",
+  "spec_case_id": "mut-pair-03",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+  "cycles_before": 2009,
+  "red_baseline_tree_sha256": "cd276b21e7b8ef3a4dbe136a14d812efec916e8d5ef8e068ffb14f8386c4701d",
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 69,
+  "prompt_tokens": 989,
+  "context_tokens": 90,
+  "context_dropped": "none",
+  "localization_top1": "picosoc/picosoc.v",
+  "top1_is_true": false,
+  "trace_sha256": "1f2a0a9da6375bc74310aeeb647d2f60d0c1e48b48597696a4d782f408aa9a30",
+  "waveform": {
+    "status": "degraded",
+    "reason": "TB 'picorv32-fetch_tb.sv' has no DUMP_WAVES dump block: text-only",
+    "attachments": []
+  },
+  "attempts_consumed": 2,
+  "transport_retries": [
+    6.834189172847088
+  ],
+  "transport_failures": 0,
+  "stack": [
+    {
+      "attempt": 1,
+      "patch": "diff --git a/picorv32.v b/picorv32.v\n--- a/picorv32.v\n+++ b/picorv32.v\n@@ -679,3 +679,3 @@\n-\tassign instr_trap = (CATCH_ILLINSN || WITH_PCPI) || !{instr_lui, instr_auipc, instr_jal, instr_jalr,\n+\tassign instr_trap = (CATCH_ILLINSN || WITH_PCPI) && !{instr_lui, instr_auipc, instr_jal, instr_jalr,\n \t\t\tinstr_beq, instr_bne, instr_blt, instr_bge, instr_bltu, instr_bgeu,\n \t\t\tinstr_lb, instr_lh, instr_lw, instr_lbu, instr_lhu, instr_sb, instr_sh, instr_sw,\n",
+      "direction": "picorv32.v:679:replace",
+      "checksum_before": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "checksum_after": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "patch_lines": 2,
+      "trigger": "applied-clean"
+    },
+    {
+      "attempt": 2,
+      "patch": "diff --git a/picorv32.v b/picorv32.v\n--- a/picorv32.v\n+++ b/picorv32.v\n@@ -874,7 +874,7 @@\n \t\t\tis_beq_bne_blt_bge_bltu_bgeu <= mem_rdata_latched[6:0] == 7'b1100011;\n \t\t\tis_lb_lh_lw_lbu_lhu          <= mem_rdata_latched[6:0] == 7'b0000011;\n \t\t\tis_sb_sh_sw                  <= mem_rdata_latched[6:0] == 7'b0100011;\n-\t\t\tis_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010010;\n+\t\t\tis_alu_reg_imm               <= mem_rdata_latched[6:0] == 7'b0010011;\n \t\t\tis_alu_reg_reg               <= mem_rdata_latched[6:0] == 7'b0110011;\n \n \t\t\t{ decoded_imm_j[31:20], decoded_imm_j[10:1], decoded_imm_j[11], decoded_imm_j[19:12], decoded_imm_j[0] } <= $signed({mem_rdata_latched[31:12], 1'b0});\n",
+      "direction": "picorv32.v:877:replace",
+      "checksum_before": "c2a7a4d6295484feeb9ec1ea9381732b8e39a7ccd1997c7d70f6454da2fb4659",
+      "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+      "patch_lines": 2,
+      "trigger": "applied-clean"
+    }
+  ],
+  "stacked": true,
+  "stack_depth": 2,
+  "image_latency_ms": 13773,
+  "image_request_id": "06592135-85fe-480a-8315-46bd6affc9e6",
+  "image_bytes": 1351262,
+  "text_latency_ms": 49724,
+  "text_request_id": "chatcmpl-01a19066-30ce-7591-80eb-160f904d739d",
+  "api_usage": {
+    "completion_tokens": 6246,
+    "prompt_tokens": 3191,
+    "total_tokens": 9437,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5765
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c28238265cb94168311e9914f0df355642c557d04dba11845d557ac8a64aa4a",
+  "cycles_after": 2009,
+  "replay_verified": true,
+  "time_to_green_s": 200.7,
+  "est_usd": 0.08635,
+  "text_tokens": 9437,
+  "image_calls": 1
+}

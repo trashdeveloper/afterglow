@@ -1,0 +1,152 @@
+{
+  "run_id": "wave-on-mut-bigN-12-42",
+  "case_id": "mut-bigN-12",
+  "case": "mut-bigN-12",
+  "mode": "live",
+  "status": "red",
+  "retries": 1,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-31T04:53:43Z",
+  "wall_end_utc": "2026-10-31T05:09:55Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": false,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 49415,
+      "text_request_id": "chatcmpl-01a19057-938e-763e-9f34-b347e8e26031",
+      "diagnosis_chars": 310,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 1,
+      "no_behavioral_effect": true,
+      "integrity_detail": "all 1 file(s) unchanged; stale-build suspect (pre-build content differs from RED baseline but checksum 9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985 / tohost FAIL 0xdead unchanged: build likely never recompiled the edit), clean rebuild forced (obj dir dropped, resim x2)",
+      "stale-build-suspect": true,
+      "stale_build_reason": "pre-build content differs from RED baseline but checksum 9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985 / tohost FAIL 0xdead unchanged: build likely never recompiled the edit"
+    }
+  ],
+  "no_behavioral_effect": true,
+  "ladder_used": false,
+  "ladder_reason": "transport-failures-present (3 transport failures; flakes never unlock the ladder)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-bigN-12.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/wave-on-mut-bigN-12-42",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 114,
+    "before": "send_pattern <= ~0;",
+    "after": "send_pattern <= ~1;",
+    "seed": "1234",
+    "op": "num_bump",
+    "faults": [
+      {
+        "file": "picosoc/simpleuart.v",
+        "line": 114,
+        "before": "send_pattern <= ~0;",
+        "after": "send_pattern <= ~1;"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-bigN-12",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+  "cycles_before": 2024,
+  "red_baseline_tree_sha256": "7c991d0d83d318e12982d7c2a1b0d355a5fc6360fa36decc47d492e196dd06b2",
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 68,
+  "prompt_tokens": 689,
+  "context_tokens": 147,
+  "context_dropped": "none",
+  "localization_top1": "picosoc/spiflash_tb.v",
+  "top1_is_true": false,
+  "trace_sha256": "108a921fefb580f9a83c063b9756ea934acb411a5cd8f76e397b1ba5d0e386a1",
+  "waveform": {
+    "status": "attached",
+    "reason": "TB picosoc-uart-div_tb.sv dump-capable",
+    "vcd": "/home/tuncay/afterglow/runs/wave-on-mut-bigN-12-42/waves/waves.vcd",
+    "vcd_tohost": "FAIL 0xdead",
+    "png": "/home/tuncay/afterglow/runs/wave-on-mut-bigN-12-42/waveform.png",
+    "png_sha256": "09e5f6bab4dd2a90bb27cb59b3e20b17fc09bb130df1775fcb650e3cad560f46",
+    "png_bytes": 7654,
+    "signals": [
+      "tb_picosoc_uart.clk",
+      "tb_picosoc_uart.ser_tx"
+    ],
+    "fail_window": [
+      20040,
+      20440
+    ],
+    "attachments": [
+      {
+        "name": "waveform.png",
+        "sha256": "09e5f6bab4dd2a90bb27cb59b3e20b17fc09bb130df1775fcb650e3cad560f46",
+        "bytes": 7654
+      }
+    ]
+  },
+  "attempts_consumed": 1,
+  "transport_retries": [
+    5.5312760116924,
+    26.014056040186542,
+    6.357117259297009,
+    20.41822840930638,
+    6.783847725277932,
+    19.48735899146078
+  ],
+  "transport_failures": 3,
+  "stack": [],
+  "stacked": false,
+  "stack_depth": 0,
+  "image_latency_ms": 27133,
+  "image_request_id": "431715a3-bafb-4dfd-8d79-f552a44a406e",
+  "image_bytes": 1312230,
+  "text_latency_ms": 49415,
+  "text_request_id": "chatcmpl-01a19057-938e-763e-9f34-b347e8e26031",
+  "api_usage": {
+    "completion_tokens": 5640,
+    "prompt_tokens": 1573,
+    "total_tokens": 7213,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5340
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 1521
+    }
+  },
+  "tohost_after": "FAIL 0xdead",
+  "checksum_after": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+  "cycles_after": 2024,
+  "error": "live text API failed after 3 transport failures (1 diagnostic attempts completed): live text call returned EMPTY content (latency 70680ms, request chatcmpl-01a1905d-4b10-77a4-9772-76458d35f6d7); refusing to invent a diagnosis (no heuristic fallback)",
+  "time_to_green_s": 971.8,
+  "est_usd": 0.078266,
+  "text_tokens": 7213,
+  "image_calls": 1
+}

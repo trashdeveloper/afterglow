@@ -1,0 +1,16 @@
+{
+  "model": "muse-image-1.0",
+  "request_id": "431715a3-bafb-4dfd-8d79-f552a44a406e",
+  "latency_ms": 27133,
+  "bytes": 1312230,
+  "sha256": "9fe8b77b5a11bfed6085768f1660e685f3ae1f19a5bf1569db2592086ba0925d",
+  "transport": "b64_json",
+  "raw_note": "b64 payload replaced by sha256+bytes; explain.png is the provenance artifact",
+  "attachments": [
+    {
+      "name": "waveform.png",
+      "sha256": "09e5f6bab4dd2a90bb27cb59b3e20b17fc09bb130df1775fcb650e3cad560f46",
+      "bytes": 7654
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: picosoc-uart-div\nFailing-trace sha256 (first 16 hex): 27c1f7e778126a68\nVerbatim diagnosis from the debug agent:\nLoopback recv_buf_data got 0xe0 vs expected 0xa5 with divider 64. Root cause in excerpt is states 10 and default comparing recv_divcnt against (cfg_divider >> 4) instead of cfg_divider, shrinking the bit period to ~1/16 and shifting ser_rx samples early into recv_pattern. State 1 correctly uses half-bit 2*recv_divcnt > cfg_divider, confirming the >>4 is wrong.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 27c1f7e778126a68 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "c1182ad3dd609bf79fee064008abafe8d17f5b5e37694ecd14b40717a5cfe399",
+  "trace_sha256": "27c1f7e778126a688e5d79a6e65a99f4b0a681876b7a0de8dceaec3533d46d0e",
+  "diagnosis_sha256": "44702d8229818ff193d27274ea87b82a658746e5fa29ec8ac69c88fba05f7276",
+  "case": "picosoc-uart-div",
+  "attempt": 1,
+  "waveform": {
+    "status": "attached",
+    "reason": "TB picosoc-uart-div_tb.sv dump-capable",
+    "vcd": "/home/tuncay/afterglow/runs/wave-on-picosoc-uart-div-42/waves/waves.vcd",
+    "vcd_tohost": "FAIL 0xdead",
+    "png": "/home/tuncay/afterglow/runs/wave-on-picosoc-uart-div-42/waveform.png",
+    "png_sha256": "18b65e830df9f967eaff6a6c638c798262c6a422353308e3c2540ad29f5e96f9",
+    "png_bytes": 7864,
+    "signals": [
+      "tb_picosoc_uart.clk",
+      "tb_picosoc_uart.ser_tx"
+    ],
+    "fail_window": [
+      20920,
+      21320
+    ],
+    "attachments": [
+      {
+        "name": "waveform.png",
+        "sha256": "18b65e830df9f967eaff6a6c638c798262c6a422353308e3c2540ad29f5e96f9",
+        "bytes": 7864
+      }
+    ]
+  }
+}

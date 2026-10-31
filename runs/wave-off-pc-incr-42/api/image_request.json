@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: pc-incr\nFailing-trace sha256 (first 16 hex): bd2aa1b30f8d81e3\nVerbatim diagnosis from the debug agent:\nFetch progress signal max_addr stuck at 0x00000000 instead of walking the 256-word NOP memory, causing TRAP no-progress and tohost FAIL 0xdead. Expected reg_next_pc/mem_addr to advance by instruction width each fetch. Root cause in excerpt lines 1526-1527 where reg_next_pc <= current_pc discards the increment so current_pc never advances.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash bd2aa1b30f8d81e3 in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "7422dce620e6f6f56148b29a72f2958f9c6d66d787f000065345a176a648f243",
+  "trace_sha256": "bd2aa1b30f8d81e31db34a7717637e66cd0a4ef45da5899095ebd285ffd868d1",
+  "diagnosis_sha256": "76a3042f2b403f08a2261c18b0c5ede3ee93673e0b21a10269052e7d9d38ef12",
+  "case": "pc-incr",
+  "attempt": 2
+}

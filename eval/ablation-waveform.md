@@ -46,16 +46,19 @@ negative result. Equality is a result, not a failure.
 
 Cost estimate: 12 x ~$0.07 = ~$0.85. Firing is the CONTROLLER's call.
 
-## Results (NOT FIRED — fill after the controller runs the burns)
+## Results (FIRED 2026-10-31, seed 42, controller-run)
 
 | case | OFF (wave-off-*-42) | ON (wave-on-*-42) |
-| mut-bigN-12 | _pending_ | _pending (attach expected)_ |
-| mut-pair-01 | _pending_ | _pending (attach expected)_ |
-| mut-pair-03 | _pending_ | _pending (degrade expected)_ |
-| pc-incr | _pending_ | _pending (degrade expected)_ |
-| picosoc-uart-div | _pending_ | _pending (attach expected)_ |
-| uart-tx-div | _pending_ | _pending (attach expected)_ |
+| mut-bigN-12 | RED (3 attempts, compositional miss) | RED (3 attempts, model-verbatim 2-line, wf attached) |
+| mut-pair-01 | RED (3 attempts, compositional miss) | GREEN (model-verbatim 4-line, unaided, wf attached+sent) |
+| mut-pair-03 | TRIAGE (transport flakes x2, patch withheld) | GREEN (model-verbatim 4-line, unaided, wf degraded/picorv32 TB) |
+| pc-incr | GREEN (canonical-bootstrap-gated 4-line) | GREEN (canonical-bootstrap-gated 4-line, wf degraded) |
+| picosoc-uart-div | GREEN (model-verbatim 4-line) | GREEN (model-verbatim 4-line, wf attached+sent) |
+| uart-tx-div | GREEN (model-verbatim 2-line) | GREEN (model-verbatim 2-line, wf attached+sent) |
+| cost | ~$0.30 (6 runs) | ~$0.49 (6 runs) |
 
 ## Decision (per prereg rule above — fill after firing)
 
-_pending_
+**WAVEFORM WINS** (binding rule satisfied): ON converted mut-pair-01 (OFF RED after 3 full attempts → ON GREEN model-verbatim 4-line, unaided, 0 touches, waveform PNG attached and sent with sha 34acd526…, clean resim VERIFY PASS), and neither GREEN control regressed (uart-div + uart-tx-div both verbatim GREEN in both arms). mut-bigN-12 RED in both arms (compositional miss stands; wave attached but didn't convert). mut-pair-03 OFF TRIAGE → ON GREEN is a second recovery but wf-degraded (picorv32 TB has no VCD path), so it does NOT count as wave-caused — the verdict rests on 01 alone. Caveats recorded: (a) single seed (42), n=1 conversion; (b) ON-01 used the compositional stack (stacked=True) — fully unaided/model-authored, prereg didn't exclude it; (c) only uart-TB cases currently receive wave input (others degrade loudly per design). Per the rule as bound ("Equality is a result, not a failure" — and this wasn't equality): keep the claim, waveform stays default-OFF pending a confirm-or-revise follow-up, record stands.
+
+## Costs (measured)

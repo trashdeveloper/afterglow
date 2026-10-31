@@ -1,0 +1,152 @@
+{
+  "run_id": "wave-off-mut-pair-01-42",
+  "case_id": "mut-pair-01",
+  "case": "mut-pair-01",
+  "mode": "live",
+  "status": "red",
+  "retries": 2,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-31T04:12:59Z",
+  "wall_end_utc": "2026-10-31T04:16:25Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": false,
+  "patch_lines": 2,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 44968,
+      "text_request_id": "chatcmpl-01a19029-dc55-77ae-a04d-6c69c0480630",
+      "diagnosis_chars": 383,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged",
+      "stale-build-suspect": false,
+      "stale_build_reason": ""
+    },
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "compositional stack: continue from improved tree (stack depth 1; no reset)",
+      "stacked_continue": true,
+      "stack_depth": 1,
+      "attempt": 2,
+      "text_latency_ms": 54342,
+      "text_request_id": "chatcmpl-01a1902a-e95a-74c7-8364-4bd418b595e9",
+      "diagnosis_chars": 310,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=False reasons=['patch -p1 dry-run failed (rc=1): checking file picosoc/simpleuart.v\\nHunk #1 FAILED at 109.\\n1 out of 1 hunk FAILED\\n']; bootstrap refused (diagnosis names no gate signal)"
+    },
+    {
+      "tree_reset": true,
+      "tree_reset_verified": true,
+      "stack_truncated": true,
+      "stack_truncated_from": 1,
+      "attempt": 3,
+      "summary": "unparseable model output: salvage failed: surviving bytes yield no complete diagnosis+diff (strict: model output is not a JSON object: '{\"diagnosis\": \"Loopback read via reg_dat_do returned 0xff instead of 0xa5 because recv_buf_valid never asserted and reg_dat_do fell back to ~0. Reset leaves ser_tx = send_pattern[0] low since send_pat')",
+      "text_latency_ms": 70189,
+      "text_request_id": "chatcmpl-01a1902c-5033-77aa-8ec9-f42471468c88",
+      "salvaged": false
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "prior-attempts-lack-3-RED (guard-rejected/unparseable rows carry no resim signal)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-pair-01.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/wave-off-mut-pair-01-42",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 39,
+    "before": "reg [3:0] recv_state;",
+    "after": "reg [3:1] recv_state;",
+    "seed": "1234",
+    "op": "pair",
+    "faults": [
+      {
+        "file": "picosoc/simpleuart.v",
+        "line": 39,
+        "before": "reg [3:0] recv_state;",
+        "after": "reg [3:1] recv_state;"
+      },
+      {
+        "file": "picosoc/simpleuart.v",
+        "line": 114,
+        "before": "send_pattern <= ~0;",
+        "after": "send_pattern <= ~1;"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-pair-01",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+  "cycles_before": 22023,
+  "red_baseline_tree_sha256": "2f960146fd572e0eadfe6907705502de94b623afa6e4e50c384ce06c8dd49cc4",
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 66,
+  "prompt_tokens": 863,
+  "context_tokens": 74,
+  "context_dropped": "none",
+  "localization_top1": "dhrystone/testbench.v",
+  "top1_is_true": false,
+  "trace_sha256": "d1632b9212e2d748ed007af6dc7fbd9cb5b1310ff09862961110396a82b2cc9d",
+  "attempts_consumed": 3,
+  "transport_retries": [],
+  "transport_failures": 0,
+  "stack": [],
+  "stacked": true,
+  "stack_depth": 1,
+  "image_latency_ms": 21357,
+  "image_request_id": "5f1c8b31-3083-4b42-af1d-e708c0332a59",
+  "image_bytes": 1412306,
+  "text_latency_ms": 44968,
+  "text_request_id": "chatcmpl-01a19029-dc55-77ae-a04d-6c69c0480630",
+  "api_usage": {
+    "completion_tokens": 5114,
+    "prompt_tokens": 1977,
+    "total_tokens": 7091,
+    "completion_tokens_details": {
+      "reasoning_tokens": 4850
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "FAIL 0xdead",
+  "checksum_after": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+  "cycles_after": 2024,
+  "error": "still RED after 3 attempt(s); see attempts log",
+  "time_to_green_s": 206.6,
+  "est_usd": 0.074866,
+  "text_tokens": 7091,
+  "image_calls": 1
+}
