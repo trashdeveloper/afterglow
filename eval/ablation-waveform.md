@@ -55,7 +55,7 @@ Cost estimate: 12 x ~$0.07 = ~$0.85. Firing is the CONTROLLER's call.
 | pc-incr | GREEN (canonical-bootstrap-gated 4-line) | GREEN (canonical-bootstrap-gated 4-line, wf degraded) |
 | picosoc-uart-div | GREEN (model-verbatim 4-line) | GREEN (model-verbatim 4-line, wf attached+sent) |
 | uart-tx-div | GREEN (model-verbatim 2-line) | GREEN (model-verbatim 2-line, wf attached+sent) |
-| cost | ~$0.30 (6 runs) | ~$0.49 (6 runs) |
+| cost | $0.4058 measured (6 runs, from bundle meta.json est_usd) | $0.4931 measured (6 runs, from bundle meta.json est_usd) |
 
 ## Decision (per prereg rule above — fill after firing)
 

@@ -53,9 +53,18 @@ cost line. Other useful surfaces, all agreeing (`./afterglow --help`):
 `./afterglow run --spec ... --triage` (diagnose, withhold patch,
 exit 2), `./afterglow --version` (`afterglow 0.2.0`).
 
-Measured on unseen single-point faults (receipts, not hype):
-median time-to-green 54s, mean $0.069/fix, 11/11 live greens + 1 loud
-RED that refused to invent (see `eval/impact.md`, `eval/tournament.md`).
+Measured on unseen faults (receipts, not hype):
+locked 3/3 + full 8/8 green on the board (`eval/results.md`);
+72-fault mutant board, every keep RED-proven then fixed
+(`eval/mutant_board_100.md`); median time-to-green ~54s,
+~$0.069/fix (`eval/impact.md`, `eval/tournament.md`).
+Waveform ablation (prereg `eval/ablation-waveform.md`, 6x2 runs,
+OFF $0.4058 / ON $0.4931 measured from bundle metas): text+waveform
+**WINS** — converted mut-pair-01 (OFF RED after 3 attempts → ON
+GREEN model-verbatim 4-line, unaided, PNG attached+sent, clean
+VERIFY), controls held, mut-bigN-12 RED in both arms. Caveats:
+single seed (42), n=1 conversion; waveform input currently
+uart-TB-only (others degrade loudly by design).
 
 ## Proof, not claims
 
@@ -63,14 +72,16 @@ Every green claim ships a `runs/<run-id>/` bundle: failing trace window, boot lo
 
 ## Layout
 
-- `agent/` — `loop.py` (RED→VERIFY), `collect.py`, `guard.py`, `visual.py`, `report.py`, `explain.py` (bundle story), `prompts/v1.txt`, `allowlist.txt`
-- `afterglow` CLI — `run --spec` (full-auto; `--triage`, `--goals`, `--explain`), `explain runs/<id>`, `init` (checks + example spec), `--version`
+- `agent/` — `loop.py` (RED→VERIFY), `collect.py`, `guard.py`, `visual.py`, `report.py`, `explain.py` (bundle story), `waveform/` (VCD dump flag + stdlib parser + PIL renderer), `models/` (Baseten open-weights client, keyless-tested), `prompts/v*.txt`, `allowlist.txt`
+- `afterglow` CLI — `run --spec` (full-auto; `--triage`, `--goals`, `--waveform` (uart-TB waveform PNG into diagnosis), `--explain`), `explain runs/<id>`, `init` (checks + example spec), `--version`
 - `afterglow_core/` — `verilator.py`, `policy.py`, `cost.py`, `initenv.py` (init checks), `slicer.py`, `packer.py`, `fingerprint.py`, `memory.py`
-- `sim/` — deterministic Verilator harness on pinned PicoRV32 + 2 testbenches, 8 targets
-- `eval/` — `cases.yaml` (8 real cases), `score.py`, `results.md` (generated)
+- `sim/` — deterministic Verilator harness on pinned PicoRV32 + testbenches, 8 board targets + 72 mutant-board specs + stranger cases
+- `eval/` — `cases.yaml`, `score.py`, `results.md` (generated), `mutant_board_100.*`, `ablation-waveform.md` (prereg + fired verdict), `tournament.md`, `impact.md`
 - `repro/` — `run.sh`, `Dockerfile`, `EXPECTED.md`, `TESTED.md`
+- `gallery/` — static results page for upload (8 cards, costs, tournament strip; numbers cross-checked at build)
 - `runs/` — proof bundles (immutable once written)
+- Suite: 1917 tests `OK`, CI `ALL PASS` (2 honest skips: live open-weights needs a key, live VCD render needs the env flag)
 
 ## Submission draft
 
-Chip bring-up takes weeks and a verification team. Only giants can afford it. Afterglow is a Muse Spark agent that reads RISC-V sim traces, diagnoses failures, patches RTL, re-runs the sim, and verifies itself. One Docker command goes red to green: locked 3/3 green, full 6/8, checksums match, zero human RTL edits. Text decides every patch under guardrails; Image draws the failure explanation from the actual trace for human check. All runs logged with prompts, diffs, and latencies. Built Oct 27–Nov 4 on frozen open-source PicoRV32 foundation. If a student can fix a UART loopback because an AI read the trace, open silicon stops being elite.
+Chip bring-up takes weeks and a verification team. Only giants can afford it. Afterglow is a Muse Spark agent that reads RISC-V sim traces, diagnoses failures, patches RTL, re-runs the sim, and verifies itself. One Docker command goes red to green: locked 3/3 green, full 8/8, 72-fault mutant board all RED-proven then fixed, checksums match, zero human RTL edits. Text decides every patch under guardrails; Image draws the failure explanation from the actual trace for human check — and a measured ablation (6x2 live runs, preregistered) shows text+waveform beats text-only, converting a case text alone missed in 3 attempts. All runs logged with prompts, diffs, and latencies. Built Oct 27–Nov 4 on frozen open-source PicoRV32 foundation. If a student can fix a UART loopback because an AI read the trace, open silicon stops being elite.
