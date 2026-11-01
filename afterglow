@@ -118,6 +118,13 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--quiet", action="store_true", default=False,
                      help="suppress the stderr progress display (stdout is "
                           "never touched by progress output)")
+    run.add_argument("--verbose", action="store_true", default=False,
+                     help="restore the full stage-line output ([RED]/"
+                          "[COLLECT]/[DIAGNOSE]/[PATCH]/[RESIM]/[VERIFY] "
+                          "and sim echo lines). Default (quiet) prints "
+                          "only the progress bar line + the final verdict "
+                          "line; --verbose restores today's full output "
+                          "byte-for-byte)")
     exp = sub.add_parser(
         "explain", help="render a finished bundle as a human story: "
                          "RED symptom -> diagnosis -> patch -> VERIFY -> cost")
@@ -333,14 +340,17 @@ def main(argv=None) -> int:
             loop_argv.append("--debug")
         if args.quiet:
             loop_argv.append("--quiet")
+        if args.verbose:
+            loop_argv.append("--verbose")
         if args.run_id:
             loop_argv += ["--run-id", args.run_id]
         if args.prompt:
             loop_argv += ["--prompt", args.prompt]
         if args.rtl:
             loop_argv += ["--rtl", args.rtl]
-        print("afterglow run: spec %s (case %s)" % (spec_path, spec.case_id),
-              flush=True)
+        if args.verbose:
+            print("afterglow run: spec %s (case %s)"
+                  % (spec_path, spec.case_id), flush=True)
         try:
             return loop.main(loop_argv)
         except SystemExit:

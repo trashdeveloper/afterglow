@@ -78,6 +78,10 @@ import collect  # noqa: E402
 import context as context_pack  # noqa: E402
 import guard  # noqa: E402
 import progress as progress_mod  # noqa: E402
+try:
+    import progress_rich as progress_rich_mod  # noqa: E402
+except ImportError:
+    progress_rich_mod = None  # rich UI unavailable: stdlib bar below
 import report  # noqa: E402
 import visual  # noqa: E402
 import vbackend  # noqa: E402
@@ -584,6 +588,11 @@ def call_text_with_backoff(prompt: str, call_fn=None, sleep_fn=None,
     every wait, and raise only after MAX_ATTEMPTS failures. Fails loud
     and bounded -- never infinite, never silent, never heuristic.
     Returns (call_envelope, waits_s).
+
+    Quiet-by-default note: the per-flake retry line below prints
+    unconditionally (like FATAL) -- it fires only on the transport
+    error path, never on a healthy run, and the call convention stays
+    exactly as the suites mock it (prompt + call_fn/sleep_fn/rand_fn).
     """
     call_fn = call_fn or text_call
     sleep_fn = sleep_fn or time.sleep
@@ -1679,6 +1688,13 @@ def parse_args(argv=None):
     ap.add_argument("--quiet", action="store_true", default=False,
                     help="suppress the stderr progress display (stdout is "
                          "never touched by progress output)")
+    ap.add_argument("--verbose", action="store_true", default=False,
+                    help="restore the full stage-line output ([RED]/ "
+                         "[COLLECT]/[DIAGNOSE]/[PATCH]/[RESIM]/[VERIFY] "
+                         "and sim echo lines). Default (quiet) prints "
+                         "only the progress bar line + the final verdict "
+                         "line (GREEN:/RED:/TRIAGE:/DEGRADED); --verbose "
+                         "restores today's full output byte-for-byte.")
     return ap.parse_args(argv)
 
 
@@ -1691,6 +1707,36 @@ def default_run_id(case_id: str, now=None) -> str:
     stamp = (now or datetime.datetime.now(
         datetime.timezone.utc)).strftime("%Y%m%dT%H%M%SZ")
     return "%s-%s" % (case_id, stamp)
+
+
+def is_verbose(args) -> bool:
+    """True only when --verbose restores the full stage-line output.
+
+    Quiet-by-default (Task CLI-QUIET-RICH): without --verbose the loop
+    prints only the progress bar line + the final verdict line
+    (GREEN:/RED:/TRIAGE:/DEGRADED). With --verbose every stage line
+    ([RED]/[COLLECT]/[DIAGNOSE]/[PATCH]/[RESIM]/[VERIFY]/... plus the
+    sim echo) prints exactly as before, byte-for-byte. Pure, never
+    raises: exotic args objects fail closed to quiet.
+    """
+    try:
+        return bool(getattr(args, "verbose", False))
+    except Exception:  # noqa: BLE001 -- exotic args fail closed to quiet
+        return False
+
+
+def emit_stage(args, *pargs, **kwargs) -> None:
+    """Print one stage line only in --verbose mode (no-op otherwise).
+
+    Takes exactly the same (*args, **kwargs) as the print() call it
+    replaces (same stream, same flush, same text), so --verbose output
+    is byte-identical to today's full output. Verdict lines (GREEN:/
+    RED:/TRIAGE:/DEGRADED/FATAL/afterglow: error:) never route through
+    here -- they always print.
+    """
+    if not is_verbose(args):
+        return
+    print(*pargs, **kwargs)
 
 
 def _progress_enabled(args) -> bool:
@@ -2406,6 +2452,9 @@ def collect_prompt_bundle(*, template: str, case_name: str, rtl_rel: str,
                 harvest_dropped=harvest_counts["dropped"])
             harvest_info = dict(harvest_counts, status="ok")
         except Exception as exc:  # noqa: BLE001 -- degrade, never die
+            # Error-path diagnostic (like FATAL/flake notices): always
+            # prints; it fires only when the v3 harvest degrades, never
+            # on a healthy run.
             print("[COLLECT] harvest failed (%r); degrading to v2 "
                   "collection" % (exc,), flush=True)
             fallback = "HARVEST FAILED (%s)" % (exc,)
@@ -3057,17 +3106,20 @@ def _main_inner(argv=None) -> int:
         # every downstream use (run-id, bundle meta, sim dispatch) keeps
         # working unchanged; the spec source is recorded in meta below.
         if args.case:
-            print("note: --spec %s overrides --case %s"
-                  % (args.spec, args.case), flush=True)
+            emit_stage(args, "note: --spec %s overrides --case %s"
+                       % (args.spec, args.case), flush=True)
         args.case = os.path.splitext(os.path.basename(args.spec))[0]
     wall_start = utc_now()
     t_start = time.monotonic()
-    # One TUI bar per attempt (Task CLI-RICH-BAR): fixed phase steps
-    # red/collect/diagnose/patch/resim/verify = 6. Rich-active renders
-    # the TUI; the fallback bar emits the Task-8 stdlib bytes, so output
-    # is byte-identical when rich is absent. Never breaks the run.
+    # One TUI bar per attempt (Task CLI-QUIET-RICH): fixed phase steps
+    # red/collect/diagnose/patch/resim/verify = 6. progress_rich renders
+    # the opencode-style rich TUI when rich imports AND stderr is a TTY;
+    # otherwise it falls back to the Task-8 stdlib bytes, so output is
+    # byte-identical when rich is absent. Never breaks the run.
+    _bar_mod = (progress_rich_mod if progress_rich_mod is not None
+                else progress_mod)
     try:
-        current_bar = progress_mod.make_bar(
+        current_bar = _bar_mod.make_bar(
             progress_mod.TOTAL_STEPS, "attempt 1", args,
             attempt=1, total_attempts=MAX_ATTEMPTS)
     except Exception:  # noqa: BLE001 -- progress never breaks the run
@@ -3128,16 +3180,16 @@ def _main_inner(argv=None) -> int:
             meta["text_tokens"] = cost_info["text_tokens"]
             meta["image_calls"] = cost_info["image_calls"]
         except Exception as exc:  # noqa: BLE001
-            print("cost ledger failed (non-fatal): %r" % (exc,),
-                  file=sys.stderr)
+            emit_stage(args, "cost ledger failed (non-fatal): %r" % (exc,),
+                       file=sys.stderr)
         with open(os.path.join(run_dir, "meta.json"), "w",
                   encoding="utf-8") as fh:
             fh.write(json.dumps(meta, indent=2) + "\n")
         try:
             report.build_report(run_dir)
         except Exception as exc:  # report must never mask the verdict
-            print("report build failed (non-fatal): %r" % (exc,),
-                  file=sys.stderr)
+            emit_stage(args, "report build failed (non-fatal): %r" % (exc,),
+                       file=sys.stderr)
         if status == "green":
             return EXIT_GREEN
         if status == "triage":
@@ -3216,8 +3268,8 @@ def _main_inner(argv=None) -> int:
 
     # ---- RED: sim/sim.py BEFORE (mutants: scratch tree, same schema)
     if mutant_record is not None:
-        print("[RED] mutant scratch %s --seed %d" % (tree, args.seed),
-              flush=True)
+        emit_stage(args, "[RED] mutant scratch %s --seed %d"
+                   % (tree, args.seed), flush=True)
         try:
             verdict_before = resim_after(
                 tree, case, args.seed,
@@ -3234,8 +3286,8 @@ def _main_inner(argv=None) -> int:
                        (verdict_before.get("checksum") or "")[:12],
                        verdict_before.get("cycles"), args.seed))
     else:
-        print("[RED] sim/sim.py --case %s --seed %d" % (args.case, args.seed),
-              flush=True)
+        emit_stage(args, "[RED] sim/sim.py --case %s --seed %d"
+                   % (args.case, args.seed), flush=True)
         try:
             rc_before, sim_out = run_sim_before(
                 args.case, args.seed, art("boot.log"), art("verdict_before.json"))
@@ -3243,7 +3295,7 @@ def _main_inner(argv=None) -> int:
             meta["error"] = "BEFORE sim crashed: %r" % (exc,)
             print("FATAL: %s" % meta["error"], file=sys.stderr)
             return finish("red")
-    print(sim_out, flush=True)
+    emit_stage(args, sim_out, flush=True)
     try:
         with open(art("verdict_before.json"), encoding="utf-8") as fh:
             verdict_before = json.load(fh)
@@ -3348,21 +3400,21 @@ def _main_inner(argv=None) -> int:
                                    "score": recall_info.get("score", 0.0),
                                    "fix_ref": recall_info.get("fix_ref", ""),
                                    "reason": _why}
-                print("[RECALL] %s" % _why, flush=True)
+                emit_stage(args, "[RECALL] %s" % _why, flush=True)
             else:
-                print("[RECALL] recall: MISS (%s)"
-                      % (recall_info.get("reason", ""),), flush=True)
+                emit_stage(args, "[RECALL] recall: MISS (%s)"
+                           % (recall_info.get("reason", ""),), flush=True)
         except Exception as _rexc:  # noqa: BLE001 -- fail-closed, never die
             recall_info = {"status": "MISS", "run_id": "",
                            "score": 0.0, "fix_ref": "",
                            "reason": "retriever error: %s" % (_rexc,)}
-            print("[RECALL] recall: MISS (retriever error: %s)"
-                  % (_rexc,), flush=True)
+            emit_stage(args, "[RECALL] recall: MISS (retriever error: %s)"
+                       % (_rexc,), flush=True)
     meta["recall_past_fix"] = recall_info
     with open(art("input_trace.txt"), "w", encoding="utf-8") as fh:
         fh.write(bundle["trace_block"] + "\n")
     trace_sha = sha256_file(art("input_trace.txt"))
-    print("[COLLECT] lines=%d tokens=%d (trace %d lines/%d tok, prompt %d)" % (
+    emit_stage(args, "[COLLECT] lines=%d tokens=%d (trace %d lines/%d tok, prompt %d)" % (
         counts["boot_lines"], counts["prompt_tokens"],
         counts["trace_lines"], counts["trace_tokens"],
         counts["prompt_tokens"]), flush=True)
@@ -3388,8 +3440,8 @@ def _main_inner(argv=None) -> int:
         if _wplan["status"] != "ready":
             wave_info = {"status": "degraded", "reason": _wplan["reason"],
                          "attachments": []}
-            print("[WAVEFORM] degraded (%s)" % (_wplan["reason"],),
-                  flush=True)
+            emit_stage(args, "[WAVEFORM] degraded (%s)" % (_wplan["reason"],),
+                       flush=True)
         else:
             try:
                 _waves_dir = os.path.join(run_dir, "waves")
@@ -3421,7 +3473,7 @@ def _main_inner(argv=None) -> int:
                                      "sha256": hashlib.sha256(wave_png_bytes).hexdigest(),
                                      "bytes": len(wave_png_bytes)}],
                 }
-                print("[WAVEFORM] attached %s (%d bytes, signals=%s)" % (
+                emit_stage(args, "[WAVEFORM] attached %s (%d bytes, signals=%s)" % (
                     WAVEFORM_PNG_NAME, len(wave_png_bytes),
                     ",".join(_rend["signals"])), flush=True)
             except WaveformError as _wexc:
@@ -3429,8 +3481,8 @@ def _main_inner(argv=None) -> int:
                 wave_info = {"status": "degraded",
                              "reason": "capture/render failed: %s" % (_wexc,),
                              "attachments": []}
-                print("[WAVEFORM] degraded (capture/render failed: %s)"
-                      % (_wexc,), flush=True)
+                emit_stage(args, "[WAVEFORM] degraded (capture/render failed: %s)"
+                           % (_wexc,), flush=True)
         meta["waveform"] = wave_info
 
     # ---- DIAGNOSE -> EXPLAIN -> PATCH -> RESIM (<=2 retries = 3 base
@@ -3506,10 +3558,10 @@ def _main_inner(argv=None) -> int:
         meta["transport_retries"] = list(transport_waits_all)
         meta["transport_failures"] = transport_failures
         meta["attempts_consumed"] = attempts_consumed
-        print("[DIAGNOSE] transport failure %d of %d on attempt %d: %s; "
-              "diagnostic budget preserved (%d/%d consumed)"
-              % (transport_failures, MAX_TRANSPORT_FAILURES, attempt + 1,
-                 exc, attempts_consumed, MAX_ATTEMPTS), flush=True)
+        emit_stage(args, "[DIAGNOSE] transport failure %d of %d on attempt %d: %s; "
+                   "diagnostic budget preserved (%d/%d consumed)"
+                   % (transport_failures, MAX_TRANSPORT_FAILURES, attempt + 1,
+                      exc, attempts_consumed, MAX_ATTEMPTS), flush=True)
         with open(api("text_request.json"), "w",
                   encoding="utf-8") as fh:
             fh.write(json.dumps(
@@ -3580,8 +3632,8 @@ def _main_inner(argv=None) -> int:
                     ladder_reason = why
                 meta["ladder_used"] = ladder_used
                 meta["ladder_reason"] = ladder_reason
-                print("[LADDER] %s (ladder_used=%s)"
-                      % (ladder_reason, ladder_used), flush=True)
+                emit_stage(args, "[LADDER] %s (ladder_used=%s)"
+                           % (ladder_reason, ladder_used), flush=True)
                 if attempt_limit == MAX_ATTEMPTS:
                     break
             else:
@@ -3599,7 +3651,7 @@ def _main_inner(argv=None) -> int:
                     % (est, src, LADDER_COST_CAP_USD,
                        attempts_consumed + 1))
                 meta["ladder_reason"] = ladder_reason
-                print("[LADDER] %s" % ladder_reason, flush=True)
+                emit_stage(args, "[LADDER] %s" % ladder_reason, flush=True)
                 break
         # Transport retries never advance the display counter: attempt N
         # is retried as attempt N until a completed response consumes it.
@@ -3610,7 +3662,7 @@ def _main_inner(argv=None) -> int:
             # start a fresh 6-step bar for this retry.
             phase_finish(args, current_bar)
             try:
-                current_bar = progress_mod.make_bar(
+                current_bar = _bar_mod.make_bar(
                     progress_mod.TOTAL_STEPS,
                     "attempt %d" % (attempt + 1), args,
                     attempt=attempt + 1, total_attempts=attempt_limit)
@@ -3639,8 +3691,8 @@ def _main_inner(argv=None) -> int:
                         "tree (stack depth %d; no reset)" % len(stack),
                     "stacked_continue": True,
                     "stack_depth": len(stack)}
-                print("[STACK] kept improved tree (stack depth %d); "
-                      "re-collecting from it" % len(stack), flush=True)
+                emit_stage(args, "[STACK] kept improved tree (stack depth %d); "
+                           "re-collecting from it" % len(stack), flush=True)
                 try:
                     with open(art("boot_after.log"),
                               encoding="utf-8") as fh:
@@ -3689,8 +3741,8 @@ def _main_inner(argv=None) -> int:
                 # stack (mutpair-v8b-05 reached depth 2 on a tree that
                 # held only attempt-3's fix).
                 truncate_stack_on_reset(stack, reset_note)
-                print("[RESET] scratch tree restored to RED baseline %s"
-                      % reset_info["tree_sha256"][:12], flush=True)
+                emit_stage(args, "[RESET] scratch tree restored to RED baseline %s"
+                           % reset_info["tree_sha256"][:12], flush=True)
             else:
                 reset_note = {
                     "tree_reset": False,
@@ -3758,7 +3810,7 @@ def _main_inner(argv=None) -> int:
                     "consensus: OFF-cost-cap (est $%.4f via %s >= cap "
                     "$%.2f; single-diagnosis fallback)"
                     % (cest, csrc, LADDER_COST_CAP_USD))
-                print("[CONSENSUS] %s" % consensus_note, flush=True)
+                emit_stage(args, "[CONSENSUS] %s" % consensus_note, flush=True)
             else:
                 opinions: list = []  # (call, model_obj|None, salvaged, err)
                 for _vote in range(CONSENSUS_VOTES):
@@ -3775,10 +3827,10 @@ def _main_inner(argv=None) -> int:
                         meta["transport_retries"] = list(
                             transport_waits_all)
                         meta["transport_failures"] = transport_failures
-                        print("[CONSENSUS] vote %d transport failure "
-                              "(excluded from votes; %d/%d): %s"
-                              % (_vote + 1, transport_failures,
-                                 MAX_TRANSPORT_FAILURES, vexc), flush=True)
+                        emit_stage(args, "[CONSENSUS] vote %d transport failure "
+                                   "(excluded from votes; %d/%d): %s"
+                                   % (_vote + 1, transport_failures,
+                                      MAX_TRANSPORT_FAILURES, vexc), flush=True)
                         opinions.append((None, None, False, str(vexc)))
                         continue
                     tracked_spend_usd += ladder_text_usd(
@@ -3823,9 +3875,9 @@ def _main_inner(argv=None) -> int:
                     consensus_note = (
                         "consensus: %s %s" % (label, detail))
                     consensus_winner = True
-                    print("[CONSENSUS] attempt %d %s; proceeding with "
-                          "vote %d" % (attempt + 1, consensus_note,
-                                       winner + 1), flush=True)
+                    emit_stage(args, "[CONSENSUS] attempt %d %s; proceeding with "
+                               "vote %d" % (attempt + 1, consensus_note,
+                                            winner + 1), flush=True)
                 elif (transport_failures >= MAX_TRANSPORT_FAILURES
                         and len(usable) < 2):
                     # Transport dead (persistent flakes, no quorum):
@@ -3847,9 +3899,9 @@ def _main_inner(argv=None) -> int:
                     detail = " | ".join(
                         consensus_summarize(d) for d in diffs) or "no votes"
                     consensus_note = "consensus: SPLIT %s" % detail
-                    print("[CONSENSUS] attempt %d %s (no patch, no "
-                          "resim burned)" % (attempt + 1, consensus_note),
-                          flush=True)
+                    emit_stage(args, "[CONSENSUS] attempt %d %s (no patch, no "
+                               "resim burned)" % (attempt + 1, consensus_note),
+                               flush=True)
                     attempts_consumed += 1
                     meta["attempts_consumed"] = attempts_consumed
                     with open(api("text_request.json"), "w",
@@ -3933,8 +3985,8 @@ def _main_inner(argv=None) -> int:
                     "direction": "(unparseable)",
                     "resim": "not-run",
                     "checksum_changed": "n/a"})
-                print("[DIAGNOSE] attempt %d unparseable: %s"
-                      % (attempt + 1, exc), flush=True)
+                emit_stage(args, "[DIAGNOSE] attempt %d unparseable: %s"
+                           % (attempt + 1, exc), flush=True)
                 continue
         diagnosis_text = str(model_obj["diagnosis"])
         expected_text = str(model_obj.get("expected", ""))
@@ -3959,9 +4011,9 @@ def _main_inner(argv=None) -> int:
                               "duplicate_patch": dup_one,
                               "duplicate_key": dup_key,
                               "reasked": True}
-            print("[DIAGNOSE] attempt %d repeats prior direction %s; "
-                  "re-asking once with an explicit avoid note (no resim "
-                  "burned)" % (attempt + 1, dup_key), flush=True)
+            emit_stage(args, "[DIAGNOSE] attempt %d repeats prior direction %s; "
+                       "re-asking once with an explicit avoid note (no resim "
+                       "burned)" % (attempt + 1, dup_key), flush=True)
             attempt_prompt += (
                 "\n\nAVOID REPEAT: your proposed patch repeats an earlier "
                 "FAILED direction (%s: `%s`). Propose a DIFFERENT direction "
@@ -3997,17 +4049,17 @@ def _main_inner(argv=None) -> int:
                     "direction": "(unparseable)",
                     "resim": "not-run",
                     "checksum_changed": "n/a"})
-                print("[DIAGNOSE] attempt %d re-ask unparseable: %s"
-                      % (attempt + 1, exc), flush=True)
+                emit_stage(args, "[DIAGNOSE] attempt %d re-ask unparseable: %s"
+                           % (attempt + 1, exc), flush=True)
                 continue
             model_diff = str(model_obj["patch_diff"])
         attempts_consumed += 1
         meta["attempts_consumed"] = attempts_consumed
         meta["diagnosed"] = True
-        print("[DIAGNOSE] attempt %d%s latency=%dms req=%s diagnosis=%.120s"
-              % (attempt + 1, " SALVAGED" if salvaged else "",
-                 call["latency_ms"], call["request_id"],
-                 diagnosis_text.replace("\n", " ")), flush=True)
+        emit_stage(args, "[DIAGNOSE] attempt %d%s latency=%dms req=%s diagnosis=%.120s"
+                   % (attempt + 1, " SALVAGED" if salvaged else "",
+                      call["latency_ms"], call["request_id"],
+                      diagnosis_text.replace("\n", " ")), flush=True)
 
         # EXPLAIN (live image; failure recorded, never silent)
         img_prompt = visual.build_prompt(args.case, trace_sha, diagnosis_text)
@@ -4056,8 +4108,8 @@ def _main_inner(argv=None) -> int:
         except visual.LiveImageError as exc:
             meta["explain"] = "FAILED"
             img_resp = {"error": str(exc), "status": "FAILED"}
-            print("[EXPLAIN] FAILED (recorded, continuing): %s" % exc,
-                  flush=True)
+            emit_stage(args, "[EXPLAIN] FAILED (recorded, continuing): %s" % exc,
+                       flush=True)
         with open(api("image_response.json"), "w", encoding="utf-8") as fh:
             fh.write(json.dumps(img_resp, indent=2) + "\n")
 
@@ -4148,8 +4200,8 @@ def _main_inner(argv=None) -> int:
                       encoding="utf-8") as fh:
                 fh.write(model_diff if model_diff.endswith("\n")
                          else model_diff + "\n")
-            print("[PATCH] verbatim REJECTED: %s" % outcome["reasons"],
-                  flush=True)
+            emit_stage(args, "[PATCH] verbatim REJECTED: %s" % outcome["reasons"],
+                       flush=True)
             # bootstrap: ONLY on a live gate signal, line-anchored + guarded
             hit = gate_hit(diagnosis_text, case.get("gate", ""))
             if not hit:
@@ -4193,12 +4245,12 @@ def _main_inner(argv=None) -> int:
             outcome = bout
             outcome["bootstrap_gate"] = hit
             final_source = "canonical-bootstrap-gated"
-            print("[PATCH] bootstrap gated applier applied "
-                  "(gate signal %r)" % hit, flush=True)
+            emit_stage(args, "[PATCH] bootstrap gated applier applied "
+                       "(gate signal %r)" % hit, flush=True)
         else:
             final_source = "model-verbatim"
-            print("[PATCH] verbatim model diff applied: %s"
-                  % outcome["files"], flush=True)
+            emit_stage(args, "[PATCH] verbatim model diff applied: %s"
+                       % outcome["files"], flush=True)
         final_patch = outcome.get("applied_diff", "")
         phase_tick(args, current_bar, "patch", attempt + 1, attempt_limit,
                    t_start)
@@ -4245,7 +4297,7 @@ def _main_inner(argv=None) -> int:
         # the next attempt's feedback).
         phase_tick(args, current_bar, "resim", attempt + 1, attempt_limit,
                    t_start)
-        print("[RESIM] rebuilding patched tree...", flush=True)
+        emit_stage(args, "[RESIM] rebuilding patched tree...", flush=True)
         try:
             verdict_after, resim_integrity = resim_with_integrity(
                 tree, case, args.seed,
@@ -4277,23 +4329,23 @@ def _main_inner(argv=None) -> int:
         if resim_integrity.get("stale-build-suspect"):
             last_attempt["stale-build-suspect"] = True
             meta["attempts"][-1]["stale-build-suspect"] = True
-            print("[RESIM] stale-build suspect -- "
-                  "clean rebuild forced (x1): %s"
-                  % resim_integrity.get("stale_build_reason", ""),
-                  flush=True)
+            emit_stage(args, "[RESIM] stale-build suspect -- "
+                       "clean rebuild forced (x1): %s"
+                       % resim_integrity.get("stale_build_reason", ""),
+                       flush=True)
         if resim_integrity.get("stale-tree-suspect"):
             last_attempt["stale-tree-suspect"] = True
             meta["attempts"][-1]["stale-tree-suspect"] = True
-            print("[RESIM] tree drifted under build -- "
-                  "clean rebuild forced (x1): %s"
-                  % resim_integrity.get("integrity_detail", ""),
-                  flush=True)
+            emit_stage(args, "[RESIM] tree drifted under build -- "
+                       "clean rebuild forced (x1): %s"
+                       % resim_integrity.get("integrity_detail", ""),
+                       flush=True)
         meta["tohost_after"] = verdict_after.get("tohost")
         meta["checksum_after"] = verdict_after.get("checksum")
         meta["cycles_after"] = verdict_after.get("cycles")
         phase_tick(args, current_bar, "verify", attempt + 1, attempt_limit,
                    t_start)
-        print("[VERIFY] tohost=%s checksum=%s cycles=%s" % (
+        emit_stage(args, "[VERIFY] tohost=%s checksum=%s cycles=%s" % (
             verdict_after.get("tohost"), verdict_after.get("checksum"),
             verdict_after.get("cycles")), flush=True)
         after_verdict = Verdict(
@@ -4344,8 +4396,8 @@ def _main_inner(argv=None) -> int:
                           encoding="utf-8") as fh:
                     fh.write(combined if combined.endswith("\n")
                              else combined + "\n")
-                print("[STACK] replay verified on fresh RED tree "
-                      "(depth %d)" % len(stack), flush=True)
+                emit_stage(args, "[STACK] replay verified on fresh RED tree "
+                           "(depth %d)" % len(stack), flush=True)
             green = True
             if not ladder_used:
                 ladder_reason = "green-within-base (ladder not needed)"
@@ -4358,13 +4410,12 @@ def _main_inner(argv=None) -> int:
             # v3-21 signal: checksum_after == checksum_before and tohost
             # unchanged -- the patch (or the build of it) had no
             # observable effect. Flag it and arm the next attempt's
-            # LOOP FEEDBACK block (prompt templates untouched).
-            last_attempt["no_behavioral_effect"] = True
+            # LOOP FEEDBACK block (prompt templates untouched).            last_attempt["no_behavioral_effect"] = True
             meta["attempts"][-1]["no_behavioral_effect"] = True
             meta["no_behavioral_effect"] = True
             loop_feedback = build_loop_feedback(
                 attempt + 1, verdict_before, verdict_after)
-            print("[VERIFY] %s" % NO_BEHAVIORAL_EFFECT_MSG, flush=True)
+            emit_stage(args, "[VERIFY] %s" % NO_BEHAVIORAL_EFFECT_MSG, flush=True)
         else:
             # Behavioral change observed: stale feedback must not leak
             # into the next attempt's diagnosis.
@@ -4426,7 +4477,7 @@ def _main_inner(argv=None) -> int:
                 combined = stack_combined_diff(stack)
                 fh.write(combined if combined.endswith("\n")
                          else combined + "\n")
-            print("[STACK] attempt %d stacked (%s); depth %d" % (
+            emit_stage(args, "[STACK] attempt %d stacked (%s); depth %d" % (
                 attempt + 1, stack_why, len(stack)), flush=True)
         else:
             prior_attempts.append(prior_row)
