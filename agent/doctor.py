@@ -40,11 +40,11 @@ from afterglow_core import slicer  # noqa: E402
 
 MIN_PYTHON = (3, 10)
 
-# Fastest locked GREEN case in eval/results.md, re-verified live by the
-# re-reviewer (picosoc-uart-div 44.5s < picorv32-fetch-misalign 57.9s).
+# Fastest locked GREEN case in eval/results.md, re-verified live
+# (Nov-1 wave re-verify: fetch-misalign 58.6s < uart-div 61.1s).
 # Runtime fallback only -- pick_demo_case() parses the file, so the
 # board can overrule.
-DEMO_CASE = "picosoc-uart-div"
+DEMO_CASE = "picorv32-fetch-misalign"
 DEMO_COST_NOTE = "~$0.05 (one triage diagnosis model call)"
 
 _ROW_RE = re.compile(
