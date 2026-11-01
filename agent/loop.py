@@ -77,6 +77,7 @@ sys.path.insert(0, ROOT)
 import collect  # noqa: E402
 import context as context_pack  # noqa: E402
 import guard  # noqa: E402
+import progress as progress_mod  # noqa: E402
 import report  # noqa: E402
 import visual  # noqa: E402
 import vbackend  # noqa: E402
@@ -1732,6 +1733,48 @@ def progress_done(args) -> None:
     sys.stderr.flush()
 
 
+def phase_tick(args, bar, phase: str, attempt: int, total: int,
+               t_start: float) -> None:
+    """Route one phase update through the attempt bar (Task CLI-RICH-BAR).
+
+    Rich-active bar: advance the TUI bar (no stdlib line). Any other
+    bar (stdlib fallback) emits the Task-8 stdlib bytes via its own
+    ``advance``; ``bar=None`` (or a bar that refuses every advance)
+    falls back to ``progress_tick`` directly. Never raises: progress
+    output must not break the loop.
+    """
+    elapsed = time.monotonic() - t_start
+    if bar is not None:
+        try:
+            bar.advance(phase=phase, attempt=attempt, total=total,
+                        elapsed_s=elapsed)
+            return
+        except TypeError:
+            pass
+        except Exception:  # noqa: BLE001 -- rich hiccup: try bare advance
+            pass
+        try:
+            bar.advance()
+            return
+        except Exception:  # noqa: BLE001 -- last resort below
+            pass
+    progress_tick(args, phase, attempt, total, elapsed)
+
+
+def phase_finish(args, bar) -> None:
+    """Close the attempt bar (rich stop / stdlib newline); never raises."""
+    if bar is not None:
+        try:
+            bar.finish()
+            return
+        except Exception:  # noqa: BLE001 -- fall back to stdlib newline
+            pass
+    try:
+        progress_done(args)
+    except Exception:  # noqa: BLE001 -- progress never breaks the run
+        pass
+
+
 def _resolve_idx(lines, bug, anchor, pinned):
     """0-based excerpt center: verified pin wins, else text search."""
     if pinned is not None and 1 <= pinned <= len(lines) \
@@ -3019,7 +3062,17 @@ def _main_inner(argv=None) -> int:
         args.case = os.path.splitext(os.path.basename(args.spec))[0]
     wall_start = utc_now()
     t_start = time.monotonic()
-    progress_tick(args, "red", 1, MAX_ATTEMPTS, 0.0)
+    # One TUI bar per attempt (Task CLI-RICH-BAR): fixed phase steps
+    # red/collect/diagnose/patch/resim/verify = 6. Rich-active renders
+    # the TUI; the fallback bar emits the Task-8 stdlib bytes, so output
+    # is byte-identical when rich is absent. Never breaks the run.
+    try:
+        current_bar = progress_mod.make_bar(
+            progress_mod.TOTAL_STEPS, "attempt 1", args,
+            attempt=1, total_attempts=MAX_ATTEMPTS)
+    except Exception:  # noqa: BLE001 -- progress never breaks the run
+        current_bar = None
+    phase_tick(args, current_bar, "red", 1, MAX_ATTEMPTS, t_start)
     run_id = args.run_id or default_run_id(args.case)
     run_dir = os.path.join(ROOT, "runs", run_id)
     ensure_dirs(run_dir)
@@ -3049,7 +3102,7 @@ def _main_inner(argv=None) -> int:
     }
 
     def finish(status: str, extra: dict | None = None) -> int:
-        progress_done(args)
+        phase_finish(args, current_bar)
         meta["status"] = status
         meta["wall_end_utc"] = utc_now()
         meta["time_to_green_s"] = round(time.monotonic() - t_start, 1)
@@ -3225,8 +3278,7 @@ def _main_inner(argv=None) -> int:
         tree, list(case.get("files", [])))
 
     # ---- COLLECT
-    progress_tick(args, "collect", 1, MAX_ATTEMPTS,
-                  time.monotonic() - t_start)
+    phase_tick(args, current_bar, "collect", 1, MAX_ATTEMPTS, t_start)
     args.prompt = resolve_prompt_file(args.prompt)
     try:
         with open(args.prompt, encoding="utf-8") as fh:
@@ -3553,8 +3605,19 @@ def _main_inner(argv=None) -> int:
         # is retried as attempt N until a completed response consumes it.
         attempt = attempts_consumed
         meta["retries"] = attempt
-        progress_tick(args, "diagnose", attempt + 1, attempt_limit,
-                      time.monotonic() - t_start)
+        if attempt > 0:
+            # One bar per attempt: close the previous attempt's bar and
+            # start a fresh 6-step bar for this retry.
+            phase_finish(args, current_bar)
+            try:
+                current_bar = progress_mod.make_bar(
+                    progress_mod.TOTAL_STEPS,
+                    "attempt %d" % (attempt + 1), args,
+                    attempt=attempt + 1, total_attempts=attempt_limit)
+            except Exception:  # noqa: BLE001 -- never breaks the run
+                current_bar = None
+        phase_tick(args, current_bar, "diagnose", attempt + 1,
+                   attempt_limit, t_start)
         stacked_continue = False
         if attempt > 0:
             # Clean-slate attempts: reset to the recorded RED baseline
@@ -4137,8 +4200,8 @@ def _main_inner(argv=None) -> int:
             print("[PATCH] verbatim model diff applied: %s"
                   % outcome["files"], flush=True)
         final_patch = outcome.get("applied_diff", "")
-        progress_tick(args, "patch", attempt + 1, attempt_limit,
-                      time.monotonic() - t_start)
+        phase_tick(args, current_bar, "patch", attempt + 1, attempt_limit,
+                   t_start)
         meta["patch_lines"] = outcome.get("patch_lines", 0)
         last_attempt["summary"] += "; applied via %s" % final_source
         meta["attempts"].append({**reset_note, **last_attempt})
@@ -4180,8 +4243,8 @@ def _main_inner(argv=None) -> int:
         # suspects a stale build and forces ONE clean rebuild; an
         # identical checksum/tohost flags a behaviorally-null resim for
         # the next attempt's feedback).
-        progress_tick(args, "resim", attempt + 1, attempt_limit,
-                      time.monotonic() - t_start)
+        phase_tick(args, current_bar, "resim", attempt + 1, attempt_limit,
+                   t_start)
         print("[RESIM] rebuilding patched tree...", flush=True)
         try:
             verdict_after, resim_integrity = resim_with_integrity(
@@ -4228,8 +4291,8 @@ def _main_inner(argv=None) -> int:
         meta["tohost_after"] = verdict_after.get("tohost")
         meta["checksum_after"] = verdict_after.get("checksum")
         meta["cycles_after"] = verdict_after.get("cycles")
-        progress_tick(args, "verify", attempt + 1, attempt_limit,
-                      time.monotonic() - t_start)
+        phase_tick(args, current_bar, "verify", attempt + 1, attempt_limit,
+                   t_start)
         print("[VERIFY] tohost=%s checksum=%s cycles=%s" % (
             verdict_after.get("tohost"), verdict_after.get("checksum"),
             verdict_after.get("cycles")), flush=True)

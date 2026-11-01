@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 RUN apt-get update \
   && apt-get install -y --no-install-recommends git patch verilator g++ make \
   && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir pillow
+RUN pip install --no-cache-dir pillow rich==13.9.4
 WORKDIR /afterglow
 COPY afterglow afterglow
 COPY afterglow_core/ ./afterglow_core/
@@ -21,6 +21,6 @@ COPY scripts/ ./scripts/
 COPY tests/ ./tests/
 COPY targets.pin foundation.pin PLAN.md AGENTS.md ./
 RUN chmod +x repro/run.sh afterglow \
-  && python3 -m py_compile agent/loop.py agent/visual.py agent/report.py sim/vbackend.py \
+  && python3 -m py_compile agent/loop.py agent/visual.py agent/report.py agent/progress.py sim/vbackend.py \
   && echo COMPILE-OK
 ENTRYPOINT ["./repro/run.sh"]

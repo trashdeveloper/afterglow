@@ -152,3 +152,18 @@
 - [x] **Step 2: Implement** (single-line stderr errors, TTY-only progress, positional spec + auto run-id; stdlib only).
 - [x] **Step 3: Run green + gate** (10/10, 1943 suite OK, CI ALL PASS, independent re-review APPROVE).
 - [x] **Step 4: Report proof.** Committed d0b28e8 (10/10, 1943, CI, APPROVE).
+
+### Task 9: Rich TUI progress bar (Nov 1)
+
+**Files:**
+- Create: `agent/progress.py`, `tests/test_cli_richbar.py` (9 tests)
+- Modify: `agent/loop.py` (output-path wiring only), `repro/Dockerfile` (`rich==13.9.4` pin + py_compile)
+
+**Interfaces:**
+- `make_bar(total, desc)`: rich TUI when rich+TTY+not-quiet, else byte-identical Task-8 fallback.
+- No loop/guard/score/bundle semantics touched.
+
+- [x] **Step 1: Write the failing tests** (red-first ImportError).
+- [x] **Step 2: Implement** (dual-path bar, 6 phase sites, Dockerfile pin).
+- [x] **Step 3: Run green + gate** (9/9 both paths, 1952 suite OK, CI ALL PASS, independent re-review APPROVE).
+- [x] **Step 4: Report proof.** Committed 0e41e18 (9/9 both paths, 1952, CI, APPROVE).
