@@ -11,3 +11,6 @@ runs/scratch/
 # H10 campaign logs (fresh-seed mining; board.json references them relatively)
 eval/mutant_pilot/logs/board100-*
 eval/mutant_pilot/logs/mut-100-*.log
+
+# node-tui deps (never commit)
+node-tui/node_modules/

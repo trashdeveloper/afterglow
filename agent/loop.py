@@ -1695,6 +1695,12 @@ def parse_args(argv=None):
                          "only the progress bar line + the final verdict "
                          "line (GREEN:/RED:/TRIAGE:/DEGRADED); --verbose "
                          "restores today's full output byte-for-byte.")
+    ap.add_argument("--emit-events", default=None, choices=("jsonl",),
+                    help="also emit machine-readable loop events as "
+                         "single-line JSON objects on stdout (progress, "
+                         "attempt boundaries, final verdict). Human text "
+                         "stays on stderr exactly as today; default "
+                         "(flag absent) keeps stdout byte-identical.")
     return ap.parse_args(argv)
 
 
@@ -1779,6 +1785,76 @@ def progress_done(args) -> None:
     sys.stderr.flush()
 
 
+def emit_event(args, payload: dict) -> None:
+    """Emit one single-line JSON object on stdout (opt-in only).
+
+    No-op unless `--emit-events jsonl` is set: the default path stays
+    byte-identical (zero stdout bytes from the event stream). Never
+    raises: event output must not break the loop.
+    """
+    try:
+        if getattr(args, "emit_events", None) is None:
+            return
+    except Exception:  # noqa: BLE001 -- exotic args fail closed to off
+        return
+    try:
+        print(json.dumps(payload), flush=True)
+    except Exception:  # noqa: BLE001 -- event output never breaks a run
+        pass
+
+
+def emit_verdict(args, verdict: str, run_id: str = "",
+                 patch_lines: int = 0, seconds: float = 0.0) -> None:
+    """Emit the terminal verdict event (opt-in only; see emit_event)."""
+    emit_event(args, {"type": "verdict", "verdict": verdict,
+                      "run_id": run_id, "patch_lines": patch_lines,
+                      "seconds": seconds})
+
+
+def emit_attempt_start(args, attempt_no: int) -> None:
+    """Emit an attempt-start boundary (opt-in only; see emit_event).
+
+    The open attempt (if any) is first closed with outcome "continued".
+    Repeating the same attempt number (transport-flake retry of attempt
+    N as attempt N) emits nothing new.
+    """
+    try:
+        if getattr(args, "emit_events", None) is None:
+            return
+        last = getattr(args, "_emit_open_attempt", 0) or 0
+    except Exception:  # noqa: BLE001 -- exotic args fail closed to off
+        return
+    if attempt_no == last:
+        return
+    if last:
+        emit_event(args, {"type": "attempt", "attempt": last,
+                          "phase": "end", "outcome": "continued"})
+    emit_event(args, {"type": "attempt", "attempt": attempt_no,
+                      "phase": "start"})
+    try:
+        args._emit_open_attempt = attempt_no
+    except Exception:  # noqa: BLE001 -- event state never breaks a run
+        pass
+
+
+def emit_attempt_end(args, outcome: str) -> None:
+    """Close the open attempt boundary, if any (opt-in only)."""
+    try:
+        if getattr(args, "emit_events", None) is None:
+            return
+        last = getattr(args, "_emit_open_attempt", 0) or 0
+    except Exception:  # noqa: BLE001 -- exotic args fail closed to off
+        return
+    if not last:
+        return
+    emit_event(args, {"type": "attempt", "attempt": last,
+                      "phase": "end", "outcome": outcome})
+    try:
+        args._emit_open_attempt = 0
+    except Exception:  # noqa: BLE001 -- event state never breaks a run
+        pass
+
+
 def phase_tick(args, bar, phase: str, attempt: int, total: int,
                t_start: float) -> None:
     """Route one phase update through the attempt bar (Task CLI-RICH-BAR).
@@ -1788,8 +1864,17 @@ def phase_tick(args, bar, phase: str, attempt: int, total: int,
     ``advance``; ``bar=None`` (or a bar that refuses every advance)
     falls back to ``progress_tick`` directly. Never raises: progress
     output must not break the loop.
+
+    With --emit-events jsonl, one progress event is ALSO emitted on
+    stdout per call (machine-readable; stderr bytes unchanged).
     """
     elapsed = time.monotonic() - t_start
+    try:
+        emit_event(args, {"type": "progress", "phase": phase,
+                          "attempt": attempt, "total": total,
+                          "elapsed_s": int(elapsed)})
+    except Exception:  # noqa: BLE001 -- event output never breaks a run
+        pass
     if bar is not None:
         try:
             bar.advance(phase=phase, attempt=attempt, total=total,
@@ -1808,7 +1893,11 @@ def phase_tick(args, bar, phase: str, attempt: int, total: int,
 
 
 def phase_finish(args, bar) -> None:
-    """Close the attempt bar (rich stop / stdlib newline); never raises."""
+    """Close the attempt bar (rich stop / stdlib newline); never raises.
+
+    With --emit-events jsonl, a done event is ALSO emitted on stdout.
+    """
+    emit_event(args, {"type": "progress", "done": True})
     if bar is not None:
         try:
             bar.finish()
@@ -3190,6 +3279,12 @@ def _main_inner(argv=None) -> int:
         except Exception as exc:  # report must never mask the verdict
             emit_stage(args, "report build failed (non-fatal): %r" % (exc,),
                        file=sys.stderr)
+        # --emit-events jsonl: close any open attempt boundary, then emit
+        # the terminal verdict (no-op on the default path).
+        emit_attempt_end(args, status)
+        emit_verdict(args, status.upper(), run_id=run_id,
+                     patch_lines=int(meta.get("patch_lines", 0) or 0),
+                     seconds=float(meta.get("time_to_green_s", 0.0) or 0.0))
         if status == "green":
             return EXIT_GREEN
         if status == "triage":
@@ -3657,6 +3752,7 @@ def _main_inner(argv=None) -> int:
         # is retried as attempt N until a completed response consumes it.
         attempt = attempts_consumed
         meta["retries"] = attempt
+        emit_attempt_start(args, attempt + 1)
         if attempt > 0:
             # One bar per attempt: close the previous attempt's bar and
             # start a fresh 6-step bar for this retry.

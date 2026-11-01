@@ -125,6 +125,11 @@ def build_parser() -> argparse.ArgumentParser:
                           "only the progress bar line + the final verdict "
                           "line; --verbose restores today's full output "
                           "byte-for-byte)")
+    run.add_argument("--emit-events", default=None, choices=("jsonl",),
+                     help="also emit machine-readable loop events as "
+                          "single-line JSON objects on stdout (progress, "
+                          "attempt boundaries, final verdict). Default "
+                          "(flag absent) keeps stdout byte-identical.")
     exp = sub.add_parser(
         "explain", help="render a finished bundle as a human story: "
                          "RED symptom -> diagnosis -> patch -> VERIFY -> cost")
@@ -342,6 +347,8 @@ def main(argv=None) -> int:
             loop_argv.append("--quiet")
         if args.verbose:
             loop_argv.append("--verbose")
+        if args.emit_events:
+            loop_argv += ["--emit-events", args.emit_events]
         if args.run_id:
             loop_argv += ["--run-id", args.run_id]
         if args.prompt:
