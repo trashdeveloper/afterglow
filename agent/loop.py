@@ -1671,7 +1671,65 @@ def parse_args(argv=None):
                          "DUMP_WAVES degrade loudly to text-only with a "
                          "meta note. Default OFF keeps the proven path "
                          "byte-identical.")
+    ap.add_argument("--debug", action="store_true", default=False,
+                    help="re-raise unexpected errors with a full traceback "
+                         "(default: one clean `afterglow: error:` line on "
+                         "stderr, exit != 0)")
+    ap.add_argument("--quiet", action="store_true", default=False,
+                    help="suppress the stderr progress display (stdout is "
+                         "never touched by progress output)")
     return ap.parse_args(argv)
+
+
+def default_run_id(case_id: str, now=None) -> str:
+    """Auto run-id for a case: `<stem>-YYYYMMDDTHHMMSSZ` (UTC).
+
+    Same family as the inline format historically built in main(); the
+    `now` hook exists only so tests can pin the clock.
+    """
+    stamp = (now or datetime.datetime.now(
+        datetime.timezone.utc)).strftime("%Y%m%dT%H%M%SZ")
+    return "%s-%s" % (case_id, stamp)
+
+
+def _progress_enabled(args) -> bool:
+    """True only for live stderr TTYs without --quiet.
+
+    Pipes (CI/tests) and --quiet both disable: progress then emits zero
+    bytes on either stream, keeping machine-readable stdout identical.
+    """
+    if bool(getattr(args, "quiet", False)):
+        return False
+    try:
+        return bool(sys.stderr.isatty())
+    except Exception:  # noqa: BLE001 -- exotic streams fail closed
+        return False
+
+
+def progress_tick(args, phase: str, attempt: int, total: int,
+                  elapsed_s: float) -> None:
+    """One single-line stderr progress update (carriage-return rewrite).
+
+    Format: `[<phase>] attempt <n>/<total> ... <elapsed>s`. Writes to
+    STDERR only; never touches stdout. No-op unless _progress_enabled.
+    """
+    if not _progress_enabled(args):
+        return
+    try:
+        elapsed = int(elapsed_s)
+    except (TypeError, ValueError):
+        elapsed = 0
+    sys.stderr.write("\r[%s] attempt %d/%d ... %ds"
+                     % (phase, attempt, total, elapsed))
+    sys.stderr.flush()
+
+
+def progress_done(args) -> None:
+    """Terminate the progress line (one newline); no-op when disabled."""
+    if not _progress_enabled(args):
+        return
+    sys.stderr.write("\n")
+    sys.stderr.flush()
 
 
 def _resolve_idx(lines, bug, anchor, pinned):
@@ -2945,7 +3003,7 @@ def rtl_excerpt(tree: str, rel: str, case: dict, max_lines: int = 40) -> str:
                      for i, ln in enumerate(window))
 
 
-def main(argv=None) -> int:
+def _main_inner(argv=None) -> int:
     args = parse_args(argv)
     if not args.case and not args.spec:
         print("FATAL: need --case <id> or --spec <path>",
@@ -2961,9 +3019,8 @@ def main(argv=None) -> int:
         args.case = os.path.splitext(os.path.basename(args.spec))[0]
     wall_start = utc_now()
     t_start = time.monotonic()
-    run_id = args.run_id or ("%s-%s" % (
-        args.case, datetime.datetime.now(datetime.timezone.utc).strftime(
-            "%Y%m%dT%H%M%SZ")))
+    progress_tick(args, "red", 1, MAX_ATTEMPTS, 0.0)
+    run_id = args.run_id or default_run_id(args.case)
     run_dir = os.path.join(ROOT, "runs", run_id)
     ensure_dirs(run_dir)
     art = lambda *p: os.path.join(run_dir, "artifacts", *p)  # noqa: E731
@@ -2992,6 +3049,7 @@ def main(argv=None) -> int:
     }
 
     def finish(status: str, extra: dict | None = None) -> int:
+        progress_done(args)
         meta["status"] = status
         meta["wall_end_utc"] = utc_now()
         meta["time_to_green_s"] = round(time.monotonic() - t_start, 1)
@@ -3167,6 +3225,8 @@ def main(argv=None) -> int:
         tree, list(case.get("files", [])))
 
     # ---- COLLECT
+    progress_tick(args, "collect", 1, MAX_ATTEMPTS,
+                  time.monotonic() - t_start)
     args.prompt = resolve_prompt_file(args.prompt)
     try:
         with open(args.prompt, encoding="utf-8") as fh:
@@ -3493,6 +3553,8 @@ def main(argv=None) -> int:
         # is retried as attempt N until a completed response consumes it.
         attempt = attempts_consumed
         meta["retries"] = attempt
+        progress_tick(args, "diagnose", attempt + 1, attempt_limit,
+                      time.monotonic() - t_start)
         stacked_continue = False
         if attempt > 0:
             # Clean-slate attempts: reset to the recorded RED baseline
@@ -4075,6 +4137,8 @@ def main(argv=None) -> int:
             print("[PATCH] verbatim model diff applied: %s"
                   % outcome["files"], flush=True)
         final_patch = outcome.get("applied_diff", "")
+        progress_tick(args, "patch", attempt + 1, attempt_limit,
+                      time.monotonic() - t_start)
         meta["patch_lines"] = outcome.get("patch_lines", 0)
         last_attempt["summary"] += "; applied via %s" % final_source
         meta["attempts"].append({**reset_note, **last_attempt})
@@ -4116,6 +4180,8 @@ def main(argv=None) -> int:
         # suspects a stale build and forces ONE clean rebuild; an
         # identical checksum/tohost flags a behaviorally-null resim for
         # the next attempt's feedback).
+        progress_tick(args, "resim", attempt + 1, attempt_limit,
+                      time.monotonic() - t_start)
         print("[RESIM] rebuilding patched tree...", flush=True)
         try:
             verdict_after, resim_integrity = resim_with_integrity(
@@ -4162,6 +4228,8 @@ def main(argv=None) -> int:
         meta["tohost_after"] = verdict_after.get("tohost")
         meta["checksum_after"] = verdict_after.get("checksum")
         meta["cycles_after"] = verdict_after.get("cycles")
+        progress_tick(args, "verify", attempt + 1, attempt_limit,
+                      time.monotonic() - t_start)
         print("[VERIFY] tohost=%s checksum=%s cycles=%s" % (
             verdict_after.get("tohost"), verdict_after.get("checksum"),
             verdict_after.get("cycles")), flush=True)
@@ -4434,6 +4502,27 @@ def main(argv=None) -> int:
         return finish("triage")
     print("RED: case %s not fixed" % args.case, file=sys.stderr)
     return finish("red")
+
+
+def main(argv=None) -> int:
+    """CLI entry for the run loop: clean errors by default.
+
+    Unexpected exceptions print a single `afterglow: error: <message>`
+    line to STDERR and exit 1 (no raw traceback on stdout). `--debug`
+    re-raises so the full traceback is available exactly as before.
+    argparse SystemExit (usage errors, --help) always propagates.
+    """
+    try:
+        return _main_inner(argv)
+    except SystemExit:
+        raise
+    except Exception as exc:  # noqa: BLE001 -- the clean-error wrapper
+        raw = list(argv) if argv is not None else sys.argv[1:]
+        if "--debug" in raw:
+            raise
+        print("afterglow: error: %s (use --debug for traceback)" % (exc,),
+              file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":

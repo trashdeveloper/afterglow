@@ -141,3 +141,14 @@
 - [x] **Step 2: Implement** (run_cmd/exit capture, rtl extraction, marker pick, loud placeholders, confirm/--yes, write_spec, chain_to_triage; stdlib only, no model calls in plumbing).
 - [x] **Step 3: Run green + gate** (15/15, 1933 suite OK, CI ALL PASS, independent re-review APPROVE).
 - [x] **Step 4: Report proof.** Committed 3ac584d (15/15, 1933, CI, APPROVE).
+
+### Task 8: CLI polish — errors, progress, simpler `run` (Nov 1)
+
+**Files:**
+- Modify: `afterglow` (positional SPEC, `--debug`/`--quiet`, error wrapper), `agent/loop.py` (flags, run-id, stderr progress)
+- Create: `tests/test_cli_polish.py` (10 tests)
+
+- [x] **Step 1: Write the failing tests** (10 tests, red-first missing attrs).
+- [x] **Step 2: Implement** (single-line stderr errors, TTY-only progress, positional spec + auto run-id; stdlib only).
+- [x] **Step 3: Run green + gate** (10/10, 1943 suite OK, CI ALL PASS, independent re-review APPROVE).
+- [x] **Step 4: Report proof.** Committed d0b28e8 (10/10, 1943, CI, APPROVE).

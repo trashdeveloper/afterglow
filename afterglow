@@ -70,10 +70,13 @@ def build_parser() -> argparse.ArgumentParser:
     run = sub.add_parser(
         "run", help="run one --spec case through the agent loop, "
                     "or render a bundle with --explain runs/<id>")
+    run.add_argument("spec_pos", nargs="?", default=None,
+                     metavar="SPEC",
+                     help="positional spec path "
+                          "(preferred; e.g. sim/targets/uart-start-half.yaml)")
     run.add_argument("--spec", default=None,
-                     help="CaseSpec YAML under sim/targets/ "
-                          "(in-tree only, e.g. "
-                          "sim/targets/uart-start-half.yaml)")
+                     help="spec YAML path (deprecated alias for the "
+                          "positional SPEC; both resolve identically)")
     run.add_argument("--explain", default=None, metavar="RUN_DIR",
                      help="render a finished bundle as a human story "
                           "(alias for `afterglow explain RUN_DIR`); "
@@ -103,6 +106,13 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--waveform", action="store_true", default=False,
                      help="attach fail-window waveform PNG to diagnosis "
                           "(uart-TB cases only; others degrade loudly)")
+    run.add_argument("--debug", action="store_true", default=False,
+                     help="re-raise unexpected errors with a full traceback "
+                          "(default: one clean `afterglow: error:` line on "
+                          "stderr, exit != 0)")
+    run.add_argument("--quiet", action="store_true", default=False,
+                     help="suppress the stderr progress display (stdout is "
+                          "never touched by progress output)")
     exp = sub.add_parser(
         "explain", help="render a finished bundle as a human story: "
                          "RED symptom -> diagnosis -> patch -> VERIFY -> cost")
@@ -219,18 +229,20 @@ def main(argv=None) -> int:
     if args.command == "run":
         if args.explain:
             return cmd_explain(args.explain)
-        if not args.spec:
-            print("FATAL: need --spec sim/targets/<id>.yaml "
-                  "(or --explain runs/<id> to render a bundle)",
+        spec_path = resolve_run_spec(args)
+        if not spec_path:
+            print("FATAL: need SPEC sim/targets/<id>.yaml "
+                  "(or --explain runs/<id> to render a bundle; "
+                  "--spec is a deprecated alias for SPEC)",
                   file=sys.stderr)
             return 2
         try:
-            spec = load_spec(args.spec)
+            spec = load_spec(spec_path)
         except (OSError, ValueError, KeyError) as exc:
-            print("FATAL: cannot load --spec %r: %s" % (args.spec, exc),
+            print("FATAL: cannot load spec %r: %s" % (spec_path, exc),
                   file=sys.stderr)
             return 1
-        loop_argv = ["--spec", args.spec, "--seed", str(args.seed)]
+        loop_argv = ["--spec", spec_path, "--seed", str(args.seed)]
         if args.auto:
             loop_argv.append("--auto")
         if args.triage:
@@ -241,17 +253,39 @@ def main(argv=None) -> int:
             loop_argv += ["--goals", args.goals]
         if args.waveform:
             loop_argv.append("--waveform")
+        if args.debug:
+            loop_argv.append("--debug")
+        if args.quiet:
+            loop_argv.append("--quiet")
         if args.run_id:
             loop_argv += ["--run-id", args.run_id]
         if args.prompt:
             loop_argv += ["--prompt", args.prompt]
         if args.rtl:
             loop_argv += ["--rtl", args.rtl]
-        print("afterglow run: spec %s (case %s)" % (args.spec, spec.case_id),
+        print("afterglow run: spec %s (case %s)" % (spec_path, spec.case_id),
               flush=True)
-        return loop.main(loop_argv)
+        try:
+            return loop.main(loop_argv)
+        except SystemExit:
+            raise
+        except Exception as exc:  # noqa: BLE001 -- clean-error wrapper
+            if args.debug:
+                raise
+            print("afterglow: error: %s (use --debug for traceback)" % (exc,),
+                  file=sys.stderr)
+            return 1
     build_parser().print_help()
     return 2
+
+
+def resolve_run_spec(args) -> str | None:
+    """Spec path for `afterglow run`: positional SPEC wins, --spec stays.
+
+    `--spec` is a deprecated alias: both forms resolve to the same path
+    (when both are given the positional one wins and --spec is ignored).
+    """
+    return getattr(args, "spec_pos", None) or getattr(args, "spec", None)
 
 
 if __name__ == "__main__":
