@@ -34,6 +34,108 @@ import time
 STAGES = ("RED", "collect", "diagnose", "patch", "resim", "verify")
 _TOTAL_STEPS = len(STAGES)
 
+# Gradient endpoints (opencode-style): cyan -> magenta over the
+# completed portion, dim style for the remainder, bright-green finished
+# style at 100%.
+_GRADIENT_START = "#00d7ff"
+_GRADIENT_END = "#ff00ff"
+_GRADIENT_WIDTH = 40
+
+
+def _hex_to_rgb(value: str) -> tuple:
+    """Parse ``#rrggbb`` (case-insensitive, hash optional) to (r, g, b)."""
+    text = str(value).strip().lstrip("#")
+    if len(text) != 6:
+        raise ValueError("expected #rrggbb hex color, got %r" % (value,))
+    return (int(text[0:2], 16), int(text[2:4], 16), int(text[4:6], 16))
+
+
+def blend_hex(a: str, b: str, t: float) -> str:
+    """Linear blend of two ``#rrggbb`` colors; ``t`` clamped to [0, 1].
+
+    Pure function (no rich dependency) so unit tests can pin exact hex
+    stops: ``blend_hex("#00d7ff", "#ff00ff", 0.0)`` is cyan,
+    ``t=1.0`` is magenta, ``t=0.5`` is ``#806cff`` (half-up rounding).
+    """
+    try:
+        amount = float(t)
+    except (TypeError, ValueError):
+        amount = 0.0
+    amount = min(1.0, max(0.0, amount))
+    ra, ga, ba = _hex_to_rgb(a)
+    rb, gb, bb = _hex_to_rgb(b)
+
+    def mix(u: int, v: int) -> int:
+        return min(255, max(0, int(u + (v - u) * amount + 0.5)))
+
+    return "#%02x%02x%02x" % (mix(ra, rb), mix(ga, gb), mix(ba, bb))
+
+
+def _gradient_column_class():
+    """Build the GradientBarColumn class (rich imported lazily).
+
+    Kept out of module top level so this module stays stdlib-only on
+    import: rich-missing / non-TTY paths keep failing closed to the
+    StdlibBar. Exposed as ``progress_rich.GradientBarColumn`` via the
+    module ``__getattr__`` below (PEP 562).
+    """
+    from rich.progress import ProgressColumn
+    from rich.style import Style
+    from rich.text import Text
+
+    class GradientBarColumn(ProgressColumn):
+        """Opencode-style gradient bar: cyan -> magenta completed part.
+
+        Renders ``rich.text.Text`` with one Style per segment: each
+        completed segment gets its own interpolated 24-bit color from
+        ``start`` to ``end``; remaining segments are dim; a 100%
+        complete task renders the whole bar in ``finished_style``
+        (bright green).
+        """
+
+        def __init__(self, bar_width=None, start=_GRADIENT_START,
+                     end=_GRADIENT_END, finished_style="bright_green",
+                     table_column=None):
+            self.bar_width = _GRADIENT_WIDTH if bar_width is None \
+                else max(1, int(bar_width))
+            self.start = start
+            self.end = end
+            self.finished_style = finished_style
+            super().__init__(table_column=table_column)
+
+        def render(self, task) -> "Text":
+            total = task.total or 0
+            done = max(0, task.completed or 0)
+            width = self.bar_width
+            if total > 0 and done >= total:
+                return Text("\u2501" * width,
+                            style=Style(color=self.finished_style, bold=True))
+            if total > 0:
+                filled = min(width, int(done / total * width))
+            else:
+                filled = 0
+            text = Text()
+            for i in range(filled):
+                pos = (i / (filled - 1)) if filled > 1 else 0.0
+                text.append("\u2501",
+                            style=Style(color=blend_hex(self.start,
+                                                        self.end, pos)))
+            if width > filled:
+                text.append("\u2500" * (width - filled),
+                            style=Style(dim=True, color="#555555"))
+            return text
+
+    return GradientBarColumn
+
+
+def __getattr__(name: str):
+    if name == "GradientBarColumn":
+        cls = _gradient_column_class()
+        globals()["GradientBarColumn"] = cls
+        return cls
+    raise AttributeError("module %r has no attribute %r"
+                         % (__name__, name))
+
 
 def _rich_available() -> bool:
     """True iff ``rich.progress``/``rich.console`` import cleanly.
@@ -154,7 +256,12 @@ class StdlibBar:
 
 
 class RichBar:
-    """Rich TUI bar: spinner + gradient-style bar + stage labels on STDERR.
+    """Rich TUI bar: spinner + real gradient bar + stage labels on STDERR.
+
+    Columns: spinner (animates during model calls) + description carrying
+    the stage label + GradientBarColumn (cyan -> magenta per-segment
+    24-bit gradient, dim remainder, bright-green finished style at 100%)
+    + percentage + elapsed. Never touches stdout.
 
     Columns: spinner (animates during model calls) + description carrying
     the stage label + bar + percentage + elapsed. Never touches stdout.
@@ -167,10 +274,14 @@ class RichBar:
     def __init__(self, total, desc=""):
         try:
             from rich.console import Console
-            from rich.progress import (BarColumn, Progress, SpinnerColumn,
+            from rich.progress import (Progress, SpinnerColumn,
                                        TextColumn, TimeElapsedColumn)
+            from agent.progress_rich import GradientBarColumn as _Gradient
         except ImportError:
-            raise
+            try:
+                from progress_rich import GradientBarColumn as _Gradient
+            except ImportError:
+                raise
         self._desc = desc or "working"
         self._total = total
         self._n = 0
@@ -178,7 +289,7 @@ class RichBar:
         self._progress = Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
-            BarColumn(bar_width=None),
+            _Gradient(),
             TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
             TimeElapsedColumn(),
             console=self._console,
