@@ -187,11 +187,11 @@ class TestDemo(unittest.TestCase):
             os.unlink(path)
 
     def test_pick_demo_case_real_file_is_documented_case(self):
-        # Verified live from eval/results.md (locked GREEN times, Nov-1
-        # wave re-verify: fetch-misalign 58.6s < uart-div 61.1s) -- the
+        # Verified live from eval/results.md (locked GREEN times, Nov-2
+        # board re-verify: uart-div 53.0s < fetch-misalign 57.9s) -- the
         # demo case below must stay in sync with the file, never a guess.
-        self.assertEqual(doctor.pick_demo_case(), "picorv32-fetch-misalign")
-        self.assertEqual(doctor.DEMO_CASE, "picorv32-fetch-misalign")
+        self.assertEqual(doctor.pick_demo_case(), "picosoc-uart-div")
+        self.assertEqual(doctor.DEMO_CASE, "picosoc-uart-div")
 
     def test_demo_no_key_fails_loud_without_loop_call(self):
         buf = io.StringIO()
@@ -227,7 +227,7 @@ class TestDemo(unittest.TestCase):
         self.assertIn("--triage", argv)
         self.assertIn("--spec", argv)
         spec = argv[argv.index("--spec") + 1]
-        self.assertTrue(spec.endswith("picorv32-fetch-misalign.yaml"),
+        self.assertTrue(spec.endswith("picosoc-uart-div.yaml"),
                         msg=spec)
         out = buf.getvalue()
         self.assertIn("$0.05", out)
