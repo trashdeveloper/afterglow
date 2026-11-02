@@ -14,7 +14,9 @@
 //! cursor is hidden during the run and restored on exit. (Headless paint
 //! also avoids the cursor-position query that `script(1)` ptys cannot
 //! answer, so forced-TTY captures work.) Backend human text (child
-//! stderr) is forwarded verbatim to our stderr.
+//! stderr) is buffered into a bounded tail ring and shown only when the
+//! run fails — never streamed mid-frame, so it cannot duplicate our
+//! header or tear the repaint.
 //!
 //! Exit codes: 2 = no TTY (or usage), 1 = backend failure
 //! (spawn error, backend exit without `GREEN`, or no verdict event),
@@ -58,6 +60,129 @@ fn exit_for_verdict(verdict: Option<&str>) -> i32 {
 /// Display name for the header: basename of the spec path.
 fn spec_basename(spec: &str) -> &str {
     spec.rsplit('/').next().unwrap_or(spec)
+}
+
+/// Load KEY=VALUE lines from a `.env` file into this process, without
+/// overriding already-exported vars. Skips comments/blank lines and a
+/// leading `export `; strips one layer of matching single/double quotes.
+/// Missing/unreadable file = silent no-op. Never prints values.
+fn load_dotenv_file(path: &std::path::Path) {
+    let text = match std::fs::read_to_string(path) {
+        Ok(t) => t,
+        Err(_) => return,
+    };
+    for raw in text.lines() {
+        let line = raw.trim();
+        if line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        let line = line.strip_prefix("export ").unwrap_or(line).trim();
+        let Some((k, v)) = line.split_once('=') else {
+            continue;
+        };
+        let key = k.trim();
+        if key.is_empty() || std::env::var_os(key).is_some() {
+            continue;
+        }
+        let mut val = v.trim();
+        if val.len() >= 2
+            && ((val.starts_with('\'') && val.ends_with('\''))
+                || (val.starts_with('"') && val.ends_with('"')))
+        {
+            val = &val[1..val.len() - 1];
+        }
+        std::env::set_var(key, val);
+    }
+}
+
+/// Load KEY=VALUE lines from `<dir>/.env` (see [`load_dotenv_file`]).
+#[allow(dead_code)]
+fn load_dotenv(dir: &std::path::Path) {
+    load_dotenv_file(&dir.join(".env"));
+}
+
+/// Locate the repo-root `.env` for a backend binary path: `../.env`
+/// relative to the resolved `afterglow` binary — i.e. the binary's
+/// sibling `.env` (`parent/.env`; note a literal `backend.join("../.env")`
+/// cannot work through a file path, it needs the parent dir), then each
+/// ancestor dir up from the binary, then the canonicalized variant,
+/// falling back to `./.env` in the cwd. Returns `None` when missing.
+fn find_dotenv_for_backend(backend: &std::path::Path) -> Option<std::path::PathBuf> {
+    if let Some(start) = backend.parent() {
+        let mut cur: Option<&std::path::Path> = Some(start);
+        while let Some(dir) = cur {
+            let cand = dir.join(".env");
+            if cand.is_file() {
+                return Some(cand);
+            }
+            cur = dir.parent();
+        }
+        if let Ok(canon) = backend.canonicalize() {
+            if let Some(cstart) = canon.parent() {
+                let mut cur2: Option<&std::path::Path> = Some(cstart);
+                while let Some(dir) = cur2 {
+                    let cand = dir.join(".env");
+                    if cand.is_file() {
+                        return Some(cand);
+                    }
+                    cur2 = dir.parent();
+                }
+            }
+        }
+    }
+    let cwd_dot = std::path::PathBuf::from("./.env");
+    if cwd_dot.is_file() {
+        return Some(cwd_dot);
+    }
+    if let Ok(cwd) = std::env::current_dir() {
+        let cand = cwd.join(".env");
+        if cand.is_file() {
+            return Some(cand);
+        }
+    }
+    None
+}
+
+/// Auto-load the repo-root `.env` (see [`find_dotenv_for_backend`]) into
+/// this process before spawning the backend. Silent no-op when missing.
+fn auto_load_dotenv(backend: &std::path::Path) {
+    if let Some(p) = find_dotenv_for_backend(backend) {
+        load_dotenv_file(&p);
+    }
+}
+
+/// Bounded tail buffer for backend stderr: keeps the last `cap` bytes.
+/// The TUI owns the display while running, so backend chatter must not
+/// interleave mid-frame; the tail is dumped to our stderr only when the
+/// run fails (or with --verbose passthrough).
+struct StderrRing {
+    buf: Vec<u8>,
+    cap: usize,
+}
+
+impl StderrRing {
+    fn new(cap: usize) -> Self {
+        Self {
+            buf: Vec::new(),
+            cap,
+        }
+    }
+
+    fn push(&mut self, chunk: &[u8]) {
+        self.buf.extend_from_slice(chunk);
+        if self.buf.len() > self.cap {
+            let drop = self.buf.len() - self.cap;
+            self.buf.drain(..drop);
+        }
+    }
+
+    fn bytes(&self) -> &[u8] {
+        &self.buf
+    }
+
+    fn is_empty(&self) -> bool {
+        self.buf.is_empty()
+    }
 }
 
 /// Usable frame width: a pty without a set winsize reports 0 columns
@@ -131,6 +256,11 @@ fn run() -> i32 {
 
     let root = find_repo_root();
     let backend = root.join("afterglow");
+    // The backend needs MODEL_API_KEY; users keep it in the repo .env.
+    // Auto-load `../.env` relative to the resolved backend binary (its
+    // sibling dir), falling back to `./.env` in the cwd — never
+    // overriding already-exported vars, never printing values.
+    auto_load_dotenv(&backend);
     let mut child = match Command::new(&backend)
         .arg("run")
         .arg(&spec)
@@ -150,24 +280,26 @@ fn run() -> i32 {
         }
     };
 
-    // Backend human text → our stderr, verbatim, on its own thread.
+    // Backend human text → bounded tail ring (NOT streamed: verbatim
+    // forwarding interleaves mid-frame and duplicates our own header).
+    // Dumped to our stderr only when the run fails.
+    let err_ring = Arc::new(Mutex::new(StderrRing::new(65536)));
     if let Some(err) = child.stderr.take() {
+        let ring = Arc::clone(&err_ring);
         std::thread::spawn(move || {
             let mut err = err;
-            let mut out = std::io::stderr().lock();
             let mut buf = [0u8; 8192];
             loop {
                 match err.read(&mut buf) {
                     Ok(0) => break,
                     Ok(n) => {
-                        if out.write_all(&buf[..n]).is_err() {
-                            break;
+                        if let Ok(mut r) = ring.lock() {
+                            r.push(&buf[..n]);
                         }
                     }
                     Err(_) => break,
                 }
             }
-            let _ = out.flush();
         });
     }
 
@@ -285,6 +417,16 @@ fn run() -> i32 {
 
     // Final frame stays in scrollback; cursor back; prompt gets a fresh line.
     painter.finish();
+    if exit_code != 0 {
+        // Loud failure: show what the backend said (it was hidden
+        // while we owned the display).
+        if let Ok(r) = err_ring.lock() {
+            if !r.is_empty() {
+                let _ = std::io::stderr().write_all(b"--- backend stderr ---\n");
+                let _ = std::io::stderr().write_all(r.bytes());
+            }
+        }
+    }
     // Reap before reporting the code.
     let _ = child.wait();
     exit_code
@@ -385,11 +527,13 @@ fn render_rows(
             };
             let status = Line::from(vec![Span::styled(status_text, status_style)]);
 
-            // Footer: elapsed while running; preservation note when done.
+            // Footer: quiet while running (bar + status carry progress);
+            // preservation note when done. No chatty `---------- elapsed`
+            // line: end-of-run output is ONE verdict line + this note.
             let footer_text = if finished {
                 "afterglow run finished — scrollback preserved".to_string()
             } else {
-                format!("afterglow run ---------- {elapsed_s:.0}s elapsed")
+                String::new()
             };
             let footer = Line::from(vec![Span::styled(
                 footer_text,
@@ -499,7 +643,10 @@ impl Painter {
             }
             self.painted = true;
         } else {
-            let _ = write!(self.out, "\x1b[{}A", self.height);
+            // Cursor sits at the end of the last row: move up height-1 to
+            // reach the first row. Up `height` overshoots onto the prompt
+            // line and leaves a stale duplicate header / stray bullet row.
+            let _ = write!(self.out, "\x1b[{}A", self.height.saturating_sub(1));
             for (i, row) in rows.iter().enumerate() {
                 let _ = self.out.write_all(b"\r");
                 let _ = self.out.write_all(row.as_bytes());
@@ -592,5 +739,269 @@ mod tests {
         );
         let body = rows.join("\n");
         assert!(body.contains("GREEN: fixed (12 patch lines, 14.2s)"));
+    }
+
+    #[test]
+    fn dotenv_loads_pairs_without_overriding_exported() {
+        let dir = std::env::temp_dir().join("tui_dotenv_test");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(
+            dir.join(".env"),
+            "# comment\n\nexport TUI_TEST_A=1\nTUI_TEST_B='two words'\nTUI_TEST_C=\"quoted\"\nTUI_TEST_D=plain\n",
+        )
+        .unwrap();
+        load_dotenv(&dir);
+        assert_eq!(std::env::var("TUI_TEST_A").unwrap(), "1");
+        assert_eq!(std::env::var("TUI_TEST_B").unwrap(), "two words");
+        assert_eq!(std::env::var("TUI_TEST_C").unwrap(), "quoted");
+        assert_eq!(std::env::var("TUI_TEST_D").unwrap(), "plain");
+        // Missing file is a silent no-op.
+        load_dotenv(&dir.join("nonexistent"));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::env::remove_var("TUI_TEST_A");
+        std::env::remove_var("TUI_TEST_B");
+        std::env::remove_var("TUI_TEST_C");
+        std::env::remove_var("TUI_TEST_D");
+    }
+
+    #[test]
+    fn dotenv_never_overrides_exported_vars() {
+        let dir = std::env::temp_dir().join("tui_dotenv_keep_test");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join(".env"), "TUI_TEST_KEEP=nope\n").unwrap();
+        std::env::set_var("TUI_TEST_KEEP", "orig");
+        load_dotenv(&dir);
+        assert_eq!(std::env::var("TUI_TEST_KEEP").unwrap(), "orig");
+        let _ = std::fs::remove_dir_all(&dir);
+        std::env::remove_var("TUI_TEST_KEEP");
+    }
+
+    #[test]
+    fn stderr_ring_keeps_tail_under_cap() {
+        let mut ring = StderrRing::new(16);
+        ring.push(b"0123456789abcdef");
+        ring.push(b"GHIJ");
+        assert_eq!(ring.bytes(), b"456789abcdefGHIJ");
+    }
+
+    /// Strip CSI sequences (`\x1b[...m`, `\x1b[K`, `\x1b[<n>A`, …) and `\r`
+    /// so tests count visible text, not paint bytes.
+    fn strip_ansi(s: &str) -> String {
+        let mut out = String::with_capacity(s.len());
+        let mut chars = s.chars().peekable();
+        while let Some(c) = chars.next() {
+            if c == '\x1b' {
+                if matches!(chars.peek(), Some('[')) {
+                    chars.next();
+                    for c2 in chars.by_ref() {
+                        if c2.is_ascii_alphabetic() {
+                            break;
+                        }
+                    }
+                }
+                continue;
+            }
+            if c == '\r' {
+                continue;
+            }
+            out.push(c);
+        }
+        out
+    }
+
+    #[test]
+    fn frame_has_single_header_and_four_rows() {
+        for finished in [false, true] {
+            let rows = render_rows(
+                60,
+                "demo.yaml",
+                "diagnose",
+                1,
+                3,
+                if finished { Some("GREEN") } else { None },
+                if finished { 7 } else { 0 },
+                if finished { 12.5 } else { 0.0 },
+                Duration::from_millis(400),
+                finished,
+            );
+            assert_eq!(rows.len(), FRAME_HEIGHT as usize);
+            let stripped: Vec<String> = rows.iter().map(|r| strip_ansi(r)).collect();
+            // Header (spec name) renders EXACTLY once.
+            assert_eq!(
+                stripped.iter().filter(|l| l.contains("demo.yaml")).count(),
+                1,
+                "header must render exactly once (finished={finished})"
+            );
+            assert_eq!(
+                stripped.iter().filter(|l| l.contains("◈")).count(),
+                1,
+                "exactly one ◈ header line (finished={finished})"
+            );
+            // No stray line consisting solely of a bullet.
+            for l in &stripped {
+                assert_ne!(
+                    l.trim(),
+                    "●",
+                    "no line consisting solely of a bullet (finished={finished}): {stripped:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn finished_footer_is_quiet_verdict_plus_note() {
+        for (verdict, expect) in [
+            (Some("GREEN"), "GREEN:"),
+            (Some("RED"), "RED:"),
+            (None, "RED: backend failed"),
+        ] {
+            let rows = render_rows(
+                60,
+                "demo.yaml",
+                "verify",
+                3,
+                3,
+                verdict,
+                12,
+                14.2,
+                Duration::from_secs(15),
+                true,
+            );
+            let stripped: Vec<String> = rows.iter().map(|r| strip_ansi(r)).collect();
+            // ONE verdict line …
+            assert_eq!(
+                stripped
+                    .iter()
+                    .filter(|l| l.contains("GREEN:") || l.contains("RED:") || l.contains("TRIAGE:"))
+                    .count(),
+                1,
+                "exactly one verdict line for {verdict:?}: {stripped:?}"
+            );
+            assert!(
+                stripped.iter().any(|l| l.contains(expect)),
+                "finished frame must contain {expect:?}: {stripped:?}"
+            );
+            // … plus the existing scrollback note, nothing chatty.
+            assert_eq!(
+                stripped.iter().filter(|l| l.contains("scrollback preserved")).count(),
+                1,
+                "scrollback note stays: {stripped:?}"
+            );
+            for l in &stripped {
+                assert!(
+                    !l.contains("elapsed"),
+                    "no chatty elapsed footer in end-of-run output: {stripped:?}"
+                );
+                assert!(
+                    !l.contains("----------"),
+                    "no chatty dashed footer in end-of-run output: {stripped:?}"
+                );
+            }
+            let footerish = stripped
+                .iter()
+                .filter(|l| {
+                    l.contains("GREEN:")
+                        || l.contains("RED:")
+                        || l.contains("TRIAGE:")
+                        || l.contains("scrollback")
+                        || l.contains("afterglow run")
+                })
+                .count();
+            assert!(
+                footerish <= 2,
+                "footer line count <= 2 (verdict + note), got {footerish}: {stripped:?}"
+            );
+        }
+        // Running frame is quiet too: no elapsed chatter, still one header.
+        let rows = render_rows(
+            60,
+            "demo.yaml",
+            "diagnose",
+            1,
+            3,
+            None,
+            0,
+            0.0,
+            Duration::from_millis(400),
+            false,
+        );
+        let stripped: Vec<String> = rows.iter().map(|r| strip_ansi(r)).collect();
+        for l in &stripped {
+            assert!(!l.contains("elapsed"), "running footer is quiet: {stripped:?}");
+            assert!(!l.contains("----------"), "running footer is quiet: {stripped:?}");
+        }
+        assert_eq!(
+            stripped.iter().filter(|l| l.contains("demo.yaml")).count(),
+            1,
+            "running header exactly once: {stripped:?}"
+        );
+    }
+
+    #[test]
+    fn dotenv_finds_env_by_walking_up_from_backend_binary() {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static CTR: AtomicU64 = AtomicU64::new(0);
+        let n = CTR.fetch_add(1, Ordering::SeqCst);
+        let base = std::env::temp_dir().join(format!(
+            "tui_dotenv_find_{}_{n}",
+            std::process::id()
+        ));
+        let nested = base.join("a").join("b");
+        std::fs::create_dir_all(&nested).unwrap();
+        // `.env` lives at the repo root; backend binary is nested below it.
+        std::fs::write(base.join(".env"), "TUI_FIND_WALK_UP=1\n").unwrap();
+        let backend = nested.join("afterglow");
+        std::fs::write(&backend, "#!/bin/sh\nexit 0\n").unwrap();
+        let found = find_dotenv_for_backend(&backend).expect("must find walked-up .env");
+        assert!(
+            found.is_file(),
+            "finder must return an existing file, got {}",
+            found.display()
+        );
+        assert_eq!(
+            found.file_name().unwrap(),
+            ".env",
+            "finder must return a .env file"
+        );
+        // The found file must be the root one (sibling `../.env` walk-up).
+        let canonical_found = found.canonicalize().unwrap();
+        let canonical_want = base.join(".env").canonicalize().unwrap();
+        assert_eq!(canonical_found, canonical_want);
+        let _ = std::fs::remove_dir_all(&base);
+    }
+
+    #[test]
+    fn dotenv_sibling_dotdot_and_missing_are_silent_noops() {
+        use std::sync::atomic::{AtomicU64, Ordering};
+        static CTR2: AtomicU64 = AtomicU64::new(0);
+        let n = CTR2.fetch_add(1, Ordering::SeqCst);
+        let dir = std::env::temp_dir().join(format!(
+            "tui_dotenv_sib_{}_{n}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join(".env"), "TUI_SIB_DOTDOT=sibval\n").unwrap();
+        let backend = dir.join("afterglow");
+        std::fs::write(&backend, "#!/bin/sh\nexit 0\n").unwrap();
+        // `../.env` relative to the backend binary == sibling `.env`
+        // (`parent/.env`; a literal `join("../.env")` through the file
+        // path hits ENOTDIR, so the finder uses the parent dir).
+        let sibling = backend.parent().unwrap().join(".env");
+        assert!(sibling.is_file(), "sibling .env must exist");
+        let found = find_dotenv_for_backend(&backend).expect("sibling .env must be found");
+        assert!(found.is_file());
+        // auto_load picks it up without overriding and without printing.
+        std::env::remove_var("TUI_SIB_DOTDOT");
+        auto_load_dotenv(&backend);
+        assert_eq!(std::env::var("TUI_SIB_DOTDOT").unwrap(), "sibval");
+        std::env::remove_var("TUI_SIB_DOTDOT");
+        let _ = std::fs::remove_dir_all(&dir);
+        // Missing file is a silent no-op (no panic, no env change).
+        let missing = std::path::PathBuf::from("/definitely/missing/tui_no_env_987654321/.env");
+        assert!(!missing.is_file());
+        load_dotenv_file(&missing);
+        assert!(std::env::var_os("TUI_SIB_DOTDOT").is_none());
     }
 }
