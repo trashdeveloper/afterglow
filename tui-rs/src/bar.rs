@@ -1,7 +1,7 @@
-//! Thin single-row rounded bar for nerd-font terminals: a dim track
-//! line with a thin gradient fill (blue `#5c9cf5` → purple `#9d7cd8`
-//! → peach `#fab283`), rounded end caps, a travelling bright tip, and a
-//! braille spinner while running.
+//! Tab-pulse single-row bar for nerd-font terminals (shootout winner,
+//! user-picked): a dim thin track with a travelling gradient band
+//! (blue `#5c9cf5` → purple `#9d7cd8` → peach `#fab283`), no caps —
+//! indeterminate like opencode, plus a braille spinner while running.
 //!
 //! All geometry here is pure (no terminal access) so `cargo test` pins it.
 
@@ -19,29 +19,16 @@ pub const TRACK: (u8, u8, u8) = (0x3a, 0x3a, 0x46);
 pub const BAR_HEIGHT: usize = 1;
 const _: () = assert!(BAR_HEIGHT == 1);
 
-/// Glyph for the rounded end caps: U+E0B6 `` (left) / U+E0B4 ``
-/// (right), the powerline rounded separators shipped by every major
-/// nerd-font patch set (FiraCode Nerd Font, JetBrainsMono Nerd Font,
-/// Hack Nerd Font, …). Chosen over box-drawing `╭╮` corners — which read
-/// as corners, not caps — and over circles `●`, which blob at small
-/// sizes: the E0B6/E0B4 pair renders as clean half-disc caps that hug a
-/// single-row horizontal line, matching powerline statusline segments
-/// terminal users already see daily.
-pub const LEFT_CAP: char = '\u{e0b6}';
-pub const RIGHT_CAP: char = '\u{e0b4}';
-
-/// Thin-line glyph shared by track and fill (colour tells them apart:
-/// dim [`TRACK`] vs the [`gradient_at`] sweep). One horizontal rule per
-/// cell keeps the bar exactly [`BAR_HEIGHT`] row tall with no block fill.
-pub const FILL_GLYPH: char = '─';
-
-/// Track glyph: a light horizontal rule per cell.
+/// Track glyph: a light horizontal rule per cell. Track and band share
+/// it; colour tells them apart (dim [`TRACK`] vs the [`gradient_at`]
+/// sweep across the band).
 pub const TRACK_GLYPH: char = '─';
 
-// NOTE: the thick-block era (U+2588 eighth-block fill via the old
-// EIGHTHS table / fraction_glyph helper) was retired with this restyle
-// and fully removed, so no full-block cell can leave the new path:
-// track and fill share one thin rule glyph, colour carries the fill.
+// NOTE: the caps era (U+E0B6/U+E0B4 `LEFT_CAP`/`RIGHT_CAP`, the thin
+// `FILL_GLYPH` fill, and the gaussian travelling tip) was retired when
+// the user picked tab-pulse in the 10-variant shootout: no full-width
+// fill and no caps leave this path — one thin rule glyph everywhere,
+// colour carries the band.
 
 /// Braille spinner frames (same 10-frame set nerd-font terminals love),
 /// stepped every [`SPINNER_MS`] ms.
@@ -81,9 +68,9 @@ pub fn gradient_at(t: f64) -> (u8, u8, u8) {
     }
 }
 
-/// Fill fraction from backend progress: verdict seen → full; no total
-/// yet → indeterminate 0 (the travelling tip still animates); otherwise
-/// `attempt / total`, clamped to [0, 1].
+/// Fill fraction from backend progress (kept for the attempt counter
+/// in `main.rs` even though the tab-pulse render itself is
+/// indeterminate and ignores it).
 pub fn fill_fraction(attempt: u32, total: u32, verdict_seen: bool) -> f64 {
     if verdict_seen {
         return 1.0;
@@ -94,36 +81,6 @@ pub fn fill_fraction(attempt: u32, total: u32, verdict_seen: bool) -> f64 {
     clamp01(attempt as f64 / total as f64)
 }
 
-/// Brighten `rgb` toward white by `amount` in 0..=1 (the sweep tip pop).
-pub fn brighten(rgb: (u8, u8, u8), amount: f64) -> (u8, u8, u8) {
-    let a = clamp01(amount);
-    (
-        lerp(rgb.0, 255, a),
-        lerp(rgb.1, 255, a),
-        lerp(rgb.2, 255, a),
-    )
-}
-
-/// Travelling tip position in cell units. Loops every `period_s`
-/// seconds across `width` cells (with overhang so it enters/exits
-/// smoothly); `None` when there is nothing to animate across.
-fn tip_position(elapsed_s: f64, width: usize) -> Option<f64> {
-    if width == 0 {
-        return None;
-    }
-    let period_s = 3.0;
-    let span = width as f64 + 16.0;
-    let x = (elapsed_s % period_s) / period_s * span - 8.0;
-    Some(x)
-}
-
-/// Extra brightness for cell `x` given the tip at `tip_x`: a gaussian
-/// falloff (σ ≈ 2.2 cells), 0 far from the tip.
-fn tip_boost(x: f64, tip_x: f64) -> f64 {
-    let d = (x - tip_x) / 2.2;
-    (-d * d).exp() * 0.75
-}
-
 /// One rendered cell: glyph + truecolor foreground.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Cell {
@@ -131,73 +88,48 @@ pub struct Cell {
     pub rgb: (u8, u8, u8),
 }
 
-/// Number of filled inner cells for `fill` in 0..=1 across a `width`
-/// cell row: the inner run is `width - 2` (caps excluded), so
-/// `round(fill * inner)`. Pure and tip-independent — the proportionality
-/// oracle `cargo test` pins the rendered gradient against.
-pub fn filled_len(width: usize, fill: f64) -> usize {
-    let inner = width.saturating_sub(2);
-    (clamp01(fill) * inner as f64).round() as usize
+/// Band width in cells: matches the shootout winner's proportions.
+fn band_width(width: usize) -> usize {
+    6.max(width / 6).min(width.max(1))
 }
 
 /// Render the bar into exactly `width` cells on exactly [`BAR_HEIGHT`]
-/// row: rounded caps ([`LEFT_CAP`] in [`BLUE`], [`RIGHT_CAP`] in
-/// [`PEACH`] — always the exact gradient endpoints, excluded from the
-/// travelling-tip boost so they read as a stable frame) around one thin
-/// line. The first [`filled_len`] inner cells ride the [`gradient_at`]
-/// sweep in [`FILL_GLYPH`]; the rest are the dim [`TRACK`] line in
-/// [`TRACK_GLYPH`]. The travelling tip survives as pure brightness on
-/// the gaussian peak cell — a single bright cell, no full-block cursor —
-/// so consecutive frames differ in colour while glyphs stay stable.
-/// Zero width yields zero cells (never panics).
-pub fn render_bar(width: usize, fill: f64, elapsed_s: f64) -> Vec<Cell> {
-    let fill = clamp01(fill);
+/// row: a dim thin [`TRACK`] line with a travelling gradient band
+/// ([`gradient_at`] blue edge → peach edge across the band, looping
+/// every 3 s). Indeterminate — `fill` is accepted for signature
+/// compatibility and ignored. Zero width yields zero cells.
+pub fn render_bar(width: usize, _fill: f64, elapsed_s: f64) -> Vec<Cell> {
     if width == 0 {
         return Vec::new();
     }
-    if width == 1 {
-        // Degenerate pty column: a single left cap in spec blue.
-        return vec![Cell {
-            glyph: LEFT_CAP,
-            rgb: gradient_at(0.0),
-        }];
-    }
-    let inner = width - 2;
-    let filled = filled_len(width, fill);
-    let tip_x = tip_position(elapsed_s, width);
-    let mut cells = Vec::with_capacity(width);
-    cells.push(Cell {
-        glyph: LEFT_CAP,
-        rgb: gradient_at(0.0),
-    });
-    for k in 0..inner {
-        // Gradient parameter across the inner run (0 at the left cap,
-        // 1 at the right cap); cell coordinate in bar units for the tip.
-        let t = if inner <= 1 {
-            0.0
-        } else {
-            k as f64 / (inner - 1) as f64
-        };
-        let x = (k + 1) as f64;
-        if k < filled {
-            let boost = tip_x.map_or(0.0, |tx| tip_boost(x, tx));
-            cells.push(Cell {
-                glyph: FILL_GLYPH,
-                rgb: brighten(gradient_at(t), boost),
-            });
-        } else {
-            let boost = tip_x.map_or(0.0, |tx| tip_boost(x, tx) * 0.5);
-            cells.push(Cell {
-                glyph: TRACK_GLYPH,
-                rgb: brighten(TRACK, boost),
-            });
-        }
-    }
-    cells.push(Cell {
-        glyph: RIGHT_CAP,
-        rgb: gradient_at(1.0),
-    });
-    cells
+    let band = band_width(width);
+    let span = width + band;
+    let head = if span == 0 {
+        0
+    } else {
+        ((elapsed_s.max(0.0) / 3.0) * span as f64) as usize % span
+    };
+    (0..width)
+        .map(|i| {
+            let d = head.wrapping_sub(i);
+            if d < band {
+                let t = if band <= 1 {
+                    1.0
+                } else {
+                    1.0 - d as f64 / band as f64
+                };
+                Cell {
+                    glyph: TRACK_GLYPH,
+                    rgb: gradient_at(t),
+                }
+            } else {
+                Cell {
+                    glyph: TRACK_GLYPH,
+                    rgb: TRACK,
+                }
+            }
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -248,23 +180,18 @@ mod tests {
                 assert_eq!(cells.len(), w, "w={w} fill={fill}");
             }
         }
-        // Full fill: caps + an all-gradient thin line, never a block.
+        // Tab-pulse: every cell is the thin track glyph; fill does not
+        // change the render (indeterminate); never a block.
         let full = render_bar(10, 1.0, 0.0);
-        assert_eq!(full[0].glyph, LEFT_CAP);
-        assert_eq!(full[9].glyph, RIGHT_CAP);
-        assert!(full[1..9].iter().all(|c| c.glyph == FILL_GLYPH));
+        assert!(full.iter().all(|c| c.glyph == TRACK_GLYPH));
         assert!(full.iter().all(|c| c.glyph != '█'));
-        // Empty fill: caps + an all-dim thin track.
+        // Empty fill renders identically (fill ignored).
         let empty = render_bar(10, 0.0, 0.0);
-        assert!(empty[1..9].iter().all(|c| c.glyph == TRACK_GLYPH));
-        assert!(empty[1..9].iter().all(|c| c.rgb == TRACK));
-        // Partial fill: exactly filled_len(10, 0.35) gradient cells, then track.
+        assert_eq!(empty, full, "fill ignored at same timestamp");
+        // Partial fill: identical too.
         let cells = render_bar(10, 0.35, 0.0);
         assert_eq!(cells.len(), 10);
-        let n = filled_len(10, 0.35);
-        assert_eq!(n, 3, "round(0.35 * 8)");
-        assert!(cells[1..1 + n].iter().all(|c| c.glyph == FILL_GLYPH));
-        assert!(cells[1 + n..9].iter().all(|c| c.glyph == TRACK_GLYPH));
+        assert_eq!(cells, full);
     }
 
     #[test]
@@ -291,32 +218,47 @@ mod tests {
         assert_eq!(spinner_at(800), spinner_at(0)); // wraps
     }
 
-    // --- Thin rounded single-row bar (nerd-font terminals) ---
+    // --- Tab-pulse default (user-picked shootout #5) ---
 
     #[test]
-    fn thin_bar_is_single_row_with_rounded_caps() {
-        // Exactly 1 terminal row tall, by construction.
+    fn tab_pulse_is_single_row_without_caps() {
+        // Exactly 1 terminal row tall, by construction; NO caps — the
+        // track runs the full width.
         assert_eq!(BAR_HEIGHT, 1);
         for w in [2, 5, 40, 80] {
             for fill in [0.0, 0.4, 1.0] {
                 let cells = render_bar(w, fill, 0.7);
                 assert_eq!(cells.len(), w, "single row of exactly w={w} cells");
-                assert_eq!(cells[0].glyph, LEFT_CAP, "rounded left cap w={w}");
-                assert_eq!(cells[w - 1].glyph, RIGHT_CAP, "rounded right cap w={w}");
+                assert!(
+                    cells.iter().all(|c| c.glyph == TRACK_GLYPH),
+                    "tab-pulse uses the thin track glyph everywhere w={w}"
+                );
             }
         }
     }
 
     #[test]
-    fn thin_bar_caps_carry_exact_gradient_endpoints() {
-        // Caps are structural (excluded from the travelling-tip boost) so
-        // they always read the exact spec endpoints: blue → … → peach.
-        for t in [0.0, 0.4, 1.2, 2.9] {
+    fn tab_pulse_band_travels_with_gradient_across_it() {
+        // A contiguous bright band rides the dim track; across the band
+        // the colour runs the spec gradient (blue edge → peach edge).
+        for t in [0.7, 1.2, 1.8, 2.4] {
             let cells = render_bar(40, 0.4, t);
-            assert_eq!(cells[0].rgb, BLUE, "left cap == gradient_at(0) t={t}");
-            assert_eq!(cells[0].rgb, (0x5c, 0x9c, 0xf5));
-            assert_eq!(cells[39].rgb, PEACH, "right cap == gradient_at(1) t={t}");
-            assert_eq!(cells[39].rgb, (0xfa, 0xb2, 0x83));
+            let bright: Vec<usize> = cells
+                .iter()
+                .enumerate()
+                .filter(|(_, c)| c.rgb != TRACK)
+                .map(|(i, _)| i)
+                .collect();
+            let band = 6.max(40 / 6);
+            assert_eq!(bright.len(), band, "band width t={t}");
+            // Contiguous run.
+            for (a, b) in bright.iter().zip(bright.iter().skip(1)) {
+                assert_eq!(*b, a + 1, "contiguous t={t}");
+            }
+            // Gradient direction across the band.
+            let first = cells[bright[0]].rgb;
+            let last = cells[bright[bright.len() - 1]].rgb;
+            assert!(first.0 < last.0, "blue edge -> peach edge t={t}");
         }
     }
 
@@ -337,51 +279,37 @@ mod tests {
     }
 
     #[test]
-    fn thin_fill_length_proportional() {
-        // Filled inner-cell count grows monotonically with fill and hits
-        // both extremes exactly.
-        assert_eq!(filled_len(40, 0.0), 0);
-        assert_eq!(filled_len(40, 1.0), 38); // inner = width - 2 caps
-        let mut last = 0;
-        for i in 0..=20 {
-            let n = filled_len(40, i as f64 / 20.0);
-            assert!(n >= last, "i={i} n={n}");
-            last = n;
-        }
-        // Half fill ≈ half the inner run (rounding ±1).
-        let half = filled_len(40, 0.5);
-        assert!((half as i32 - 19).abs() <= 1, "half={half}");
-        // Rendered gradient cells agree with filled_len when the tip is
-        // parked off-bar (elapsed 0.0 → tip at x=-8, boost rounds to 0).
-        for fill in [0.0, 0.35, 0.5, 1.0] {
-            let cells = render_bar(10, fill, 0.0);
-            let inner = &cells[1..9];
-            let n_track = inner.iter().filter(|c| c.rgb == TRACK).count();
-            assert_eq!(inner.len() - n_track, filled_len(10, fill), "fill={fill}");
-        }
+    fn tab_pulse_fill_is_ignored_track_stays_dim() {
+        // Tab-pulse is indeterminate (opencode-style): fill does not
+        // change the render; every non-band cell is the dim track.
+        let a = render_bar(40, 0.0, 0.7);
+        let b = render_bar(40, 1.0, 0.7);
+        assert_eq!(a, b, "fill must not affect tab-pulse");
+        let dim = a.iter().filter(|c| c.rgb == TRACK).count();
+        assert_eq!(a.len() - dim, 6.max(40 / 6), "only the band is bright");
     }
 
     #[test]
-    fn thin_track_is_dim_and_fill_uses_spec_gradient() {
-        // Unfilled inner cells are the dim thin track; filled ones ride
-        // the EXISTING blue → purple → peach gradient (endpoints exact).
-        let cells = render_bar(11, 0.0, 0.0); // inner = 9, none filled
-        assert!(cells[1..10].iter().all(|c| c.glyph == TRACK_GLYPH));
-        assert!(cells[1..10].iter().all(|c| c.rgb == TRACK));
-        let full = render_bar(11, 1.0, 0.0);
-        assert_eq!(full[1].rgb, BLUE);
-        assert_eq!(full[9].rgb, PEACH);
-        let mid = render_bar(11, 1.0, 0.0)[5].rgb;
-        assert!(mid.0 > BLUE.0 && mid.0 < PEACH.0, "mid={mid:?}");
+    fn tab_pulse_track_uses_spec_gradient_in_band() {
+        // Band cells ride the EXISTING blue → purple → peach gradient
+        // (endpoints exact); everything else is the dim thin track.
+        let cells = render_bar(40, 0.0, 1.5); // band fully on-bar mid-sweep
+        let bright: Vec<&Cell> = cells.iter().filter(|c| c.rgb != TRACK).collect();
+        assert_eq!(bright.len(), 6.max(40 / 6));
+        let first = bright[0].rgb;
+        let last = bright[bright.len() - 1].rgb;
+        assert!(first.0 <= BLUE.0 + 30, "band starts blue-ish {first:?}");
+        assert!(last.0 >= PEACH.0 - 8, "band ends peach-ish {last:?}");
+        assert!(cells.iter().all(|c| c.glyph == TRACK_GLYPH));
     }
 
     #[test]
-    fn thin_tip_still_travels_without_block_cursor() {
-        // Travelling tip preserved as pure brightness: frames differ in
-        // colour while glyphs stay stable (no full-block cursor anywhere).
+    fn tab_pulse_band_travels_without_block_cursor() {
+        // Band position moves with time; glyphs stay stable (thin track
+        // everywhere, no full-block cursor).
         let a = render_bar(40, 0.4, 0.0);
         let b = render_bar(40, 0.4, 0.4);
-        assert_ne!(a, b, "tip must repaint colours over time");
+        assert_ne!(a, b, "band must repaint position over time");
         let glyphs = |v: Vec<Cell>| v.into_iter().map(|c| c.glyph).collect::<String>();
         assert_eq!(glyphs(a.clone()), glyphs(b));
         // Peak brightness travels: argmax rgb-sum moves with time.
@@ -393,6 +321,6 @@ mod tests {
                 .unwrap()
         };
         let c = render_bar(40, 0.4, 1.2);
-        assert_ne!(peak(a), peak(c), "bright tip cell must move");
+        assert_ne!(peak(a), peak(c), "bright band cell must move");
     }
 }
