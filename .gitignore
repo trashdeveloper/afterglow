@@ -14,3 +14,6 @@ eval/mutant_pilot/logs/mut-100-*.log
 
 # node-tui deps (never commit)
 node-tui/node_modules/
+
+# rust build output (never commit; Cargo.lock stays for reproducible builds)
+tui-rs/target/

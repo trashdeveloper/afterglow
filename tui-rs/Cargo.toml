@@ -1,0 +1,15 @@
+[package]
+name = "tui-rs"
+version = "0.1.0"
+edition = "2021"
+description = "Afterglow inline terminal frontend (ratatui, no alternate screen)"
+
+[[bin]]
+name = "tui"
+path = "src/main.rs"
+
+[dependencies]
+ratatui = "0.29"
+crossterm = "0.28"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
