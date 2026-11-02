@@ -167,3 +167,16 @@
 - [x] **Step 2: Implement** (dual-path bar, 6 phase sites, Dockerfile pin).
 - [x] **Step 3: Run green + gate** (9/9 both paths, 1952 suite OK, CI ALL PASS, independent re-review APPROVE).
 - [x] **Step 4: Report proof.** Committed 0e41e18 (9/9 both paths, 1952, CI, APPROVE).
+
+### Task 10: docs-vs-reality guide (plan addendum Nov 2)
+
+**Files:**
+- Create: `docs/GUIDE-vs-REALITY.md`, `tests/test_docs_guide.py` (14 tests)
+
+**Interfaces:**
+- Every checkable doc claim enforced by a test; guide fixed + tests hardened after re-review caught 2 overclaims (full 7/8 not 8/8, demo case picosoc-uart-div).
+
+- [x] **Step 1: Write the failing tests** (red-first missing doc).
+- [x] **Step 2: Implement** (56-line guide, recursion-guarded suite test, pathspec-excluded history scan).
+- [x] **Step 3: Run green + gate** (14/14, 2078 suite OK, CI ALL PASS, independent re-review APPROVE after fix).
+- [x] **Step 4: Report proof.** Committed 0bd671c (14/14, 2078, CI, APPROVE).
