@@ -68,19 +68,6 @@ pub fn gradient_at(t: f64) -> (u8, u8, u8) {
     }
 }
 
-/// Fill fraction from backend progress (kept for the attempt counter
-/// in `main.rs` even though the tab-pulse render itself is
-/// indeterminate and ignores it).
-pub fn fill_fraction(attempt: u32, total: u32, verdict_seen: bool) -> f64 {
-    if verdict_seen {
-        return 1.0;
-    }
-    if total == 0 {
-        return 0.0;
-    }
-    clamp01(attempt as f64 / total as f64)
-}
-
 /// One rendered cell: glyph + truecolor foreground.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Cell {
@@ -159,17 +146,6 @@ mod tests {
         // Clamps instead of panicking.
         assert_eq!(gradient_at(-2.0), BLUE);
         assert_eq!(gradient_at(99.0), PEACH);
-    }
-
-    #[test]
-    fn fill_fraction_math() {
-        assert_eq!(fill_fraction(0, 0, false), 0.0); // indeterminate
-        assert_eq!(fill_fraction(0, 3, false), 0.0);
-        assert!((fill_fraction(1, 3, false) - 1.0 / 3.0).abs() < 1e-9);
-        assert_eq!(fill_fraction(3, 3, false), 1.0);
-        assert_eq!(fill_fraction(9, 3, false), 1.0); // clamp, never > 1
-        assert_eq!(fill_fraction(1, 3, true), 1.0); // verdict → full
-        assert_eq!(fill_fraction(0, 0, true), 1.0);
     }
 
     #[test]

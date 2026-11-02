@@ -2,10 +2,14 @@
 //!
 //! Spawns `<repo-root>/afterglow run <spec> --emit-events jsonl [args...]`
 //! (repo root as cwd; the Python flag already exists), parses the JSONL
-//! event stream (`progress` / `attempt` / `verdict`), and renders with
-//! ratatui: header line (case name), full-width gradient sweep bar
-//! (fractional eighth-blocks, truecolor gradient, travelling bright tip,
-//! dim track, braille spinner), attempt counter, and a verdict screen.
+//! event stream (`progress` / `attempt` / `verdict`), and renders a
+//! dashboard frame with ratatui: header row (nerd-font icon + case id +
+//! attempt n/N), one thin gradient gauge row per phase (DIAGNOSE / PATCH
+//! / RESIM / VERIFY: dim track pending, tab-pulse sweep active, solid
+//! gradient done, dim 〜 skipped), a live counters row (elapsed s,
+//! attempts used, est. cost or `—`), and a final verdict row (spinner +
+//! phase while running; big █ block-art verdict + patch lines + seconds
+//! when done — no percentages/ETAs anywhere).
 //!
 //! INLINE render only, by construction: frames are laid out by ratatui's
 //! `Paragraph` widget into a headless buffer and painted to stdout with
@@ -23,6 +27,7 @@
 //! 0 = `GREEN`.
 
 mod bar;
+mod dashboard;
 mod doctor;
 mod events;
 
@@ -33,10 +38,10 @@ use std::time::{Duration, Instant};
 
 use crossterm::cursor;
 use ratatui::prelude::*;
-use ratatui::widgets::Paragraph;
 
-/// Inline frame height: header + bar + status + footer.
-const FRAME_HEIGHT: u16 = 4;
+/// Inline frame height: the dashboard frame (header + 4 phase gauges +
+/// counters + verdict). See [`dashboard::DASHBOARD_HEIGHT`].
+const FRAME_HEIGHT: u16 = dashboard::DASHBOARD_HEIGHT;
 /// Frame cadence (matches the braille spinner step).
 const FRAME_MS: u64 = 80;
 
@@ -44,6 +49,8 @@ const FRAME_MS: u64 = 80;
 #[derive(Debug, Default)]
 struct Shared {
     mapper: events::Mapper,
+    /// Phase gauge states, fed from the same JSONL lines as the mapper.
+    dash: dashboard::Dashboard,
     /// Backend stdout hit EOF (every emitted line already handled).
     eof: bool,
     /// Backend process has been reaped.
@@ -317,11 +324,12 @@ fn run() -> i32 {
 
     let shared = Arc::new(Mutex::new(Shared {
         mapper: events::Mapper::new(),
+        dash: dashboard::Dashboard::new(),
         ..Shared::default()
     }));
 
-    // Backend JSONL stdout → mapper, on its own thread (handles partial
-    // lines: the pipe yields arbitrary chunks, not lines).
+    // Backend JSONL stdout → mapper + gauges, on its own thread (handles
+    // partial lines: the pipe yields arbitrary chunks, not lines).
     if let Some(out) = child.stdout.take() {
         let shared = Arc::clone(&shared);
         std::thread::spawn(move || {
@@ -337,6 +345,7 @@ fn run() -> i32 {
                         if let Ok(mut s) = shared.lock() {
                             for line in &lines {
                                 s.mapper.handle_line(line);
+                                s.dash.handle_line(line);
                             }
                         }
                     }
@@ -363,10 +372,14 @@ fn run() -> i32 {
                 s.mapper.verdict.clone(),
                 s.mapper.patch_lines,
                 s.mapper.seconds,
+                s.mapper.est_cost,
+                s.dash.gauges,
                 s.eof,
             )
         });
-        let Ok((phase, attempt, total, verdict, patch_lines, seconds, eof)) = snapshot else {
+        let Ok((phase, attempt, total, verdict, patch_lines, seconds, est_cost, gauges, eof)) =
+            snapshot
+        else {
             break;
         };
 
@@ -392,16 +405,18 @@ fn run() -> i32 {
                 .map(|(w, _)| w)
                 .unwrap_or(80),
         );
-        let rows = render_rows(
+        let rows = dashboard::render_dashboard_rows(
             width,
             &title,
             &phase,
             attempt,
             total,
+            &gauges,
+            est_cost,
+            elapsed,
             verdict.as_deref(),
             patch_lines,
             seconds,
-            elapsed,
             finished,
         );
         painter.paint(&rows);
@@ -416,8 +431,19 @@ fn run() -> i32 {
             // no JSONL), paint the failure screen as the final frame so
             // it stays in scrollback, then fail loudly instead of hanging.
             if !finished {
-                let rows = render_rows(
-                    width, &title, &phase, attempt, total, None, 0, 0.0, elapsed, true,
+                let rows = dashboard::render_dashboard_rows(
+                    width,
+                    &title,
+                    &phase,
+                    attempt,
+                    total,
+                    &gauges,
+                    est_cost,
+                    elapsed,
+                    None,
+                    0,
+                    0.0,
+                    true,
                 );
                 painter.paint(&rows);
             }
@@ -628,121 +654,6 @@ fn run_doctor() -> i32 {
     exit_code
 }
 
-/// Lay out one frame with ratatui widgets into per-row ANSI strings
-/// (no trailing newlines, no cursor motion — see [`Painter`]).
-#[allow(clippy::too_many_arguments)]
-fn render_rows(
-    width: usize,
-    title: &str,
-    phase: &str,
-    attempt: u32,
-    total: u32,
-    verdict: Option<&str>,
-    patch_lines: u32,
-    seconds: f64,
-    elapsed: std::time::Duration,
-    finished: bool,
-) -> Vec<String> {
-    let elapsed_s = elapsed.as_secs_f64();
-    let elapsed_ms = elapsed.as_millis() as u64;
-    let width_u16: u16 = width.clamp(1, u16::MAX as usize) as u16;
-    let backend = ratatui::backend::TestBackend::new(width_u16, FRAME_HEIGHT);
-    let mut terminal = ratatui::Terminal::new(backend).expect("headless terminal");
-    terminal
-        .draw(|frame| {
-            let spinner = if finished { "●" } else { bar::spinner_at(elapsed_ms) };
-
-            // Header: case name.
-            let header = Line::from(vec![
-                Span::styled("◈ ", Style::default().fg(Color::Rgb(0x8f, 0x8f, 0x96))),
-                Span::styled(
-                    title.to_string(),
-                    Style::default()
-                        .fg(Color::White)
-                        .add_modifier(Modifier::BOLD),
-                ),
-            ]);
-
-            // Full-width gradient sweep bar with spinner + fractional blocks.
-            let bar_width = width.saturating_sub(2);
-            let fill = bar::fill_fraction(attempt, total, finished);
-            let cells = bar::render_bar(bar_width, fill, elapsed_s);
-            let mut bar_spans = Vec::with_capacity(cells.len() + 2);
-            let spinner_color = if finished {
-                match verdict {
-                    Some("GREEN") => Color::LightGreen,
-                    Some("TRIAGE") => Color::Yellow,
-                    _ => Color::LightRed,
-                }
-            } else {
-                Color::Rgb(0xfa, 0xb2, 0x83) // peach
-            };
-            bar_spans.push(Span::styled(
-                spinner.to_string(),
-                Style::default()
-                    .fg(spinner_color)
-                    .add_modifier(Modifier::BOLD),
-            ));
-            bar_spans.push(Span::raw(" "));
-            for c in &cells {
-                bar_spans.push(Span::styled(
-                    c.glyph.to_string(),
-                    Style::default().fg(Color::Rgb(c.rgb.0, c.rgb.1, c.rgb.2)),
-                ));
-            }
-            let bar_line = Line::from(bar_spans);
-
-            // Status: attempt counter while running, verdict line when done.
-            let status_text = if finished {
-                match verdict {
-                    Some("GREEN") => {
-                        format!("GREEN: fixed ({patch_lines} patch lines, {seconds:.1}s)")
-                    }
-                    Some("TRIAGE") => {
-                        format!("TRIAGE: diagnosis saved, patch withheld ({seconds:.1}s)")
-                    }
-                    Some("RED") => format!("RED: not fixed ({seconds:.1}s)"),
-                    _ => "RED: backend failed (no verdict event)".to_string(),
-                }
-            } else if total > 0 {
-                format!("{phase} attempt {}/{} ...", attempt.max(1), total)
-            } else if attempt > 0 {
-                format!("{phase} attempt {attempt} ...")
-            } else {
-                format!("{phase} ...")
-            };
-            let status_style = if finished {
-                let color = match verdict {
-                    Some("GREEN") => Color::LightGreen,
-                    Some("TRIAGE") => Color::Yellow,
-                    _ => Color::LightRed,
-                };
-                Style::default().fg(color).add_modifier(Modifier::BOLD)
-            } else {
-                Style::default().fg(Color::Rgb(0x8f, 0x8f, 0x96))
-            };
-            let status = Line::from(vec![Span::styled(status_text, status_style)]);
-
-            // Footer: quiet while running (bar + status carry progress);
-            // preservation note when done. No chatty `---------- elapsed`
-            // line: end-of-run output is ONE verdict line + this note.
-            let footer_text = if finished {
-                "afterglow run finished — scrollback preserved".to_string()
-            } else {
-                String::new()
-            };
-            let footer = Line::from(vec![Span::styled(
-                footer_text,
-                Style::default().fg(Color::DarkGray),
-            )]);
-
-            let para = Paragraph::new(vec![header, bar_line, status, footer]);
-            frame.render_widget(para, frame.area());
-        })
-        .expect("headless draw");
-    buffer_to_ansi(terminal.backend().buffer())
-}
-
 /// Serialize a ratatui buffer into per-row ANSI strings: truecolor SGR
 /// on style change, `\x1b[0m` reset at each row start/end. Never emits
 /// alternate-screen or cursor-position sequences. Shared by the run-mode
@@ -896,50 +807,55 @@ mod tests {
     }
 
     #[test]
-    fn rows_carry_truecolor_gradient_and_never_alternate_screen() {
-        let rows = render_rows(
-            40,
+    fn run_frame_height_is_the_dashboard_height() {
+        // The inline painter's cursor-up math depends on the run frame
+        // staying exactly one dashboard frame tall.
+        assert_eq!(FRAME_HEIGHT, dashboard::DASHBOARD_HEIGHT);
+        assert_eq!(dashboard::DASHBOARD_HEIGHT, 7);
+    }
+
+    #[test]
+    fn canned_stream_through_wiring_renders_inline_dashboard() {
+        // Mirror the production wiring: every stdout line feeds BOTH the
+        // mapper and the gauges (reader thread), the render loop snapshots
+        // both under one lock, and the frame comes from the dashboard
+        // renderer — no old 4-row frame, no alt-screen bytes.
+        let canned = [
+            r#"{"type": "progress", "phase": "diagnose", "attempt": 1, "total": 2, "elapsed_s": 1}"#,
+            r#"{"type": "progress", "phase": "patch", "attempt": 1, "total": 2, "elapsed_s": 2}"#,
+            r#"{"type": "verdict", "verdict": "GREEN", "run_id": "r", "patch_lines": 7, "seconds": 12.5}"#,
+        ];
+        let mut mapper = events::Mapper::new();
+        let mut dash = dashboard::Dashboard::new();
+        for line in canned {
+            mapper.handle_line(line);
+            dash.handle_line(line);
+        }
+        let rows = dashboard::render_dashboard_rows(
+            60,
             "demo.yaml",
-            "diagnose",
-            1,
-            3,
-            None,
-            0,
-            0.0,
-            Duration::from_millis(400),
-            false,
+            &mapper.phase,
+            mapper.attempt,
+            mapper.total,
+            &dash.gauges,
+            mapper.est_cost,
+            Duration::from_secs(13),
+            mapper.verdict.as_deref(),
+            mapper.patch_lines,
+            mapper.seconds,
+            mapper.verdict.is_some(),
         );
         assert_eq!(rows.len(), FRAME_HEIGHT as usize);
         let body = rows.join("\n");
-        // Truecolor gradient present (spec blue #5c9cf5 → ...).
         assert!(body.contains("38;2;"), "expected truecolor SGR");
-        // Spinner + header survive the headless render.
-        assert!(body.contains("demo.yaml"));
-        // Inline-only: no alternate-screen, no cursor-position query.
+        assert!(body.contains("████ GREEN ████"), "block-art verdict");
+        assert!(body.contains("7 patch lines"));
         for forbidden in ["1049h", "1049l", "?25l", "6n"] {
             assert!(
                 !body.contains(forbidden),
                 "inline frame must not contain {forbidden}"
             );
         }
-    }
-
-    #[test]
-    fn verdict_rows_show_patch_lines_and_seconds() {
-        let rows = render_rows(
-            60,
-            "demo.yaml",
-            "verify",
-            3,
-            3,
-            Some("GREEN"),
-            12,
-            14.2,
-            Duration::from_secs(15),
-            true,
-        );
-        let body = rows.join("\n");
-        assert!(body.contains("GREEN: fixed (12 patch lines, 14.2s)"));
     }
 
     #[test]
@@ -985,159 +901,6 @@ mod tests {
         ring.push(b"0123456789abcdef");
         ring.push(b"GHIJ");
         assert_eq!(ring.bytes(), b"456789abcdefGHIJ");
-    }
-
-    /// Strip CSI sequences (`\x1b[...m`, `\x1b[K`, `\x1b[<n>A`, …) and `\r`
-    /// so tests count visible text, not paint bytes.
-    fn strip_ansi(s: &str) -> String {
-        let mut out = String::with_capacity(s.len());
-        let mut chars = s.chars().peekable();
-        while let Some(c) = chars.next() {
-            if c == '\x1b' {
-                if matches!(chars.peek(), Some('[')) {
-                    chars.next();
-                    for c2 in chars.by_ref() {
-                        if c2.is_ascii_alphabetic() {
-                            break;
-                        }
-                    }
-                }
-                continue;
-            }
-            if c == '\r' {
-                continue;
-            }
-            out.push(c);
-        }
-        out
-    }
-
-    #[test]
-    fn frame_has_single_header_and_four_rows() {
-        for finished in [false, true] {
-            let rows = render_rows(
-                60,
-                "demo.yaml",
-                "diagnose",
-                1,
-                3,
-                if finished { Some("GREEN") } else { None },
-                if finished { 7 } else { 0 },
-                if finished { 12.5 } else { 0.0 },
-                Duration::from_millis(400),
-                finished,
-            );
-            assert_eq!(rows.len(), FRAME_HEIGHT as usize);
-            let stripped: Vec<String> = rows.iter().map(|r| strip_ansi(r)).collect();
-            // Header (spec name) renders EXACTLY once.
-            assert_eq!(
-                stripped.iter().filter(|l| l.contains("demo.yaml")).count(),
-                1,
-                "header must render exactly once (finished={finished})"
-            );
-            assert_eq!(
-                stripped.iter().filter(|l| l.contains("◈")).count(),
-                1,
-                "exactly one ◈ header line (finished={finished})"
-            );
-            // No stray line consisting solely of a bullet.
-            for l in &stripped {
-                assert_ne!(
-                    l.trim(),
-                    "●",
-                    "no line consisting solely of a bullet (finished={finished}): {stripped:?}"
-                );
-            }
-        }
-    }
-
-    #[test]
-    fn finished_footer_is_quiet_verdict_plus_note() {
-        for (verdict, expect) in [
-            (Some("GREEN"), "GREEN:"),
-            (Some("RED"), "RED:"),
-            (None, "RED: backend failed"),
-        ] {
-            let rows = render_rows(
-                60,
-                "demo.yaml",
-                "verify",
-                3,
-                3,
-                verdict,
-                12,
-                14.2,
-                Duration::from_secs(15),
-                true,
-            );
-            let stripped: Vec<String> = rows.iter().map(|r| strip_ansi(r)).collect();
-            // ONE verdict line …
-            assert_eq!(
-                stripped
-                    .iter()
-                    .filter(|l| l.contains("GREEN:") || l.contains("RED:") || l.contains("TRIAGE:"))
-                    .count(),
-                1,
-                "exactly one verdict line for {verdict:?}: {stripped:?}"
-            );
-            assert!(
-                stripped.iter().any(|l| l.contains(expect)),
-                "finished frame must contain {expect:?}: {stripped:?}"
-            );
-            // … plus the existing scrollback note, nothing chatty.
-            assert_eq!(
-                stripped.iter().filter(|l| l.contains("scrollback preserved")).count(),
-                1,
-                "scrollback note stays: {stripped:?}"
-            );
-            for l in &stripped {
-                assert!(
-                    !l.contains("elapsed"),
-                    "no chatty elapsed footer in end-of-run output: {stripped:?}"
-                );
-                assert!(
-                    !l.contains("----------"),
-                    "no chatty dashed footer in end-of-run output: {stripped:?}"
-                );
-            }
-            let footerish = stripped
-                .iter()
-                .filter(|l| {
-                    l.contains("GREEN:")
-                        || l.contains("RED:")
-                        || l.contains("TRIAGE:")
-                        || l.contains("scrollback")
-                        || l.contains("afterglow run")
-                })
-                .count();
-            assert!(
-                footerish <= 2,
-                "footer line count <= 2 (verdict + note), got {footerish}: {stripped:?}"
-            );
-        }
-        // Running frame is quiet too: no elapsed chatter, still one header.
-        let rows = render_rows(
-            60,
-            "demo.yaml",
-            "diagnose",
-            1,
-            3,
-            None,
-            0,
-            0.0,
-            Duration::from_millis(400),
-            false,
-        );
-        let stripped: Vec<String> = rows.iter().map(|r| strip_ansi(r)).collect();
-        for l in &stripped {
-            assert!(!l.contains("elapsed"), "running footer is quiet: {stripped:?}");
-            assert!(!l.contains("----------"), "running footer is quiet: {stripped:?}");
-        }
-        assert_eq!(
-            stripped.iter().filter(|l| l.contains("demo.yaml")).count(),
-            1,
-            "running header exactly once: {stripped:?}"
-        );
     }
 
     #[test]

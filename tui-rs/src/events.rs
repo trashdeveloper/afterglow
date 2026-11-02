@@ -26,6 +26,10 @@ pub enum Event {
         attempt: u32,
         total: u32,
         elapsed_s: u64,
+        /// Estimated cost in dollars when a backend emitter carries it
+        /// (`est_cost`, or legacy `cost`); `None` renders as `—`. The
+        /// backend emits no cost today, so this is purely tolerant.
+        est_cost: Option<f64>,
     },
     ProgressDone,
     Attempt {
@@ -52,6 +56,9 @@ struct Wire {
     verdict: Option<String>,
     patch_lines: Option<u32>,
     seconds: Option<f64>,
+    /// Future cost key; legacy `cost` accepted as a fallback.
+    est_cost: Option<f64>,
+    cost: Option<f64>,
 }
 
 /// Parse one stdout line. Returns `None` for blank / invalid / unknown
@@ -73,6 +80,7 @@ pub fn parse_line(line: &str) -> Option<Event> {
                     attempt: w.attempt.unwrap_or(0),
                     total: w.total.unwrap_or(0),
                     elapsed_s: w.elapsed_s.unwrap_or(0),
+                    est_cost: w.est_cost.or(w.cost),
                 })
             }
         }
@@ -139,6 +147,8 @@ pub struct Mapper {
     pub patch_lines: u32,
     pub seconds: f64,
     pub saw_progress_done: bool,
+    /// Last cost seen on any progress event (`None` = never emitted).
+    pub est_cost: Option<f64>,
 }
 
 impl Mapper {
@@ -162,6 +172,7 @@ impl Mapper {
                 phase,
                 attempt,
                 total,
+                est_cost,
                 ..
             } => {
                 self.phase = phase;
@@ -170,6 +181,9 @@ impl Mapper {
                 }
                 if total > self.total {
                     self.total = total;
+                }
+                if est_cost.is_some() {
+                    self.est_cost = est_cost;
                 }
             }
             Event::ProgressDone => {
@@ -246,7 +260,56 @@ mod tests {
                 attempt: 2,
                 total: 3,
                 elapsed_s: 11,
+                est_cost: None,
             })
+        );
+    }
+
+    #[test]
+    fn parses_est_cost_tolerantly() {
+        // `est_cost` key (future backend emitters).
+        let ev = parse_line(
+            r#"{"type": "progress", "phase": "patch", "attempt": 1, "total": 2, "elapsed_s": 4, "est_cost": 1.25}"#,
+        );
+        assert_eq!(
+            ev,
+            Some(Event::Progress {
+                phase: "patch".to_string(),
+                attempt: 1,
+                total: 2,
+                elapsed_s: 4,
+                est_cost: Some(1.25),
+            })
+        );
+        // Legacy `cost` key is accepted as a fallback.
+        let ev = parse_line(
+            r#"{"type": "progress", "phase": "patch", "attempt": 1, "total": 2, "elapsed_s": 4, "cost": 0.5}"#,
+        );
+        assert!(matches!(
+            ev,
+            Some(Event::Progress {
+                est_cost: Some(c),
+                ..
+            }) if (c - 0.5).abs() < 1e-9
+        ));
+        // `est_cost` wins when both keys are present.
+        let ev = parse_line(
+            r#"{"type": "progress", "phase": "patch", "attempt": 1, "total": 2, "elapsed_s": 4, "est_cost": 2.0, "cost": 0.5}"#,
+        );
+        assert!(matches!(
+            ev,
+            Some(Event::Progress {
+                est_cost: Some(c),
+                ..
+            }) if (c - 2.0).abs() < 1e-9
+        ));
+        // Non-numeric cost poisons nothing: the tolerant parser drops the
+        // line instead of stalling the render loop.
+        assert_eq!(
+            parse_line(
+                r#"{"type": "progress", "phase": "patch", "est_cost": "lots"}"#
+            ),
+            None
         );
     }
 
@@ -354,6 +417,25 @@ mod tests {
         );
         assert!(m.finished());
         assert_eq!(m.status_line(), "GREEN: fixed (7 patch lines, 12.5s)");
+    }
+
+    #[test]
+    fn mapper_carries_last_seen_est_cost() {
+        let mut m = Mapper::new();
+        assert_eq!(m.est_cost, None);
+        m.handle_line(
+            r#"{"type": "progress", "phase": "diagnose", "attempt": 1, "total": 2, "elapsed_s": 1}"#,
+        );
+        assert_eq!(m.est_cost, None);
+        m.handle_line(
+            r#"{"type": "progress", "phase": "patch", "attempt": 1, "total": 2, "elapsed_s": 2, "est_cost": 1.25}"#,
+        );
+        assert_eq!(m.est_cost, Some(1.25));
+        // A later event without cost never clears the last known value.
+        m.handle_line(
+            r#"{"type": "progress", "phase": "verify", "attempt": 1, "total": 2, "elapsed_s": 3}"#,
+        );
+        assert_eq!(m.est_cost, Some(1.25));
     }
 
     #[test]
