@@ -1,6 +1,7 @@
-//! Full-width gradient sweep bar: fractional eighth-blocks + truecolor
-//! gradient (blue `#5c9cf5` → purple `#9d7cd8` → peach `#fab283`) with a
-//! travelling bright tip, dim track, and a braille spinner while running.
+//! Thin single-row rounded bar for nerd-font terminals: a dim track
+//! line with a thin gradient fill (blue `#5c9cf5` → purple `#9d7cd8`
+//! → peach `#fab283`), rounded end caps, a travelling bright tip, and a
+//! braille spinner while running.
 //!
 //! All geometry here is pure (no terminal access) so `cargo test` pins it.
 
@@ -12,11 +13,35 @@ pub const PEACH: (u8, u8, u8) = (0xfa, 0xb2, 0x83);
 /// Track colour for the unfilled portion (dim slate).
 pub const TRACK: (u8, u8, u8) = (0x3a, 0x3a, 0x46);
 
+/// Bar height: exactly 1 terminal row. The bar is a single [`Cell`] row
+/// of `width` cells — caps plus one thin line — never a multi-row block.
+/// Pinned at compile time (`_BAR_IS_SINGLE_ROW`) and by `cargo test`.
+pub const BAR_HEIGHT: usize = 1;
+const _: () = assert!(BAR_HEIGHT == 1);
+
+/// Glyph for the rounded end caps: U+E0B6 `` (left) / U+E0B4 ``
+/// (right), the powerline rounded separators shipped by every major
+/// nerd-font patch set (FiraCode Nerd Font, JetBrainsMono Nerd Font,
+/// Hack Nerd Font, …). Chosen over box-drawing `╭╮` corners — which read
+/// as corners, not caps — and over circles `●`, which blob at small
+/// sizes: the E0B6/E0B4 pair renders as clean half-disc caps that hug a
+/// single-row horizontal line, matching powerline statusline segments
+/// terminal users already see daily.
+pub const LEFT_CAP: char = '\u{e0b6}';
+pub const RIGHT_CAP: char = '\u{e0b4}';
+
+/// Thin-line glyph shared by track and fill (colour tells them apart:
+/// dim [`TRACK`] vs the [`gradient_at`] sweep). One horizontal rule per
+/// cell keeps the bar exactly [`BAR_HEIGHT`] row tall with no block fill.
+pub const FILL_GLYPH: char = '─';
+
 /// Track glyph: a light horizontal rule per cell.
 pub const TRACK_GLYPH: char = '─';
 
-/// Left-eighth blocks: index = filled eighths of the cell (0..=8).
-pub const EIGHTHS: [char; 9] = [' ', '▏', '▎', '▍', '▌', '▋', '▊', '▉', '█'];
+// NOTE: the thick-block era (U+2588 eighth-block fill via the old
+// EIGHTHS table / fraction_glyph helper) was retired with this restyle
+// and fully removed, so no full-block cell can leave the new path:
+// track and fill share one thin rule glyph, colour carries the fill.
 
 /// Braille spinner frames (same 10-frame set nerd-font terminals love),
 /// stepped every [`SPINNER_MS`] ms.
@@ -69,13 +94,6 @@ pub fn fill_fraction(attempt: u32, total: u32, verdict_seen: bool) -> f64 {
     clamp01(attempt as f64 / total as f64)
 }
 
-/// Glyph for the fractional part of a cell (`frac` in 0..1 → 0..8
-/// eighths, rounded; exactly 1.0 is the caller's full block).
-pub fn fraction_glyph(frac: f64) -> char {
-    let idx = (clamp01(frac) * 8.0).round() as usize;
-    EIGHTHS[idx.min(8)]
-}
-
 /// Brighten `rgb` toward white by `amount` in 0..=1 (the sweep tip pop).
 pub fn brighten(rgb: (u8, u8, u8), amount: f64) -> (u8, u8, u8) {
     let a = clamp01(amount);
@@ -113,54 +131,73 @@ pub struct Cell {
     pub rgb: (u8, u8, u8),
 }
 
-/// Render the bar into exactly `width` cells: gradient-filled fractional
-/// blocks up to `fill` (0..=1), dim track past it, and a travelling
-/// bright tip so consecutive frames differ while running. Zero width
-/// yields zero cells (never panics — narrow terminals truncate to this).
+/// Number of filled inner cells for `fill` in 0..=1 across a `width`
+/// cell row: the inner run is `width - 2` (caps excluded), so
+/// `round(fill * inner)`. Pure and tip-independent — the proportionality
+/// oracle `cargo test` pins the rendered gradient against.
+pub fn filled_len(width: usize, fill: f64) -> usize {
+    let inner = width.saturating_sub(2);
+    (clamp01(fill) * inner as f64).round() as usize
+}
+
+/// Render the bar into exactly `width` cells on exactly [`BAR_HEIGHT`]
+/// row: rounded caps ([`LEFT_CAP`] in [`BLUE`], [`RIGHT_CAP`] in
+/// [`PEACH`] — always the exact gradient endpoints, excluded from the
+/// travelling-tip boost so they read as a stable frame) around one thin
+/// line. The first [`filled_len`] inner cells ride the [`gradient_at`]
+/// sweep in [`FILL_GLYPH`]; the rest are the dim [`TRACK`] line in
+/// [`TRACK_GLYPH`]. The travelling tip survives as pure brightness on
+/// the gaussian peak cell — a single bright cell, no full-block cursor —
+/// so consecutive frames differ in colour while glyphs stay stable.
+/// Zero width yields zero cells (never panics).
 pub fn render_bar(width: usize, fill: f64, elapsed_s: f64) -> Vec<Cell> {
     let fill = clamp01(fill);
+    if width == 0 {
+        return Vec::new();
+    }
+    if width == 1 {
+        // Degenerate pty column: a single left cap in spec blue.
+        return vec![Cell {
+            glyph: LEFT_CAP,
+            rgb: gradient_at(0.0),
+        }];
+    }
+    let inner = width - 2;
+    let filled = filled_len(width, fill);
     let tip_x = tip_position(elapsed_s, width);
-    let filled = fill * width as f64;
-    (0..width)
-        .map(|i| {
-            let x = i as f64;
-            // Base colour follows the gradient across the whole bar so
-            // the sweep reads even on the dim side of the tip.
-            let t = if width <= 1 {
-                0.0
-            } else {
-                x / (width - 1) as f64
-            };
-            if x < filled.floor() {
-                let boost = tip_x.map_or(0.0, |tx| tip_boost(x, tx));
-                Cell {
-                    glyph: '█',
-                    rgb: brighten(gradient_at(t), boost),
-                }
-            } else if (x - filled).abs() < f64::EPSILON || (x < filled && filled - x < 1.0) {
-                // Fractional edge cell (only when fill lands mid-cell).
-                let frac = (filled - x).clamp(0.0, 1.0);
-                if frac <= 0.0 {
-                    Cell {
-                        glyph: TRACK_GLYPH,
-                        rgb: TRACK,
-                    }
-                } else {
-                    let boost = tip_x.map_or(0.0, |tx| tip_boost(x, tx));
-                    Cell {
-                        glyph: fraction_glyph(frac),
-                        rgb: brighten(gradient_at(t), boost.max(0.25)),
-                    }
-                }
-            } else {
-                let boost = tip_x.map_or(0.0, |tx| tip_boost(x, tx) * 0.5);
-                Cell {
-                    glyph: TRACK_GLYPH,
-                    rgb: brighten(TRACK, boost),
-                }
-            }
-        })
-        .collect()
+    let mut cells = Vec::with_capacity(width);
+    cells.push(Cell {
+        glyph: LEFT_CAP,
+        rgb: gradient_at(0.0),
+    });
+    for k in 0..inner {
+        // Gradient parameter across the inner run (0 at the left cap,
+        // 1 at the right cap); cell coordinate in bar units for the tip.
+        let t = if inner <= 1 {
+            0.0
+        } else {
+            k as f64 / (inner - 1) as f64
+        };
+        let x = (k + 1) as f64;
+        if k < filled {
+            let boost = tip_x.map_or(0.0, |tx| tip_boost(x, tx));
+            cells.push(Cell {
+                glyph: FILL_GLYPH,
+                rgb: brighten(gradient_at(t), boost),
+            });
+        } else {
+            let boost = tip_x.map_or(0.0, |tx| tip_boost(x, tx) * 0.5);
+            cells.push(Cell {
+                glyph: TRACK_GLYPH,
+                rgb: brighten(TRACK, boost),
+            });
+        }
+    }
+    cells.push(Cell {
+        glyph: RIGHT_CAP,
+        rgb: gradient_at(1.0),
+    });
+    cells
 }
 
 #[cfg(test)]
@@ -204,21 +241,6 @@ mod tests {
     }
 
     #[test]
-    fn eighth_blocks_cover_all_fractions() {
-        assert_eq!(fraction_glyph(0.0), ' ');
-        assert_eq!(fraction_glyph(1.0), '█');
-        assert_eq!(fraction_glyph(0.5), '▌');
-        // Monotone across the eighths table.
-        let mut last = 0;
-        for i in 0..=8 {
-            let g = fraction_glyph(i as f64 / 8.0);
-            let pos = EIGHTHS.iter().position(|&c| c == g).unwrap();
-            assert!(pos >= last, "i={i} g={g}");
-            last = pos;
-        }
-    }
-
-    #[test]
     fn bar_truncation_never_panics_and_keeps_width() {
         for w in [0, 1, 2, 5, 80] {
             for fill in [0.0, 0.33, 1.0] {
@@ -226,21 +248,23 @@ mod tests {
                 assert_eq!(cells.len(), w, "w={w} fill={fill}");
             }
         }
-        // Full fill is all solid blocks; empty fill is all track.
-        assert!(render_bar(10, 1.0, 0.0).iter().all(|c| c.glyph == '█'));
-        assert!(
-            render_bar(10, 0.0, 0.0)
-                .iter()
-                .all(|c| c.glyph == TRACK_GLYPH)
-        );
-        // Fractional fill lands a partial block on the edge cell.
+        // Full fill: caps + an all-gradient thin line, never a block.
+        let full = render_bar(10, 1.0, 0.0);
+        assert_eq!(full[0].glyph, LEFT_CAP);
+        assert_eq!(full[9].glyph, RIGHT_CAP);
+        assert!(full[1..9].iter().all(|c| c.glyph == FILL_GLYPH));
+        assert!(full.iter().all(|c| c.glyph != '█'));
+        // Empty fill: caps + an all-dim thin track.
+        let empty = render_bar(10, 0.0, 0.0);
+        assert!(empty[1..9].iter().all(|c| c.glyph == TRACK_GLYPH));
+        assert!(empty[1..9].iter().all(|c| c.rgb == TRACK));
+        // Partial fill: exactly filled_len(10, 0.35) gradient cells, then track.
         let cells = render_bar(10, 0.35, 0.0);
         assert_eq!(cells.len(), 10);
-        assert_eq!(cells[0].glyph, '█');
-        assert_eq!(cells[1].glyph, '█');
-        assert_eq!(cells[2].glyph, '█');
-        assert!(cells[3].glyph != '█' && cells[3].glyph != TRACK_GLYPH);
-        assert_eq!(cells[9].glyph, TRACK_GLYPH);
+        let n = filled_len(10, 0.35);
+        assert_eq!(n, 3, "round(0.35 * 8)");
+        assert!(cells[1..1 + n].iter().all(|c| c.glyph == FILL_GLYPH));
+        assert!(cells[1 + n..9].iter().all(|c| c.glyph == TRACK_GLYPH));
     }
 
     #[test]
@@ -265,5 +289,110 @@ mod tests {
         let all: Vec<_> = (0..10).map(|i| spinner_at(i * 80)).collect();
         assert_eq!(all, SPINNER);
         assert_eq!(spinner_at(800), spinner_at(0)); // wraps
+    }
+
+    // --- Thin rounded single-row bar (nerd-font terminals) ---
+
+    #[test]
+    fn thin_bar_is_single_row_with_rounded_caps() {
+        // Exactly 1 terminal row tall, by construction.
+        assert_eq!(BAR_HEIGHT, 1);
+        for w in [2, 5, 40, 80] {
+            for fill in [0.0, 0.4, 1.0] {
+                let cells = render_bar(w, fill, 0.7);
+                assert_eq!(cells.len(), w, "single row of exactly w={w} cells");
+                assert_eq!(cells[0].glyph, LEFT_CAP, "rounded left cap w={w}");
+                assert_eq!(cells[w - 1].glyph, RIGHT_CAP, "rounded right cap w={w}");
+            }
+        }
+    }
+
+    #[test]
+    fn thin_bar_caps_carry_exact_gradient_endpoints() {
+        // Caps are structural (excluded from the travelling-tip boost) so
+        // they always read the exact spec endpoints: blue → … → peach.
+        for t in [0.0, 0.4, 1.2, 2.9] {
+            let cells = render_bar(40, 0.4, t);
+            assert_eq!(cells[0].rgb, BLUE, "left cap == gradient_at(0) t={t}");
+            assert_eq!(cells[0].rgb, (0x5c, 0x9c, 0xf5));
+            assert_eq!(cells[39].rgb, PEACH, "right cap == gradient_at(1) t={t}");
+            assert_eq!(cells[39].rgb, (0xfa, 0xb2, 0x83));
+        }
+    }
+
+    #[test]
+    fn no_full_block_anywhere_in_thin_render() {
+        // The thick-block era is over: no '█' may leave the new path.
+        for w in [0, 1, 2, 5, 40, 80] {
+            for fill in [0.0, 0.13, 0.35, 0.5, 0.87, 1.0] {
+                for t in [0.0, 0.4, 1.2, 2.5] {
+                    let cells = render_bar(w, fill, t);
+                    assert!(
+                        cells.iter().all(|c| c.glyph != '█'),
+                        "w={w} fill={fill} t={t}: {cells:?}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn thin_fill_length_proportional() {
+        // Filled inner-cell count grows monotonically with fill and hits
+        // both extremes exactly.
+        assert_eq!(filled_len(40, 0.0), 0);
+        assert_eq!(filled_len(40, 1.0), 38); // inner = width - 2 caps
+        let mut last = 0;
+        for i in 0..=20 {
+            let n = filled_len(40, i as f64 / 20.0);
+            assert!(n >= last, "i={i} n={n}");
+            last = n;
+        }
+        // Half fill ≈ half the inner run (rounding ±1).
+        let half = filled_len(40, 0.5);
+        assert!((half as i32 - 19).abs() <= 1, "half={half}");
+        // Rendered gradient cells agree with filled_len when the tip is
+        // parked off-bar (elapsed 0.0 → tip at x=-8, boost rounds to 0).
+        for fill in [0.0, 0.35, 0.5, 1.0] {
+            let cells = render_bar(10, fill, 0.0);
+            let inner = &cells[1..9];
+            let n_track = inner.iter().filter(|c| c.rgb == TRACK).count();
+            assert_eq!(inner.len() - n_track, filled_len(10, fill), "fill={fill}");
+        }
+    }
+
+    #[test]
+    fn thin_track_is_dim_and_fill_uses_spec_gradient() {
+        // Unfilled inner cells are the dim thin track; filled ones ride
+        // the EXISTING blue → purple → peach gradient (endpoints exact).
+        let cells = render_bar(11, 0.0, 0.0); // inner = 9, none filled
+        assert!(cells[1..10].iter().all(|c| c.glyph == TRACK_GLYPH));
+        assert!(cells[1..10].iter().all(|c| c.rgb == TRACK));
+        let full = render_bar(11, 1.0, 0.0);
+        assert_eq!(full[1].rgb, BLUE);
+        assert_eq!(full[9].rgb, PEACH);
+        let mid = render_bar(11, 1.0, 0.0)[5].rgb;
+        assert!(mid.0 > BLUE.0 && mid.0 < PEACH.0, "mid={mid:?}");
+    }
+
+    #[test]
+    fn thin_tip_still_travels_without_block_cursor() {
+        // Travelling tip preserved as pure brightness: frames differ in
+        // colour while glyphs stay stable (no full-block cursor anywhere).
+        let a = render_bar(40, 0.4, 0.0);
+        let b = render_bar(40, 0.4, 0.4);
+        assert_ne!(a, b, "tip must repaint colours over time");
+        let glyphs = |v: Vec<Cell>| v.into_iter().map(|c| c.glyph).collect::<String>();
+        assert_eq!(glyphs(a.clone()), glyphs(b));
+        // Peak brightness travels: argmax rgb-sum moves with time.
+        let peak = |v: Vec<Cell>| {
+            v.iter()
+                .enumerate()
+                .max_by_key(|(_, c)| c.rgb.0 as u32 + c.rgb.1 as u32 + c.rgb.2 as u32)
+                .map(|(i, _)| i)
+                .unwrap()
+        };
+        let c = render_bar(40, 0.4, 1.2);
+        assert_ne!(peak(a), peak(c), "bright tip cell must move");
     }
 }
