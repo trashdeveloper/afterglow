@@ -166,9 +166,11 @@ def build_parser() -> argparse.ArgumentParser:
     doc = sub.add_parser(
         "doctor", help="check everything a first run needs, one "
                         "PASS/FAIL line each (python, verilator "
-                        "--version, key presence, pins, pinned trees, "
+                        "--version, key presence, pins, trees, "
                         "suite smoke); exit 0 all-pass, exit 1 with "
-                        "each miss + its one-command fix",
+                        "each miss + its one-command fix "
+                        "(on a TTY shows the inline checklist; "
+                        "AFTERGLOW_NO_TUI=1 forces plain text)",
         description="Checklist for a first run: python version, "
                     "Verilator present (`verilator --version`), model "
                     "key present (presence only, value never printed), "
@@ -322,6 +324,18 @@ def main(argv=None) -> int:
     if args.command == "init":
         return cmd_init(force=args.force, here=args.here)
     if args.command == "doctor":
+        # TTY default: the minimal inline checklist (same should_use_tui
+        # path as `run`: TTY + release binary present + AFTERGLOW_NO_TUI
+        # unset/empty; doctor has no --emit-events flag so its guard is
+        # the env escape, which the TUI backend sets for itself).
+        # Non-TTY keeps today's plain-text output byte-identical.
+        if should_use_tui(
+            is_tty=sys.stdout.isatty(),
+            emit_events=None,
+            no_tui_env=os.environ.get("AFTERGLOW_NO_TUI"),
+            tui_bin_exists=os.path.isfile(TUI_BIN),
+        ):
+            os.execv(TUI_BIN, [TUI_BIN, "doctor"])
         return cmd_doctor()
     if args.command == "demo":
         return cmd_demo()

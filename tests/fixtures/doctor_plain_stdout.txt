@@ -1,0 +1,11 @@
+afterglow doctor: checking this machine for a first run (key presence only -- values never printed)
+PASS: python 3.12.3 (>= 3.10)
+PASS: Verilator 5.052 2026-09-05 rev v5.052 (at /home/tuncay/.local/bin/verilator)
+ok: MODEL_API_KEY found in .env (presence only, value never shown)
+PASS: ok: foundation.pin readable
+PASS: ok: targets.pin readable
+PASS: pinned tree for 'picorv32' cached at /home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f
+PASS: pinned tree for 'serv' cached at /home/tuncay/.cache/afterglow/work/serv-727bb40a8784
+PASS: pinned tree for 'darkriscv' cached at /home/tuncay/.cache/afterglow/work/darkriscv-955511961f13
+SKIP: suite smoke not run (1917 tests are slow) -- run `python3 -m unittest discover -s tests` for the full gate
+doctor: ok -- this machine can attempt a first run (try `afterglow demo` for a zero-decision triage).

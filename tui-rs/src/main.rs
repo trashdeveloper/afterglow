@@ -23,6 +23,7 @@
 //! 0 = `GREEN`.
 
 mod bar;
+mod doctor;
 mod events;
 
 use std::io::{BufReader, IsTerminal, Read, Write};
@@ -222,7 +223,7 @@ fn find_repo_root() -> std::path::PathBuf {
     std::env::current_dir().unwrap_or_else(|_| std::path::PathBuf::from("."))
 }
 
-const USAGE: &str = "usage: tui <spec> [args...]\n  run afterglow with an inline gradient progress display";
+const USAGE: &str = "usage: tui <spec> [args...] | tui doctor\n  run afterglow with an inline gradient progress display,\n  or show `afterglow doctor` as a minimal inline checklist";
 
 fn main() {
     let code = run();
@@ -248,6 +249,17 @@ fn run() -> i32 {
     }
     let spec = argv.remove(0);
     let extra = argv;
+
+    // Minimal checklist mode: `./target/release/tui doctor` renders
+    // `afterglow doctor` (spawned as a backend subprocess) as one row
+    // per check. Any extra args are a usage error (doctor takes none).
+    if spec == "doctor" {
+        if !extra.is_empty() {
+            eprintln!("tui doctor takes no arguments\n{USAGE}");
+            return 2;
+        }
+        return run_doctor();
+    }
 
     if !std::io::stdout().is_terminal() {
         eprintln!("tui: no TTY on stdout (inline render needs a terminal)");
@@ -432,6 +444,190 @@ fn run() -> i32 {
     exit_code
 }
 
+/// Doctor checklist mode: spawn `afterglow doctor` as a backend
+/// subprocess, parse its `STATUS: detail` lines live, and render a
+/// minimal checklist (1 header + 1 row per check + fix hints + verdict).
+/// No percentages; the spinner lives only on the pending verdict row
+/// and resolves into the verdict line. Backend stderr streams into a
+/// capped ring shown only on failure (same pattern as run mode).
+///
+/// Exit codes mirror run mode: 2 = no TTY, 1 = backend failure
+/// (spawn error, or backend exit without success), 0 = `doctor: ok`.
+fn run_doctor() -> i32 {
+    if !std::io::stdout().is_terminal() {
+        eprintln!("tui: no TTY on stdout (inline render needs a terminal)");
+        return 2;
+    }
+
+    let root = find_repo_root();
+    let backend = root.join("afterglow");
+    auto_load_dotenv(&backend);
+    let mut child = match Command::new(&backend)
+        .arg("doctor")
+        .current_dir(&root)
+        // Recursion guard: the wrapper dispatches `afterglow doctor`
+        // to this TUI on a TTY via `should_use_tui`; the backend must
+        // take the plain-text path, exactly like run mode's
+        // `--emit-events jsonl` guard (doctor has no such flag, so the
+        // existing `AFTERGLOW_NO_TUI` escape carries it instead).
+        .env("AFTERGLOW_NO_TUI", "1")
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+    {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("tui: backend spawn failed ({}): {e}", backend.display());
+            return 1;
+        }
+    };
+
+    // Backend human text → bounded tail ring (NOT streamed: verbatim
+    // forwarding interleaves mid-frame and tears the repaint).
+    // Dumped to our stderr only when the run fails.
+    let err_ring = Arc::new(Mutex::new(StderrRing::new(65536)));
+    if let Some(err) = child.stderr.take() {
+        let ring = Arc::clone(&err_ring);
+        std::thread::spawn(move || {
+            let mut err = err;
+            let mut buf = [0u8; 8192];
+            loop {
+                match err.read(&mut buf) {
+                    Ok(0) => break,
+                    Ok(n) => {
+                        if let Ok(mut r) = ring.lock() {
+                            r.push(&buf[..n]);
+                        }
+                    }
+                    Err(_) => break,
+                }
+            }
+        });
+    }
+
+    let shared = Arc::new(Mutex::new(doctor::DoctorState::new()));
+
+    // Backend plain-text stdout → checklist state, on its own thread
+    // (handles partial lines: the pipe yields arbitrary chunks, not
+    // lines — same `LineBuffer` as the run-mode JSONL stream).
+    if let Some(out) = child.stdout.take() {
+        let shared = Arc::clone(&shared);
+        std::thread::spawn(move || {
+            let mut reader = BufReader::new(out);
+            let mut lb = events::LineBuffer::new();
+            let mut buf = [0u8; 8192];
+            loop {
+                match reader.read(&mut buf) {
+                    Ok(0) => break,
+                    Ok(n) => {
+                        let chunk = String::from_utf8_lossy(&buf[..n]).into_owned();
+                        let lines = lb.feed(&chunk);
+                        if let Ok(mut s) = shared.lock() {
+                            for line in &lines {
+                                s.handle_line(line);
+                            }
+                        }
+                    }
+                    Err(_) => break,
+                }
+            }
+        });
+    }
+
+    let mut painter = Painter::new();
+    let started = Instant::now();
+    let mut exit_code = 1;
+    // Backend exit status, once reaped (fallback verdict when the stream
+    // drains with no `doctor: ...` line — the spinner must resolve).
+    let mut backend_ok: Option<bool> = None;
+    loop {
+        let elapsed = started.elapsed();
+        // Reap the backend without blocking the animation.
+        match child.try_wait() {
+            Ok(Some(status)) => {
+                backend_ok = Some(status.success());
+            }
+            Ok(None) => {}
+            Err(_) => {
+                backend_ok = Some(false);
+            }
+        }
+
+        // Snapshot under one lock; render outside it.
+        let (checks, fixes, verdict, _ignored) = match shared.lock() {
+            Ok(s) => (s.checks.clone(), s.fixes.clone(), s.verdict.clone(), s.ignored),
+            Err(_) => break,
+        };
+        let done = backend_ok.is_some();
+        let state = doctor::DoctorState {
+            checks,
+            fixes,
+            verdict,
+            ignored: 0,
+        };
+        // The verdict line arrives on stdout, but stdout may lag the
+        // process exit: once the backend is reaped AND its verdict line
+        // was seen, we are finished. If it is reaped with the stream
+        // drained and still no verdict line, fall back to the exit
+        // status so the spinner always resolves (never hangs, never a
+        // stale spinner in scrollback).
+        let finished = state.finished();
+        let width = pick_width(
+            crossterm::terminal::size()
+                .map(|(w, _)| w)
+                .unwrap_or(80),
+        );
+        if finished {
+            let rows = doctor::render_doctor_rows(width, &state, true, elapsed.as_millis() as u64);
+            painter.paint(&rows);
+            exit_code = match state.verdict.as_ref() {
+                Some((true, _)) => 0,
+                _ => 1,
+            };
+            break;
+        }
+        if done {
+            // Backend gone but no verdict line parsed (crashed backend,
+            // changed format): derive the verdict from the exit status
+            // and paint it as the final frame so it stays in scrollback.
+            let ok = backend_ok.unwrap_or(false);
+            let mut closed = state;
+            closed.verdict = Some((
+                ok,
+                if ok {
+                    "doctor: ok (backend exit 0, no verdict line)".to_string()
+                } else {
+                    "doctor: FAIL (backend exited, no verdict line)".to_string()
+                },
+            ));
+            let rows = doctor::render_doctor_rows(width, &closed, true, elapsed.as_millis() as u64);
+            painter.paint(&rows);
+            exit_code = if ok { 0 } else { 1 };
+            break;
+        }
+        let rows = doctor::render_doctor_rows(width, &state, false, elapsed.as_millis() as u64);
+        painter.paint(&rows);
+        std::thread::sleep(Duration::from_millis(FRAME_MS));
+    }
+
+    // Final frame stays in scrollback; cursor back; prompt gets a fresh line.
+    painter.finish();
+    if exit_code != 0 {
+        // Loud failure: show what the backend said (it was hidden
+        // while we owned the display).
+        if let Ok(r) = err_ring.lock() {
+            if !r.is_empty() {
+                let _ = std::io::stderr().write_all(b"--- backend stderr ---\n");
+                let _ = std::io::stderr().write_all(r.bytes());
+            }
+        }
+    }
+    // Reap before reporting the code.
+    let _ = child.wait();
+    exit_code
+}
+
 /// Lay out one frame with ratatui widgets into per-row ANSI strings
 /// (no trailing newlines, no cursor motion — see [`Painter`]).
 #[allow(clippy::too_many_arguments)]
@@ -549,8 +745,9 @@ fn render_rows(
 
 /// Serialize a ratatui buffer into per-row ANSI strings: truecolor SGR
 /// on style change, `\x1b[0m` reset at each row start/end. Never emits
-/// alternate-screen or cursor-position sequences.
-fn buffer_to_ansi(buf: &ratatui::buffer::Buffer) -> Vec<String> {
+/// alternate-screen or cursor-position sequences. Shared by the run-mode
+/// and doctor-mode headless renderers.
+pub(crate) fn buffer_to_ansi(buf: &ratatui::buffer::Buffer) -> Vec<String> {
     let area = buf.area;
     let mut rows = Vec::with_capacity(area.height as usize);
     for y in 0..area.height {
@@ -615,10 +812,14 @@ fn sgr(fg: Color, bold: bool) -> String {
 /// Inline painter: first frame prints rows; later frames rewrite them
 /// in place with cursor-up; `finish` restores the cursor and leaves a
 /// fresh line for the prompt. Emits no alternate-screen sequences.
+/// Height is dynamic: each repaint moves up by the PREVIOUS frame's
+/// height (the doctor checklist grows as backend lines arrive), then
+/// records the new height. Run mode always paints [`FRAME_HEIGHT`]
+/// rows, so its behavior is unchanged.
 struct Painter {
     out: std::io::Stdout,
     painted: bool,
-    height: u16,
+    height: usize,
 }
 
 impl Painter {
@@ -627,12 +828,11 @@ impl Painter {
         Self {
             out: std::io::stdout(),
             painted: false,
-            height: FRAME_HEIGHT,
+            height: FRAME_HEIGHT as usize,
         }
     }
 
     fn paint(&mut self, rows: &[String]) {
-        debug_assert_eq!(rows.len(), self.height as usize);
         if !self.painted {
             for (i, row) in rows.iter().enumerate() {
                 if i > 0 {
@@ -656,6 +856,7 @@ impl Painter {
                 }
             }
         }
+        self.height = rows.len().max(1);
         let _ = self.out.flush();
     }
 
