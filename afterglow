@@ -5,6 +5,9 @@ Usage:
   afterglow run --spec sim/targets/<id>.yaml [--triage|--stop-before-patch]
       [--seed N] [--run-id ID] [--prompt v3|agent/prompts/vX.txt]
       [--rtl path/in/tree] [--goals fix|fix+opt]
+      (on a TTY this dispatches to the Rust TUI by default when
+      tui-rs/target/release/tui exists; AFTERGLOW_NO_TUI=1 forces the
+      pure-Python loop)
   afterglow run --explain runs/<id>   (alias for `afterglow explain`)
   afterglow explain runs/<id>         (human story of a finished bundle)
   afterglow init [--force] [--here]      (checks + example spec scaffold,
@@ -60,6 +63,11 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 if ROOT not in sys.path:
     sys.path.insert(0, ROOT)
 
+#: Absolute path of the release TUI binary. When it exists (and stdout
+#: is a TTY, --emit-events was not passed, AFTERGLOW_NO_TUI is
+#: unset/empty), `afterglow run` execs it by default.
+TUI_BIN = os.path.join(ROOT, "tui-rs", "target", "release", "tui")
+
 from afterglow_core.verilator import load_spec  # noqa: E402
 from agent import loop  # noqa: E402
 
@@ -74,7 +82,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub = ap.add_subparsers(dest="command", required=True)
     run = sub.add_parser(
         "run", help="run one --spec case through the agent loop, "
-                    "or render a bundle with --explain runs/<id>")
+                    "or render a bundle with --explain runs/<id> "
+                    "(on a TTY dispatches to the Rust TUI by default; "
+                    "AFTERGLOW_NO_TUI=1 forces the pure-Python loop)")
     run.add_argument("spec_pos", nargs="?", default=None,
                      metavar="SPEC",
                      help="positional spec path "
@@ -288,6 +298,23 @@ def cmd_demo() -> int:
     return doctor_mod.run_demo(ROOT)
 
 
+def should_use_tui(*, is_tty: bool, emit_events,
+                   no_tui_env: str | None, tui_bin_exists: bool) -> bool:
+    """True ONLY when ALL hold: stdout is a TTY, --emit-events was NOT
+    passed, AFTERGLOW_NO_TUI is unset/empty, and the release TUI binary
+    exists at tui-rs/target/release/tui.
+
+    Missing binary -> False: the pure-Python loop runs instead (CI-safe,
+    no error). The --emit-events check alone breaks the TUI exec cycle:
+    the TUI always spawns its backend with --emit-events jsonl, so the
+    backend never re-execs the TUI.
+    """
+    return bool(is_tty
+                and not emit_events
+                and not no_tui_env
+                and tui_bin_exists)
+
+
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "explain":
@@ -324,6 +351,44 @@ def main(argv=None) -> int:
                   "--spec is a deprecated alias for SPEC)",
                   file=sys.stderr)
             return 2
+        # Recursion guard: the TUI always spawns its backend as
+        # `afterglow run <spec> --emit-events jsonl ...` (see
+        # tui-rs/src/main.rs), so the --emit-events check inside
+        # should_use_tui() alone breaks the exec cycle: TUI ->
+        # backend-with---emit-events -> pure-Python loop, never back
+        # to the TUI.
+        if should_use_tui(
+            is_tty=sys.stdout.isatty(),
+            emit_events=args.emit_events,
+            no_tui_env=os.environ.get("AFTERGLOW_NO_TUI"),
+            tui_bin_exists=os.path.isfile(TUI_BIN),
+        ):
+            tui_argv = [TUI_BIN, spec_path, "--seed", str(args.seed)]
+            if args.run_id:
+                tui_argv += ["--run-id", args.run_id]
+            if args.prompt:
+                tui_argv += ["--prompt", args.prompt]
+            if args.rtl:
+                tui_argv += ["--rtl", args.rtl]
+            if args.auto:
+                tui_argv.append("--auto")
+            if args.triage:
+                tui_argv.append("--triage")
+            if args.stop_before_patch:
+                tui_argv.append("--stop-before-patch")
+            if args.goals:
+                tui_argv += ["--goals", args.goals]
+            if args.waveform:
+                tui_argv.append("--waveform")
+            if args.debug:
+                tui_argv.append("--debug")
+            if args.verbose:
+                tui_argv.append("--verbose")
+            if args.quiet:
+                tui_argv.append("--quiet")
+            # --emit-events is deliberately NOT forwarded: the TUI adds
+            # it for its backend itself.
+            os.execv(TUI_BIN, tui_argv)
         try:
             spec = load_spec(spec_path)
         except (OSError, ValueError, KeyError) as exc:
