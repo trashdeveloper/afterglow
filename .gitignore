@@ -17,3 +17,7 @@ node-tui/node_modules/
 
 # rust build output (never commit; Cargo.lock stays for reproducible builds)
 tui-rs/target/
+---
+# video build artifacts (renderer is committed, output is uploaded)
+video/frames/
+video/preview/
