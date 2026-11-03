@@ -21,3 +21,4 @@ tui-rs/target/
 # video build artifacts (renderer is committed, output is uploaded)
 video/frames/
 video/preview/
+video/remotion/node_modules/
