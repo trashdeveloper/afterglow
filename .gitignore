@@ -22,3 +22,5 @@ tui-rs/target/
 video/frames/
 video/preview/
 video/remotion/node_modules/
+video/web/frames/
+video/web/*.mp4
