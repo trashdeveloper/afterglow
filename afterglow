@@ -10,6 +10,12 @@ Usage:
       pure-Python loop)
   afterglow run --explain runs/<id>   (alias for `afterglow explain`)
   afterglow explain runs/<id>         (human story of a finished bundle)
+  afterglow verify runs/<id>          (keyless re-verification: rebuild RED
+                                      from the pinned spec, apply patch.diff
+                                      with the loop's applier, resim, compare
+                                      meta AFTER checksum; exit 0 MATCH,
+                                      1 MISMATCH, 2 loud refusal; no model
+                                      API, no keys, no network)
   afterglow init [--force] [--here]      (checks + example spec scaffold,
                                       or draft one from ./.v/.sv)
   afterglow doctor                       (checklist: python, verilator,
@@ -76,7 +82,7 @@ def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(
         prog="afterglow",
         description="Afterglow proof-first RTL debug loop "
-                    "(run | explain | init | watch | doctor | demo).")
+                    "(run | explain | verify | init | watch | doctor | demo).")
     ap.add_argument("--version", action="version",
                     version="afterglow %s" % __version__)
     sub = ap.add_subparsers(dest="command", required=True)
@@ -145,6 +151,21 @@ def build_parser() -> argparse.ArgumentParser:
                          "RED symptom -> diagnosis -> patch -> VERIFY -> cost")
     exp.add_argument("run_dir", metavar="runs/<id>",
                      help="finished bundle dir, e.g. runs/ablate-v2-uartdiv")
+    ver = sub.add_parser(
+        "verify", help="keylessly re-verify a finished bundle: rebuild RED "
+                       "from the pinned spec, apply patch.diff with the "
+                       "loop's applier, resim, compare meta AFTER checksum "
+                       "(exit 0 MATCH, 1 MISMATCH, 2 loud refusal; "
+                       "no model API, no keys, no network)",
+        description="Keyless re-verification of runs/<id>/ (patch.diff + "
+                    "meta.json): rebuilds the RED tree in an isolated "
+                    "temp copy of the pinned tree, applies patch.diff "
+                    "with agent.loop.try_apply_diff, resims with "
+                    "agent.loop.resim_after, and compares the checksum "
+                    "to meta.json's AFTER checksum.")
+    ver.add_argument("run_dir", metavar="runs/<id>",
+                     help="finished bundle dir, e.g. runs/wave-off-picosoc-uart-div-42 "
+                          "(a bare <id> resolves under runs/)")
     ini = sub.add_parser(
         "init", help="check verilator + model key + pins, scaffold "
                       "an example sim/targets/ spec",
@@ -229,6 +250,11 @@ def cmd_explain(run_dir: str) -> int:
         return 1
     print(explain_mod.render(target))
     return 0
+
+
+def cmd_verify(run_dir: str) -> int:
+    from agent import verify as verify_mod
+    return verify_mod.main([run_dir])
 
 
 def cmd_init(force: bool = False, here: bool = False) -> int:
@@ -335,6 +361,8 @@ def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     if args.command == "explain":
         return cmd_explain(args.run_dir)
+    if args.command == "verify":
+        return cmd_verify(args.run_dir)
     if args.command == "init":
         return cmd_init(force=args.force, here=args.here)
     if args.command == "doctor":

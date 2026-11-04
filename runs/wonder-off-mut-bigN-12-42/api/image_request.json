@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: mut-bigN-12\nFailing-trace sha256 (first 16 hex): 722314fbabb3112c\nVerbatim diagnosis from the debug agent:\nLoopback UART RX got 0xff instead of expected 0xa5, i.e. receiver sampled only idle-high bits and missed the start/data frame. Trace shows FAIL 0xdead with TRAP uart data mismatch. Root cause in excerpt is line 114 `send_pattern <= ~1` which drives `ser_tx = send_pattern[0]` low during reset instead of idle-high, corrupting framing for the following dummy and data transmission.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 722314fbabb3112c in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "97a79eae26a21827ab24c8c5fc2651c4cb44b883aa53cd17be226c459d5002d6",
+  "trace_sha256": "722314fbabb3112c856bed5d303e00bd952e23bc342ca725bec41ff42b8942f4",
+  "diagnosis_sha256": "4cfbeda934dd6dfa0139ae45fb08723c5c72dd6c498d0240f2735e7d642ceddc",
+  "case": "mut-bigN-12",
+  "attempt": 1
+}

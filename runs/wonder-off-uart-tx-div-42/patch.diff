@@ -1,0 +1,6 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -110,2 +110,0 @@
+-		if (reg_div_we)
+-			send_dummy <= 1;

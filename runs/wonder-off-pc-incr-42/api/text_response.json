@@ -1,0 +1,55 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a1a85c-6050-707f-b601-4708686cca6b",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Fetch makes no progress (max_addr=0x00000000, FAIL 0xdead) vs expected sequential advance through 256-word NOP mem. Both reg_pc and reg_next_pc are assigned current_pc in excerpt, so next fetch reuses same address and PC never increments. Root cause is missing PC increment on reg_next_pc; fix uses compressed_instr already in excerpt for 2/4-byte step.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1526,4 +1526,4 @@\\n \\t\\t\\t\\treg_pc <= current_pc;\\n-\\t\\t\\t\\treg_next_pc <= current_pc;\\n+\\t\\t\\t\\treg_next_pc <= current_pc + (compressed_instr ? 2 : 4);\\n \\t\\t\\t\\tlatched_store <= 0;\\n \\t\\t\\t\\tlatched_stalu <= 0;\", \"expected\": \"tohost PASS max_addr=0x000003fc, no FAIL 0xdead, progress through NOP mem\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793825988,
+    "model": "muse-spark-1.3-contributor",
+    "service_tier": "default",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 7581,
+      "prompt_tokens": 1609,
+      "total_tokens": 9190,
+      "completion_tokens_details": {
+        "reasoning_tokens": 7331
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 1521
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Fetch makes no progress (max_addr=0x00000000, FAIL 0xdead) vs expected sequential advance through 256-word NOP mem. Both reg_pc and reg_next_pc are assigned current_pc in excerpt, so next fetch reuses same address and PC never increments. Root cause is missing PC increment on reg_next_pc; fix uses compressed_instr already in excerpt for 2/4-byte step.\", \"patch_diff\": \"diff --git a/picorv32.v b/picorv32.v\\n--- a/picorv32.v\\n+++ b/picorv32.v\\n@@ -1526,4 +1526,4 @@\\n \\t\\t\\t\\treg_pc <= current_pc;\\n-\\t\\t\\t\\treg_next_pc <= current_pc;\\n+\\t\\t\\t\\treg_next_pc <= current_pc + (compressed_instr ? 2 : 4);\\n \\t\\t\\t\\tlatched_store <= 0;\\n \\t\\t\\t\\tlatched_stalu <= 0;\", \"expected\": \"tohost PASS max_addr=0x000003fc, no FAIL 0xdead, progress through NOP mem\"}",
+  "diagnosis": "Fetch makes no progress (max_addr=0x00000000, FAIL 0xdead) vs expected sequential advance through 256-word NOP mem. Both reg_pc and reg_next_pc are assigned current_pc in excerpt, so next fetch reuses same address and PC never increments. Root cause is missing PC increment on reg_next_pc; fix uses compressed_instr already in excerpt for 2/4-byte step.",
+  "expected": "tohost PASS max_addr=0x000003fc, no FAIL 0xdead, progress through NOP mem",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 74353,
+  "request_id": "chatcmpl-01a1a85c-6050-707f-b601-4708686cca6b",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 7581,
+    "prompt_tokens": 1609,
+    "total_tokens": 9190,
+    "completion_tokens_details": {
+      "reasoning_tokens": 7331
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 1521
+    }
+  }
+}
