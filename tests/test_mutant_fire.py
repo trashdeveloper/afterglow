@@ -23,7 +23,7 @@ guard below makes that misuse loud instead of silent.
 No model calls, no network, no real Verilator builds: pristine/mutant
 trees are tiny fixtures, build/run are mocked, and oracle RED/GREEN is
 proven with the REAL recorded pilot logs
-(eval/mutant_pilot/logs/*.log, /tmp/mutpilot/base-boot.log).
+(eval/mutant_pilot/logs/*.log, incl. the board-baseline pristine logs).
 
 Run: python3 tests/test_mutant_fire.py -v   (from repo root)
 """
@@ -333,8 +333,11 @@ class TestOracleRedGreen(unittest.TestCase):
             self.assertIn("tohost: FAIL", log, stem)
 
     def test_pristine_control_is_green(self):
-        with open("/tmp/mutpilot/base-boot.log") as fh:
-            log = fh.read()
+        # In-repo pristine baseline (was: /tmp/mutpilot/base-boot.log,
+        # a leftover path from an old pilot run that made the suite
+        # depend on stale /tmp state). The board-baseline logs are the
+        # recorded pristine-tree runs.
+        log = self._log("board-baseline-picorv32-fetch-misalign.log")
         verdict = decide_verdict(log, "tohost: PASS")
         self.assertIs(getattr(verdict, "pass"), True)
         self.assertIn("tohost: PASS", log)
