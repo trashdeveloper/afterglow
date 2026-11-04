@@ -1,0 +1,55 @@
+{
+  "raw": {
+    "id": "chatcmpl-01a1a8cb-50de-73bf-8c12-bdbc5f76666c",
+    "choices": [
+      {
+        "finish_reason": "stop",
+        "index": 0,
+        "message": {
+          "content": "{\"diagnosis\": \"Loopback data got 0xff (idle) want 0xa5, ser_tx/send_pattern never held correct start/data timing. send_divcnt threshold uses (cfg_divider >> 4) on line 130, making TX bit period ~5 cycles instead of divider 64, 16x too fast for the configured baud. Loopback RX therefore samples idle and reports 0xff.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -125,7 +125,7 @@\\n \\t\\t\\tif (reg_dat_we && !send_bitcnt) begin\\n \\t\\t\\t\\tsend_pattern <= {1'b1, reg_dat_di[7:0], 1'b0};\\n \\t\\t\\t\\tsend_bitcnt <= 10;\\n \\t\\t\\t\\tsend_divcnt <= 0;\\n \\t\\t\\tend else\\n-\\t\\t\\tif (send_divcnt > (cfg_divider >> 4) && send_bitcnt) begin\\n+\\t\\t\\tif (send_divcnt > cfg_divider && send_bitcnt) begin\\n \\t\\t\\t\\tsend_pattern <= {1'b1, send_pattern[9:1]};\\n \\t\\t\\t\\tsend_bitcnt <= send_bitcnt - 1;\\n \\t\\t\\t\\tsend_divcnt <= 0;\", \"expected\": \"tohost PASS (was FAIL 0xdead), no TRAP uart data mismatch, loopback got 0xa5 as expected\"}",
+          "refusal": null,
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793833259,
+    "model": "muse-spark-1.3-contributor",
+    "service_tier": "default",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 7055,
+      "prompt_tokens": 2010,
+      "total_tokens": 9065,
+      "completion_tokens_details": {
+        "reasoning_tokens": 6696
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  },
+  "content": "{\"diagnosis\": \"Loopback data got 0xff (idle) want 0xa5, ser_tx/send_pattern never held correct start/data timing. send_divcnt threshold uses (cfg_divider >> 4) on line 130, making TX bit period ~5 cycles instead of divider 64, 16x too fast for the configured baud. Loopback RX therefore samples idle and reports 0xff.\", \"patch_diff\": \"diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\\n--- a/picosoc/simpleuart.v\\n+++ b/picosoc/simpleuart.v\\n@@ -125,7 +125,7 @@\\n \\t\\t\\tif (reg_dat_we && !send_bitcnt) begin\\n \\t\\t\\t\\tsend_pattern <= {1'b1, reg_dat_di[7:0], 1'b0};\\n \\t\\t\\t\\tsend_bitcnt <= 10;\\n \\t\\t\\t\\tsend_divcnt <= 0;\\n \\t\\t\\tend else\\n-\\t\\t\\tif (send_divcnt > (cfg_divider >> 4) && send_bitcnt) begin\\n+\\t\\t\\tif (send_divcnt > cfg_divider && send_bitcnt) begin\\n \\t\\t\\t\\tsend_pattern <= {1'b1, send_pattern[9:1]};\\n \\t\\t\\t\\tsend_bitcnt <= send_bitcnt - 1;\\n \\t\\t\\t\\tsend_divcnt <= 0;\", \"expected\": \"tohost PASS (was FAIL 0xdead), no TRAP uart data mismatch, loopback got 0xa5 as expected\"}",
+  "diagnosis": "Loopback data got 0xff (idle) want 0xa5, ser_tx/send_pattern never held correct start/data timing. send_divcnt threshold uses (cfg_divider >> 4) on line 130, making TX bit period ~5 cycles instead of divider 64, 16x too fast for the configured baud. Loopback RX therefore samples idle and reports 0xff.",
+  "expected": "tohost PASS (was FAIL 0xdead), no TRAP uart data mismatch, loopback got 0xa5 as expected",
+  "parsed_keys": [
+    "diagnosis",
+    "expected",
+    "patch_diff"
+  ],
+  "salvaged": false,
+  "latency_ms": 48637,
+  "request_id": "chatcmpl-01a1a8cb-50de-73bf-8c12-bdbc5f76666c",
+  "model": "muse-spark-1.3-contributor",
+  "usage": {
+    "completion_tokens": 7055,
+    "prompt_tokens": 2010,
+    "total_tokens": 9065,
+    "completion_tokens_details": {
+      "reasoning_tokens": 6696
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

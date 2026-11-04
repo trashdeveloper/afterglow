@@ -127,6 +127,9 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--waveform", action="store_true", default=False,
                      help="attach fail-window waveform PNG to diagnosis "
                           "(uart-TB cases only; others degrade loudly)")
+    run.add_argument("--wonder", action="store_true", default=False,
+                     help="second-model diagnosis via muse-wonder-1.0 "
+                          "from attempt 2 on (opt-in; same guardrails)")
     run.add_argument("--debug", action="store_true", default=False,
                      help="re-raise unexpected errors with a full traceback "
                           "(default: one clean `afterglow: error:` line on "
@@ -459,6 +462,8 @@ def main(argv=None) -> int:
                 tui_argv += ["--goals", args.goals]
             if args.waveform:
                 tui_argv.append("--waveform")
+            if args.wonder:
+                tui_argv.append("--wonder")
             if args.debug:
                 tui_argv.append("--debug")
             if args.verbose:
@@ -485,6 +490,8 @@ def main(argv=None) -> int:
             loop_argv += ["--goals", args.goals]
         if args.waveform:
             loop_argv.append("--waveform")
+        if args.wonder:
+            loop_argv.append("--wonder")
         if args.debug:
             loop_argv.append("--debug")
         if args.quiet:

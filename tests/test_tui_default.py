@@ -113,7 +113,7 @@ class TestDemoTuiDispatch(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             os.makedirs(os.path.join(d, "eval"))
             with open(os.path.join(d, "eval", "results.md"), "w") as fh:
-                fh.write("| picosoc-uart-div | GREEN | 44.5 | 4 |\n")
+                fh.write("| picosoc-uart-div | locked | GREEN | run-x | 44.5 |\n")
             argv = MOD.demo_tui_argv(root=d, tui_bin="/tmp/tui")
         self.assertEqual(
             argv,

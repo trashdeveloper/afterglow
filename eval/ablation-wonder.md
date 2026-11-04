@@ -65,15 +65,27 @@ result, not a failure.
 
 Cost estimate: 8 x ~$0.07 = ~$0.55. Firing is the CONTROLLER's call.
 
-## Results (NOT YET FIRED — controller fires; fill after)
+## Results (fired 2026-11-04, seed 42, controller-fired, ~$0.69 actual)
 
 | case | OFF (wonder-off-*-42) | ON (wonder-on-*-42) |
 | ---- | --------------------- | ------------------- |
-| mut-bigN-12 | _pending_ | _pending_ |
-| pc-incr | _pending_ | _pending_ |
-| picosoc-uart-div | _pending_ | _pending_ |
-| uart-tx-div | _pending_ | _pending_ |
+| mut-bigN-12 | GREEN verbatim 2 lines, attempt 1 | TRIAGE (3x transport EMPTY, patch withheld) |
+| pc-incr | GREEN verbatim 2 lines, attempt 2 (1 flake) | GREEN verbatim 2 lines, attempt 1 (Spark) |
+| picosoc-uart-div | GREEN verbatim 4 lines, attempt 1 | TRIAGE (attempt-1 Spark EMPTY; attempt-2 Wonder invoked live muse-wonder-1.0, well-formed-but-wrong; no conversion) |
+| uart-tx-div | GREEN verbatim 2 lines, attempt 3 | GREEN verbatim 2 lines, attempt 1 (Spark) |
 
-## Decision (per prereg rule above — fill after firing)
+ON-arm model split: both ON GREENs decided by Spark attempt-1 calls
+(api/text_request.json model muse-spark; Spark never yielded to
+Wonder). Wonder invoked exactly once live (uart-div attempt 2,
+request id in api/text_request.json model muse-wonder-1.0) after a
+Spark transport flake — router engages on Spark failure as designed.
 
-_pending_
+## Decision (per prereg rule above — recorded from disk)
+
+NO WIN — record the negative result. ON converted 0 REDs the OFF
+arm missed (OFF went 4/4 GREEN); both GREEN controls stayed GREEN
+(pc-incr, uart-tx-div verbatim both arms). Equality is a result, not
+a failure: the router is proven live (Wonder invoked, well-formed
+output, fail-loud preserved), but there is no evidence a second
+model fixes what Spark cannot on this set. Default stays OFF.
+Cut the Wonder-converts claim; keep the client as an opt-in path.

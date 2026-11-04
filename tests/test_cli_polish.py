@@ -185,6 +185,22 @@ class TestProgressDisplay(unittest.TestCase):
         self.assertNotIn("\r", err.getvalue())
 
 
+class TestWonderPassthrough(unittest.TestCase):
+    def test_parser_accepts_wonder(self):
+        mod = _load_afterglow()
+        parser = mod.build_parser()
+        args = parser.parse_args(
+            ["run", "sim/targets/uart-start-half.yaml", "--wonder"])
+        self.assertTrue(args.wonder)
+
+    def test_wonder_defaults_off(self):
+        mod = _load_afterglow()
+        parser = mod.build_parser()
+        args = parser.parse_args(
+            ["run", "sim/targets/uart-start-half.yaml"])
+        self.assertFalse(args.wonder)
+
+
 class TestPositionalSpec(unittest.TestCase):
     def test_positional_resolves_identically_to_spec_flag(self):
         mod = _load_afterglow()

@@ -1,0 +1,9 @@
+{
+  "case": "uart-tx-div",
+  "pass": false,
+  "tohost": "FAIL 0xdead",
+  "checksum": "e251d79bc7250f734efe026d9d7f036e818ad243c9428000f5cdb2c1fd8b03c6",
+  "cycles": 2652,
+  "seed": 42,
+  "sim_time_utc": "2026-11-04T23:00:10Z"
+}

@@ -1,0 +1,9 @@
+diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v
+--- a/picosoc/simpleuart.v
++++ b/picosoc/simpleuart.v
+@@ -90,1 +90,1 @@
+-					if (recv_divcnt > (cfg_divider >> 4)) begin
++					if (recv_divcnt > cfg_divider) begin
+@@ -97,1 +97,1 @@
+-					if (recv_divcnt > (cfg_divider >> 4)) begin
++					if (recv_divcnt > cfg_divider) begin
