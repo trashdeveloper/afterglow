@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: fetch-highword\nFailing-trace sha256 (first 16 hex): ff4f3b3cfe222e0e\nVerbatim diagnosis from the debug agent:\nFetch makes no progress (max_addr 0x00000000, FAIL 0xdead after 2009 cycles). In mem_state 0 mem_valid is assigned mem_la_use_prefetched_high_word instead of its complement, so normal fetches never assert mem_valid while prefetched-high-word hits spuriously request. The state-1 assert mem_valid == !mem_la_use_prefetched_high_word confirms the inversion, explaining the stall.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash ff4f3b3cfe222e0e in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "93d6e1519413bc300df68cc8279cb028a64b774c0a9a971b0ef8a8b7bfd4d2a2",
+  "trace_sha256": "ff4f3b3cfe222e0ea03b44931da864f31f91bff7adc3abac19cabdd33fab0542",
+  "diagnosis_sha256": "d9255702286a71a80241de8aa6f7ca9f43bf2fcba0d894380bb44ef47f7d32a7",
+  "case": "fetch-highword",
+  "attempt": 1
+}

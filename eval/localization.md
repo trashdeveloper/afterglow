@@ -1,6 +1,6 @@
 # Static-cone top-1 localization (wave-4)
 
-Generated: 2026-10-30 00:53:05Z (UTC) by `eval/localization.py` via `tests/test_localization.py`. No API, no sim, no threshold -- measured, not gamed.
+Generated: 2026-11-04 02:38:43Z (UTC) by `eval/localization.py` via `tests/test_localization.py`. No API, no sim, no threshold -- measured, not gamed.
 
 Method: RTL-aware seeding -- vocab = driven net/reg names via `slicer.parse_drivers` on the case files; trace tokens NOT in RTL drop out BEFORE slicing (dropped count logged per row); candidates rank in-RTL spec-anchor signals first (mutant-line context KNOWN via the spec anchor; board cases use the same anchor text plus the trace verdict's named signals), then in-RTL trace tokens, then raw fallback; first non-empty cone wins, else abstain; cone = `backward_slice(max_depth=2)`; blame = `top1_localization` (driver-frequency rank, trace-anchor proximity tie-break). Hit = EXACT `file:line` match.
 
