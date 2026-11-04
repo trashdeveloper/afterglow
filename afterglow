@@ -355,10 +355,12 @@ def main(argv=None) -> int:
         # TTY default: same TUI contract as run/doctor (TTY + release
         # binary present + AFTERGLOW_NO_TUI unset/empty; demo has no
         # --emit-events flag so its guard is the env escape). The key
-        # gate + cost notice live in cmd_demo(): gate here first so a
-        # keyless TTY falls through to the loud fix instead of execing
-        # a TUI whose backend would fail. Any resolution failure also
-        # falls through -- cmd_demo() fails loud, never a fake run.
+        # gate lives in cmd_demo(): gate here first so a keyless TTY
+        # falls through to the loud fix instead of execing a TUI whose
+        # backend would fail. No print before exec: the TUI frame shows
+        # est. cost in its own footer, so the first row on screen is
+        # the header. Any resolution failure also falls through --
+        # cmd_demo() fails loud, never a fake run.
         if should_use_tui(
             is_tty=sys.stdout.isatty(),
             emit_events=None,
@@ -369,11 +371,6 @@ def main(argv=None) -> int:
                 from agent import doctor as doctor_mod
                 if doctor_mod.check_api_key(
                         env=dict(os.environ), dotenv={})["status"] == "PASS":
-                    print(
-                        "afterglow demo: triage-only run of the fastest "
-                        "locked case -- this burns ONE model diagnosis "
-                        "call (%s); patch withheld, diagnosis saved"
-                        % doctor_mod.DEMO_COST_NOTE, flush=True)
                     os.execv(TUI_BIN, demo_tui_argv(
                         root=ROOT, tui_bin=TUI_BIN))
             except Exception:

@@ -25,6 +25,7 @@ Stdlib only, no model calls, no real sim builds, no TUI exec:
 
 import importlib.util
 import os
+import pathlib
 import sys
 import unittest
 
@@ -128,6 +129,13 @@ class TestDemoTuiDispatch(unittest.TestCase):
         demo_branch = src.split('"demo"')[1].split('"watch"')[0]
         self.assertIn("should_use_tui", demo_branch)
         self.assertIn("os.execv", demo_branch)
+
+    def test_demo_tui_branch_prints_no_notice(self):
+        # The TUI frame shows est. cost in its own footer; the wrapper
+        # must not print a cost-notice line before exec (clean frame
+        # from row 0).
+        src = pathlib.Path("afterglow").read_text()
+        self.assertNotIn("burns ONE model diagnosis", src)
 
 
 if __name__ == "__main__":
