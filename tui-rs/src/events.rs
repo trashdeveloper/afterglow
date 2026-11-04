@@ -439,6 +439,19 @@ mod tests {
     }
 
     #[test]
+    fn mapper_triage_cost_event_sets_footer_number() {
+        // The backend emits exactly this shape at a triage stop so the
+        // footer shows a number instead of -- (triage runs stop before
+        // any later phase_tick could carry the spend).
+        let mut m = Mapper::new();
+        m.handle_line(
+            r#"{"type": "progress", "phase": "triage", "attempt": 1, "total": 1, "elapsed_s": 9, "est_cost": 0.05}"#,
+        );
+        assert_eq!(m.est_cost, Some(0.05));
+        assert_eq!(m.phase, "triage");
+    }
+
+    #[test]
     fn mapper_verdict_lines_cover_red_and_triage() {
         let mut m = Mapper::new();
         m.handle_line(

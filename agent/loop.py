@@ -1855,8 +1855,25 @@ def emit_attempt_end(args, outcome: str) -> None:
         pass
 
 
+def triage_cost_event(spend_usd: float, attempt: int,
+                      elapsed_s: float) -> dict:
+    """Build the cost-carrying progress event for a triage stop (pure).
+
+    Triage runs stop before PATCH, so no later phase_tick ever fires:
+    without this event the TUI footer shows -- forever even though the
+    spend (completed diagnosis call) is known. spend_usd MUST be the
+    tracked accumulated spend (completed calls only), never a guess.
+    elapsed_s is truncated to whole seconds: the TUI parses it as u64
+    and drops the whole event on a float (that silent drop is exactly
+    how the footer once stuck at $0.00).
+    """
+    return {"type": "progress", "phase": "triage",
+            "attempt": attempt, "total": attempt,
+            "elapsed_s": int(elapsed_s), "est_cost": spend_usd}
+
+
 def phase_tick(args, bar, phase: str, attempt: int, total: int,
-               t_start: float) -> None:
+               t_start: float, est_cost: float | None = None) -> None:
     """Route one phase update through the attempt bar (Task CLI-RICH-BAR).
 
     Rich-active bar: advance the TUI bar (no stdlib line). Any other
@@ -1866,13 +1883,19 @@ def phase_tick(args, bar, phase: str, attempt: int, total: int,
     output must not break the loop.
 
     With --emit-events jsonl, one progress event is ALSO emitted on
-    stdout per call (machine-readable; stderr bytes unchanged).
+    stdout per call (machine-readable; stderr bytes unchanged). When
+    est_cost is given (tracked spend so far), it rides the event so a
+    TUI footer can show a number; None (default) omits the key exactly
+    as before.
     """
     elapsed = time.monotonic() - t_start
     try:
-        emit_event(args, {"type": "progress", "phase": phase,
-                          "attempt": attempt, "total": total,
-                          "elapsed_s": int(elapsed)})
+        payload = {"type": "progress", "phase": phase,
+                   "attempt": attempt, "total": total,
+                   "elapsed_s": int(elapsed)}
+        if est_cost is not None:
+            payload["est_cost"] = est_cost
+        emit_event(args, payload)
     except Exception:  # noqa: BLE001 -- event output never breaks a run
         pass
     if bar is not None:
@@ -3765,7 +3788,8 @@ def _main_inner(argv=None) -> int:
             except Exception:  # noqa: BLE001 -- never breaks the run
                 current_bar = None
         phase_tick(args, current_bar, "diagnose", attempt + 1,
-                   attempt_limit, t_start)
+                   attempt_limit, t_start,
+                   est_cost=tracked_spend_usd)
         stacked_continue = False
         if attempt > 0:
             # Clean-slate attempts: reset to the recorded RED baseline
@@ -4265,6 +4289,12 @@ def _main_inner(argv=None) -> int:
             print("TRIAGE: diagnosis saved to %s "
                   "(patch withheld; --triage stop selected)" % (
                       api("text_response.json"),), flush=True)
+            try:
+                emit_event(args, triage_cost_event(
+                    tracked_spend_usd, attempt + 1,
+                    time.monotonic() - t_start))
+            except Exception:  # noqa: BLE001 -- event never breaks a run
+                pass
             return finish("triage")
 
         # PATCH: verbatim model diff first (policy-gated via CaseSpec)
@@ -4349,7 +4379,7 @@ def _main_inner(argv=None) -> int:
                        % outcome["files"], flush=True)
         final_patch = outcome.get("applied_diff", "")
         phase_tick(args, current_bar, "patch", attempt + 1, attempt_limit,
-                   t_start)
+                   t_start, est_cost=tracked_spend_usd)
         meta["patch_lines"] = outcome.get("patch_lines", 0)
         last_attempt["summary"] += "; applied via %s" % final_source
         meta["attempts"].append({**reset_note, **last_attempt})
@@ -4392,7 +4422,7 @@ def _main_inner(argv=None) -> int:
         # identical checksum/tohost flags a behaviorally-null resim for
         # the next attempt's feedback).
         phase_tick(args, current_bar, "resim", attempt + 1, attempt_limit,
-                   t_start)
+                   t_start, est_cost=tracked_spend_usd)
         emit_stage(args, "[RESIM] rebuilding patched tree...", flush=True)
         try:
             verdict_after, resim_integrity = resim_with_integrity(
@@ -4440,7 +4470,7 @@ def _main_inner(argv=None) -> int:
         meta["checksum_after"] = verdict_after.get("checksum")
         meta["cycles_after"] = verdict_after.get("cycles")
         phase_tick(args, current_bar, "verify", attempt + 1, attempt_limit,
-                   t_start)
+                   t_start, est_cost=tracked_spend_usd)
         emit_stage(args, "[VERIFY] tohost=%s checksum=%s cycles=%s" % (
             verdict_after.get("tohost"), verdict_after.get("checksum"),
             verdict_after.get("cycles")), flush=True)
@@ -4709,6 +4739,12 @@ def _main_inner(argv=None) -> int:
                   meta["error"],
                   "applied" if final_patch else "withheld"),
               file=sys.stderr)
+        try:
+            emit_event(args, triage_cost_event(
+                tracked_spend_usd, max(attempt + 1, 1),
+                time.monotonic() - t_start))
+        except Exception:  # noqa: BLE001 -- event never breaks a run
+            pass
         return finish("triage")
     print("RED: case %s not fixed" % args.case, file=sys.stderr)
     return finish("red")

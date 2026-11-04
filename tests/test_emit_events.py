@@ -170,3 +170,52 @@ class TestAfterglowCliForwarding(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTriageCostEvent(unittest.TestCase):
+    """Footer cost wiring: triage stop must emit a cost-carrying event.
+
+    Red-first for the footer fix (reviewer: footer shows -- until a
+    backend cost event arrives; triage runs never emit one).
+    """
+
+    def _args(self):
+        return argparse.Namespace(emit_events="jsonl", quiet=False)
+
+    def test_phase_tick_carries_est_cost_when_given(self):
+        import time
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            loop.phase_tick(self._args(), None, "diagnose", 1, 3,
+                            time.monotonic(), est_cost=0.05)
+        objs = _json_lines(buf.getvalue())
+        self.assertEqual(len(objs), 1)
+        self.assertEqual(objs[0]["type"], "progress")
+        self.assertEqual(objs[0]["est_cost"], 0.05)
+
+    def test_phase_tick_omits_est_cost_by_default(self):
+        import time
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            loop.phase_tick(self._args(), None, "diagnose", 1, 3,
+                            time.monotonic())
+        objs = _json_lines(buf.getvalue())
+        self.assertEqual(len(objs), 1)
+        self.assertNotIn("est_cost", objs[0])
+
+    def test_triage_cost_event_shape(self):
+        payload = loop.triage_cost_event(0.05, attempt=1, elapsed_s=9.5)
+        self.assertEqual(payload["type"], "progress")
+        self.assertEqual(payload["phase"], "triage")
+        self.assertEqual(payload["est_cost"], 0.05)
+        self.assertIsInstance(payload["elapsed_s"], int)
+        json.dumps(payload)  # single-line JSON-serializable
+
+    def test_triage_cost_event_elapsed_truncated_to_int(self):
+        # Regression: the TUI parses elapsed_s as u64 and drops the
+        # whole event on a float, which stuck the footer at $0.00 even
+        # though the spend was known. The helper must truncate.
+        payload = loop.triage_cost_event(0.064168, attempt=1,
+                                         elapsed_s=56.60412745596841)
+        self.assertEqual(payload["elapsed_s"], 56)
+        self.assertIsInstance(payload["elapsed_s"], int)
