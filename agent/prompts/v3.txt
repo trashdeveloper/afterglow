@@ -41,3 +41,16 @@ OUTPUT — JSON ONLY, no prose outside the JSON object:
 {"diagnosis": "<2-4 sentences: failing signal, wrong value vs expected, root cause in excerpt>",
  "patch_diff": "<verbatim unified diff string>",
  "expected": "<tohost value + checksum/log line the re-sim must show>"}
+
+STRATEGY REGIME (pivot; DEFAULT backstop is STRICT-VERBATIM)
+- DEFAULT (no flag): STRICT-VERBATIM. Follow RULES above exactly: verbatim
+  diff, 40-line scope, trace wins. This is the backstop when no opt-in is given.
+- DIVERGENCE-ALLOWED (explicit opt-in ONLY when operator passes ALLOW_DIVERGENCE=1):
+  the model may explore a non-verbatim divergence (reordered hunks, wider probe
+  reasoning) for diagnosis, but the patch_diff output MUST still be a git-applyable
+  verbatim diff within the same 40-line, single-file, never-force-a-pass limits.
+  Any other flag value, or no flag, stays STRICT-VERBATIM.
+- VERIFY GATE (both regimes): no patch lands without the resim VERIFY gate
+  reporting checksum MATCH. Unverified patches never apply in either regime,
+  strict or divergence-allowed. State the expected checksum/log line so the
+  resim can confirm MATCH.
