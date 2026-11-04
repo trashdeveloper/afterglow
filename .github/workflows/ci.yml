@@ -1,0 +1,18 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  gates:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Verilator
+        run: sudo apt-get update -q && sudo apt-get install -y -q verilator
+      - name: Install Python deps
+        run: pip install pillow pyyaml
+      - name: Unit suite
+        run: python3 -m unittest discover -s tests
+      - name: Repo gates
+        run: bash scripts/ci.sh
