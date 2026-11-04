@@ -50,6 +50,48 @@ On a terminal you get the Rust TUI. Piped or on CI it's plain text. Same loop ei
 
 Suite: `python3 -m unittest discover -s tests` → OK (2 honest skips: needs a key, needs a VCD flag). Gate: `bash scripts/ci.sh` → `CI GATE: ALL PASS`.
 
+## What a fix looks like
+
+Every run ends the same way: a proof bundle, or a loud refusal. Here's a real one — a UART loopback mutant where the reset value drove the TX line low and desynchronized the receiver:
+
+![Failure diagram for mut-bigN-12: send path vs receive path, root cause, and the one-line fix](runs/wave-on-mut-bigN-12-43/explain.png)
+
+The image isn't decoration. It's rendered from the failing trace hash plus the model's verbatim diagnosis, saved into the bundle *before* the patch runs — so a human can sanity-check the machine's reading of the failure before silicon is on the line. The patch that followed was 2 lines; the re-sim checksum matched.
+
+The loop itself, end to end:
+
+```mermaid
+flowchart LR
+    SIM[Verilator sim\nRED] --> COLLECT[200-line trace window]
+    COLLECT --> TEXT[Muse Spark\ndiagnosis]
+    TEXT --> IMG[Image model\nexplains the failure]
+    IMG --> PATCH[RTL patch\n≤40 lines, allowlisted]
+    PATCH --> GUARD[Lint + guardrails]
+    GUARD --> RESIM[Re-sim]
+    RESIM -->|checksum MATCH| GREEN[GREEN bundle]
+    RESIM -->|still RED| TEXT
+```
+
+And here's the same story on a harder case — a program-counter fault where the diagnosis has to survive a 3-attempt budget:
+
+![Failure diagram for pc-incr: decode-stage fault isolated to one line](runs/wave-on-pc-incr-43/explain.png)
+
+What the loop *won't* do is also on the record: 4 injected faults genuinely beat it (the board keeps them RED and visible), and when the model API flakes, the run triages loud with the patch withheld instead of inventing a diagnosis. The receipts table above links every number to the bundle or board that backs it — if a claim isn't in `runs/` or `eval/`, it didn't happen.
+
+## Bring your own RTL
+
+The loop isn't welded to PicoRV32. A new case is three things:
+
+1. **A testbench** that prints a `tohost: PASS` / `tohost: FAIL` oracle line (any Verilator TB works — see `sim/tb/`).
+2. **A spec** (`sim/targets/<name>.yaml`): which RTL files, which TB, the oracle strings, the seed. Copy `sim/targets/picosoc-uart-div.yaml` and change the paths.
+3. **Run it**: `./afterglow run sim/targets/<name>.yaml --auto` (TUI on a terminal, plain text when piped).
+
+The stranger cases prove the point: SERV (a bit-serial CPU the loop never saw during development) and a SPI flash controller both went RED→GREEN through the same loop with zero loop changes — new TB plus new spec, nothing else. Quarantine rules keep stranger faults separated from the training families so a "new design" claim actually means new.
+
+Cost model, measured: the median fix burns ~54 seconds and ~$0.07 of Meta Model API credit (Spark diagnosis + image explanation). Every run logs its own spend in `meta.json`; the suite refuses to invent results when the API is unreachable — those runs exit loud, not green.
+
+First time here? `./afterglow doctor` checks your toolchain (Python, Verilator, Rust, key) and tells you exactly what's missing. `./afterglow demo` runs the fastest locked case as a triage-only preview — one model call, patch withheld, so you can watch the loop think before spending anything real.
+
 <details>
 <summary>Repo map</summary>
 
