@@ -295,6 +295,20 @@ def cmd_doctor() -> int:
     return rc
 
 
+def demo_tui_argv(*, root, tui_bin, seed=42):
+    """TUI argv for the out-of-box demo: fastest locked case + --triage.
+
+    Pure helper (no exec): returns [tui_bin, spec, --seed, --triage].
+    Raises whatever pick_demo_case raises when results.md is missing
+    or unparsable -- callers fall back to cmd_demo(), which fails
+    loud with the exact fix (never a fake run).
+    """
+    from agent import doctor as doctor_mod
+    case = doctor_mod.pick_demo_case(os.path.join(root, "eval", "results.md"))
+    spec = os.path.join(root, "sim", "targets", case + ".yaml")
+    return [tui_bin, spec, "--seed", str(seed), "--triage"]
+
+
 def cmd_demo() -> int:
     from agent import doctor as doctor_mod
     return doctor_mod.run_demo(ROOT)
@@ -338,6 +352,32 @@ def main(argv=None) -> int:
             os.execv(TUI_BIN, [TUI_BIN, "doctor"])
         return cmd_doctor()
     if args.command == "demo":
+        # TTY default: same TUI contract as run/doctor (TTY + release
+        # binary present + AFTERGLOW_NO_TUI unset/empty; demo has no
+        # --emit-events flag so its guard is the env escape). The key
+        # gate + cost notice live in cmd_demo(): gate here first so a
+        # keyless TTY falls through to the loud fix instead of execing
+        # a TUI whose backend would fail. Any resolution failure also
+        # falls through -- cmd_demo() fails loud, never a fake run.
+        if should_use_tui(
+            is_tty=sys.stdout.isatty(),
+            emit_events=None,
+            no_tui_env=os.environ.get("AFTERGLOW_NO_TUI"),
+            tui_bin_exists=os.path.isfile(TUI_BIN),
+        ):
+            try:
+                from agent import doctor as doctor_mod
+                if doctor_mod.check_api_key(
+                        env=dict(os.environ), dotenv={})["status"] == "PASS":
+                    print(
+                        "afterglow demo: triage-only run of the fastest "
+                        "locked case -- this burns ONE model diagnosis "
+                        "call (%s); patch withheld, diagnosis saved"
+                        % doctor_mod.DEMO_COST_NOTE, flush=True)
+                    os.execv(TUI_BIN, demo_tui_argv(
+                        root=ROOT, tui_bin=TUI_BIN))
+            except Exception:
+                pass
         return cmd_demo()
     if args.command == "watch":
         from agent import watch as watch_mod

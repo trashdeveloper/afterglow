@@ -104,5 +104,31 @@ class TestTuiDocs(unittest.TestCase):
         self.assertIn("TUI", MOD.__doc__)
 
 
+class TestDemoTuiDispatch(unittest.TestCase):
+    def test_demo_tui_argv(self):
+        # Pure helper: demo dispatches the TUI with the fastest-case
+        # spec + seed 42 + --triage (patch withheld, same as demo).
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            os.makedirs(os.path.join(d, "eval"))
+            with open(os.path.join(d, "eval", "results.md"), "w") as fh:
+                fh.write("| picosoc-uart-div | GREEN | 44.5 | 4 |\n")
+            argv = MOD.demo_tui_argv(root=d, tui_bin="/tmp/tui")
+        self.assertEqual(
+            argv,
+            ["/tmp/tui",
+             os.path.join(d, "sim", "targets", "picosoc-uart-div.yaml"),
+             "--seed", "42", "--triage"])
+
+    def test_demo_branch_dispatches_via_should_use_tui(self):
+        # main()'s demo branch must consult should_use_tui + execv
+        # (same TTY-default contract as run/doctor).
+        import inspect
+        src = inspect.getsource(MOD.main)
+        demo_branch = src.split('"demo"')[1].split('"watch"')[0]
+        self.assertIn("should_use_tui", demo_branch)
+        self.assertIn("os.execv", demo_branch)
+
+
 if __name__ == "__main__":
     unittest.main()
