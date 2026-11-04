@@ -100,6 +100,7 @@ TEXT_PATH = "/v1/chat/completions"
 DEFAULT_BASE = "https://api.meta.ai"
 TEXT_TIMEOUT_S = 180
 TEXT_MAX_TOKENS = 8000
+WONDER_MODEL = "muse-wonder-1.0"  # second-model diagnosis (opt-in --wonder)
 MAX_ATTEMPTS = 3  # initial + 2 retries (AGENTS.md section 2e), then RED
 # Transport-flake accounting (wave-2): exhausted call_text_with_backoff
 # sequences (e.g. 3 EMPTYs) are transport failures, NOT diagnostic
@@ -574,6 +575,134 @@ def text_call(full_prompt: str, timeout: int = TEXT_TIMEOUT_S) -> dict:
     return {"content": content, "raw": parsed, "latency_ms": latency_ms,
             "request_id": request_id,
             "model": str(parsed.get("model") or TEXT_MODEL), "usage": usage}
+
+
+# --------------------------------------------------------------------------
+# Second-model diagnosis: muse-wonder-1.0 (opt-in --wonder)
+# --------------------------------------------------------------------------
+# Attempt routing: attempt 1 = Spark (proven path); attempts 2+ = Wonder
+# when --wonder is on. Same prompt in, same guardrails, same resim gate
+# (a Wonder patch only counts on checksum MATCH). When the flag is OFF
+# every helper below returns the Spark callable/id, so the proven path
+# is byte-identical.
+
+def wonder_enabled(args) -> bool:
+    """True only when the run opted into second-model diagnosis."""
+    return bool(getattr(args, "wonder", False))
+
+
+def use_wonder_for_attempt(args, attempt_no: int) -> bool:
+    """True when this 1-indexed attempt must use Wonder instead of Spark."""
+    try:
+        n = int(attempt_no)
+    except (TypeError, ValueError):
+        return False
+    return wonder_enabled(args) and n >= 2
+
+
+def diagnose_model_for_attempt(args, attempt_no: int) -> str:
+    """Model id serving this 1-indexed attempt (TEXT_MODEL unless routed)."""
+    return WONDER_MODEL if use_wonder_for_attempt(args, attempt_no) else TEXT_MODEL
+
+
+def wonder_text_call(full_prompt: str, timeout: int = TEXT_TIMEOUT_S) -> dict:
+    """Single live Wonder call. Same envelope + failure semantics as text_call.
+
+    Same key envs (MODEL_API_KEY/SPARK_API_KEY/META_API_KEY), same base
+    env (SPARK_API_URL), same prompt in, same LiveAPIError out. Usage
+    (including the endpoint's reasoning_tokens) is preserved in the
+    envelope for api/ logging and cost accounting.
+    """
+    key = api_key()  # missing key fails BEFORE any bundle write confusion
+    url = text_url()
+    payload = {
+        "model": WONDER_MODEL,
+        "messages": [
+            {"role": "system",
+             "content": "You are Afterglow, a Muse Spark RTL-debug agent. "
+                        "Output JSON only, exactly the requested object."},
+            {"role": "user", "content": full_prompt},
+        ],
+        "max_tokens": TEXT_MAX_TOKENS,
+        "temperature": 0.2,
+    }
+    body = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url, data=body, method="POST",
+        headers={"Authorization": "Bearer " + key,
+                 "Content-Type": "application/json",
+                 "Accept": "application/json"})
+    t0 = time.monotonic()
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            raw_bytes = resp.read()
+            headers = dict(resp.headers.items())
+            status = resp.status
+    except Exception as exc:
+        raise LiveAPIError("live wonder call failed (down/timeout): %r" % (exc,))
+    latency_ms = int((time.monotonic() - t0) * 1000)
+    try:
+        parsed = json.loads(raw_bytes.decode("utf-8"))
+    except Exception as exc:
+        raise LiveAPIError(
+            "live wonder call returned non-JSON (status %s): %r" % (status, exc))
+    if not isinstance(parsed, dict):
+        raise LiveAPIError("live wonder call returned non-object JSON")
+    err = parsed.get("error")
+    if err:
+        raise LiveAPIError("live wonder API error: %s" % (json.dumps(err)[:500],))
+    choices = parsed.get("choices") or []
+    content = ""
+    if choices and isinstance(choices[0], dict):
+        msg = choices[0].get("message") or {}
+        content = msg.get("content") or ""
+        if not content and msg.get("reasoning_content"):
+            raise LiveAPIError(
+                "live wonder call returned reasoning-only with empty content; "
+                "max_tokens=%d was insufficient or model refused" % TEXT_MAX_TOKENS)
+        if isinstance(content, list):  # content-block style payloads
+            chunks = []
+            for block in content:
+                if isinstance(block, dict) and isinstance(
+                        block.get("text"), str):
+                    chunks.append(block["text"])
+            content = "".join(chunks)
+    if not (isinstance(content, str) and content.strip()):
+        raise LiveAPIError(
+            "live wonder call returned EMPTY content (latency %dms, "
+            "request %s); refusing to invent a diagnosis"
+            % (latency_ms, parsed.get("id", "?")))
+    usage = parsed.get("usage") if isinstance(parsed.get("usage"), dict) else {}
+    request_id = str(parsed.get("id") or parsed.get("request_id")
+                     or headers.get("x-request-id", ""))
+    return {"content": content, "raw": parsed, "latency_ms": latency_ms,
+            "request_id": request_id,
+            "model": str(parsed.get("model") or WONDER_MODEL), "usage": usage}
+
+
+def diagnose_call_fn(args, attempt_no: int, spark_fn=None, wonder_fn=None):
+    """Return the diagnosis callable for this 1-indexed attempt.
+
+    spark_fn/wonder_fn are injectable for tests; they default to
+    text_call/wonder_text_call (resolved at call time so tests can
+    inject fakes without touching the network).
+    """
+    spark_fn = spark_fn or text_call
+    wonder_fn = wonder_fn or wonder_text_call
+    return wonder_fn if use_wonder_for_attempt(args, attempt_no) else spark_fn
+
+
+def diagnose_call_kwargs(args, attempt_no: int) -> dict:
+    """kwargs for call_text_with_backoff routing this 1-indexed attempt.
+
+    Empty when the flag is OFF, so the default path calls
+    call_text_with_backoff(attempt_prompt) exactly as before (same
+    calling convention the suites mock). When ON and attempt>=2,
+    routes via {"call_fn": wonder_text_call}.
+    """
+    if use_wonder_for_attempt(args, attempt_no):
+        return {"call_fn": wonder_text_call}
+    return {}
 
 
 TRANSPORT_RETRY_BASES_S = (5.0, 15.0)  # waits before attempt 2 and 3
@@ -1680,6 +1809,15 @@ def parse_args(argv=None):
                          "alongside the existing explainer. TBs without "
                          "DUMP_WAVES degrade loudly to text-only with a "
                          "meta note. Default OFF keeps the proven path "
+                         "byte-identical.")
+    ap.add_argument("--wonder", action="store_true", default=False,
+                    help="second-model diagnosis (opt-in): attempts 2+ "
+                         "fetch the diagnosis from muse-wonder-1.0 "
+                         "INSTEAD of the Spark retry -- same prompt, same "
+                         "guardrails, same resim gate (a Wonder patch only "
+                         "counts on checksum MATCH). Every Wonder call is "
+                         "logged to api/ with its model id like text "
+                         "calls. Default OFF keeps the proven path "
                          "byte-identical.")
     ap.add_argument("--debug", action="store_true", default=False,
                     help="re-raise unexpected errors with a full traceback "
@@ -3264,6 +3402,10 @@ def _main_inner(argv=None) -> int:
         "goals": getattr(args, "goals", GOALS_FIX),
         "opt_status": OPT_STATUS_SKIPPED,
     }
+    if wonder_enabled(args):
+        # Opt-in marker only: default-OFF bundles are byte-identical.
+        meta["wonder"] = {"enabled": True, "model": WONDER_MODEL,
+                          "routing": "attempt1=spark, attempt2+=wonder"}
 
     def finish(status: str, extra: dict | None = None) -> int:
         phase_finish(args, current_bar)
@@ -3683,7 +3825,7 @@ def _main_inner(argv=None) -> int:
         with open(api("text_request.json"), "w",
                   encoding="utf-8") as fh:
             fh.write(json.dumps(
-                {"model": TEXT_MODEL, "endpoint": text_url(),
+                {"model": diagnose_model_for_attempt(args, attempt + 1), "endpoint": text_url(),
                  "prompt": attempt_prompt, "prompt_sha256": prompt_hash,
                  "prompt_file": args.prompt,
                  "prompt_tokens": len(attempt_prompt.split()),
@@ -3936,7 +4078,8 @@ def _main_inner(argv=None) -> int:
                 for _vote in range(CONSENSUS_VOTES):
                     try:
                         vcall, vwaits = call_text_with_backoff(
-                            attempt_prompt)
+                            attempt_prompt,
+                            **diagnose_call_kwargs(args, attempt + 1))
                     except LiveAPIError as vexc:
                         # Exhausted transport sequence for this vote:
                         # excluded from votes, counted toward the bound.
@@ -4027,7 +4170,7 @@ def _main_inner(argv=None) -> int:
                     with open(api("text_request.json"), "w",
                               encoding="utf-8") as fh:
                         fh.write(json.dumps(
-                            {"model": TEXT_MODEL, "endpoint": text_url(),
+                            {"model": diagnose_model_for_attempt(args, attempt + 1), "endpoint": text_url(),
                              "prompt": attempt_prompt,
                              "prompt_sha256": prompt_hash,
                              "prompt_file": args.prompt,
@@ -4071,7 +4214,8 @@ def _main_inner(argv=None) -> int:
         if not consensus_winner:
             try:
                 call, transport_waits = call_text_with_backoff(
-                    attempt_prompt)
+                    attempt_prompt,
+                    **diagnose_call_kwargs(args, attempt + 1))
             except LiveAPIError as exc:
                 # Transport flake, NOT a diagnostic attempt: budget
                 # preserved, same attempt retried (bounded by
@@ -4141,7 +4285,8 @@ def _main_inner(argv=None) -> int:
                 "-- diagnose again from the SAME trace." % (dup_key, dup_one))
             try:
                 call, transport_waits = call_text_with_backoff(
-                    attempt_prompt)
+                    attempt_prompt,
+                    **diagnose_call_kwargs(args, attempt + 1))
             except LiveAPIError as exc:
                 if note_transport_failure(exc):
                     break
@@ -4242,7 +4387,7 @@ def _main_inner(argv=None) -> int:
             with open(api("text_request.json"), "w",
                       encoding="utf-8") as fh:
                 fh.write(json.dumps(
-                    {"model": TEXT_MODEL, "endpoint": text_url(),
+                    {"model": diagnose_model_for_attempt(args, attempt + 1), "endpoint": text_url(),
                      "prompt": attempt_prompt, "prompt_sha256": prompt_hash,
                      "prompt_file": args.prompt,
                      "prompt_tokens": len(attempt_prompt.split()),
@@ -4386,7 +4531,7 @@ def _main_inner(argv=None) -> int:
         # persist the deciding text call (this attempt produced the patch)
         with open(api("text_request.json"), "w", encoding="utf-8") as fh:
             fh.write(json.dumps(
-                {"model": TEXT_MODEL, "endpoint": text_url(),
+                {"model": diagnose_model_for_attempt(args, attempt + 1), "endpoint": text_url(),
                  "prompt": attempt_prompt, "prompt_sha256": prompt_hash,
                  "prompt_file": args.prompt,
                  "prompt_tokens": len(attempt_prompt.split()),
