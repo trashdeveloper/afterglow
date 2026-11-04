@@ -13,6 +13,12 @@
   <a href="eval/ablation-waveform.md">text+waveform beats text alone</a>
 </p>
 
+<p align="center">
+  <a href="https://youtu.be/UydK5zLcEow">▶ Watch the 3-minute demo</a>
+</p>
+
+> **Hackathon entry — Indie Developer · Push the Frontier · built Oct 26–Nov 4.** Targets **Best Agentic Use-Case** (multi-step diagnose→patch→resim loop with stacked repair, all proof-bundled). This is not a prompt wrapper: every fix is a ≤40-line RTL diff that passes lint, guardrails, and a checksum-matched re-sim — or the run stays RED on the board.
+
 ---
 
 ## Try it in 30 seconds
