@@ -168,10 +168,6 @@ class TestAfterglowCliForwarding(unittest.TestCase):
                  "--emit-events", "yaml"])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestTriageCostEvent(unittest.TestCase):
     """Footer cost wiring: triage stop must emit a cost-carrying event.
 
@@ -219,3 +215,7 @@ class TestTriageCostEvent(unittest.TestCase):
                                          elapsed_s=56.60412745596841)
         self.assertEqual(payload["elapsed_s"], 56)
         self.assertIsInstance(payload["elapsed_s"], int)
+
+
+if __name__ == "__main__":
+    unittest.main()
