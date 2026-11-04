@@ -103,9 +103,9 @@ else
   fail "no versioned prompts in agent/prompts/"
 fi
 
-# 7. Eval board green: score.py regenerates locked 3/3 + full 8/8 from runs/ only.
+# 7. Eval board green: score.py regenerates locked 3/3 + full 7/8 from runs/ only.
 if python3 eval/score.py >/dev/null 2>&1; then
-  pass "eval/score.py green (locked 3/3, full 8/8 from runs/ bundles)"
+  pass "eval/score.py green (locked 3/3, full 7/8 from runs/ bundles)"
 else
   fail "eval/score.py not green"
 fi
