@@ -23,12 +23,12 @@ class TestGuideExists(unittest.TestCase):
 
 
 class TestGuideClaims(unittest.TestCase):
-    def test_gallery_path_claim(self):
+    def test_board_path_claim(self):
         body = read_guide()
-        m = re.search(r"gallery lives at `([^`]+)`", body)
-        self.assertIsNotNone(m, "guide must state the gallery path")
+        m = re.search(r"board lives at `([^`]+)`", body)
+        self.assertIsNotNone(m, "guide must state the board path")
         self.assertTrue(os.path.isfile(os.path.join(REPO, m.group(1))),
-                        "claimed gallery path must exist")
+                        "claimed board path must exist")
 
     def test_quickstart_command_claim(self):
         body = read_guide()

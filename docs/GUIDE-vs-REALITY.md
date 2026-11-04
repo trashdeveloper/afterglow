@@ -12,9 +12,8 @@ RTL patch is applied, the sim re-runs, and a proof bundle lands in
 
 ## What is real (verified on disk)
 
-- gallery lives at `gallery/index.html` — 8 locked-case cards with
-  measured times, patch lines, costs; honest n/a where logs predate
-  cost tracking.
+- 72-fault board lives at `eval/mutant_board_100.md` — every kept
+  fault RED-proven then fixed, quarantined from older families.
 - quickstart runs `./afterglow demo` — triage-only run of the fastest
   locked case, diagnosis saved, patch withheld (~1 model call).
 - demo case: `picosoc-uart-div` — fastest locked GREEN at runtime,
@@ -53,4 +52,4 @@ RTL patch is applied, the sim re-runs, and a proof bundle lands in
 - `tests/test_docs_guide.py`
 - `sim/targets/picorv32-fetch-misalign.yaml`
 - `eval/results.md`, `eval/score.py`
-- `gallery/index.html`
+- `eval/mutant_board_100.md`

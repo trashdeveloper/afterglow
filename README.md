@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="video/film/public/wordmark.png" alt="afterglow" width="420">
+  <img src="docs/assets/wordmark.png" alt="afterglow" width="420">
 </p>
 
 <p align="center">
@@ -10,8 +10,7 @@
 <p align="center">
   <a href="eval/results.md">locked 3/3 · full 8/8</a> ·
   <a href="eval/mutant_board_100.md">72-fault board</a> ·
-  <a href="eval/ablation-waveform.md">text+waveform beats text alone</a> ·
-  <a href="gallery/index.html">gallery</a>
+  <a href="eval/ablation-waveform.md">text+waveform beats text alone</a>
 </p>
 
 ---
@@ -61,7 +60,6 @@ Suite: `python3 -m unittest discover -s tests` → OK (2 honest skips: needs a k
 - `eval/` — boards, preregs, tournament + impact writeups (generated, not hand-edited)
 - `repro/` — one-command Docker repro + `EXPECTED.md` checksums
 - `runs/` — immutable proof bundles
-- `video/` — the 3-minute demo film + sources
 
 </details>
 

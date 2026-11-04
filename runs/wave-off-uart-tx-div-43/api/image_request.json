@@ -1,0 +1,10 @@
+{
+  "model": "muse-image-1.0",
+  "endpoint": "https://api.meta.ai/v1/images/generations",
+  "prompt": "You are a hardware-debug illustrator. Draw ONE technical signal-flow diagram (dark background, light labels) explaining a RISC-V RTL failure.\nCase: uart-tx-div\nFailing-trace sha256 (first 16 hex): 78795ad847a4b00b\nVerbatim diagnosis from the debug agent:\nLoopback send of 0xa5 returned 0xff (idle) with divider 64, indicating ser_tx never left idle. Root cause is the TX divider path in the excerpt: `if (reg_div_we) send_dummy <= 1;` starts a 15-bit dummy idle frame that blocks the immediate `reg_dat_we` byte so it is dropped, and the TX bit timer uses `(cfg_divider >> 4)` instead of `cfg_divider` making TX 16x too fast.\nDiagram MUST show: the failing signal path named in the diagnosis, the wrong value vs the expected value, and the single RTL line to fix. Annotate the trace hash 78795ad847a4b00b in a corner as provenance. No decorative elements, no invented signals.",
+  "prompt_sha256": "8a98c5d7b6ed1ba935ebca33bfc0407e4848a83d510167144db0324dd18c111e",
+  "trace_sha256": "78795ad847a4b00b8ff125dc9ab34e22a2aecc8cc71a280fd21435c6c4a634b4",
+  "diagnosis_sha256": "49a59acb267c084dda5538cd9d40d1a98ab9a492d4d3404832f60d77e2ffdf19",
+  "case": "uart-tx-div",
+  "attempt": 1
+}

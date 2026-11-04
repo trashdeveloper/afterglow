@@ -1,0 +1,168 @@
+{
+  "run_id": "wave-off-mut-pair-01-43",
+  "case_id": "mut-pair-01",
+  "case": "mut-pair-01",
+  "mode": "live",
+  "status": "green",
+  "retries": 1,
+  "human_touches": 0,
+  "wall_start_utc": "2026-10-31T15:17:41Z",
+  "wall_end_utc": "2026-10-31T15:21:44Z",
+  "sim_seed": 42,
+  "prompt_file": "/home/tuncay/afterglow/agent/prompts/v2.txt",
+  "model_id": "muse-spark-1.3-contributor",
+  "image_model": "muse-image-1.0",
+  "diagnosed": true,
+  "fixed_unaided": true,
+  "patch_lines": 4,
+  "patch_source": "model-verbatim",
+  "explain": "ok",
+  "attempts": [
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "first attempt runs on the RED tree (no reset needed)",
+      "attempt": 1,
+      "text_latency_ms": 60642,
+      "text_request_id": "chatcmpl-01a1928b-feca-7048-bdb1-63d7c25679dc",
+      "diagnosis_chars": 374,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim; RESIM still RED (tohost=FAIL 0xdead)",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged",
+      "stale-build-suspect": false,
+      "stale_build_reason": ""
+    },
+    {
+      "tree_reset": false,
+      "tree_reset_reason": "compositional stack: continue from improved tree (stack depth 1; no reset)",
+      "stacked_continue": true,
+      "stack_depth": 1,
+      "attempt": 2,
+      "text_latency_ms": 51535,
+      "text_request_id": "chatcmpl-01a1928d-07c7-73f7-acb2-ce45f7e1814a",
+      "diagnosis_chars": 326,
+      "salvaged": false,
+      "guard_ok": true,
+      "patch_source_try": "model-verbatim",
+      "summary": "guard_ok=True applied=True reasons=[]; applied via model-verbatim",
+      "stale-tree-suspect": false,
+      "clean_rebuilds": 0,
+      "no_behavioral_effect": false,
+      "integrity_detail": "all 1 file(s) unchanged",
+      "stale-build-suspect": false,
+      "stale_build_reason": ""
+    }
+  ],
+  "no_behavioral_effect": false,
+  "ladder_used": false,
+  "ladder_reason": "green-within-base (ladder not needed)",
+  "goals": "fix",
+  "opt_status": "skipped",
+  "case_source": "spec",
+  "spec_path": "/home/tuncay/afterglow/sim/targets/mut-pair-01.yaml",
+  "sim_project": "picorv32",
+  "sim_tree_sha": "ef203c2b0a3fb793280f5114941416c425c5b461",
+  "mutant_tree": "/home/tuncay/afterglow/runs/scratch/wave-off-mut-pair-01-43",
+  "mutant_record": {
+    "file": "picosoc/simpleuart.v",
+    "line": 39,
+    "before": "reg [3:0] recv_state;",
+    "after": "reg [3:1] recv_state;",
+    "seed": "1234",
+    "op": "pair",
+    "faults": [
+      {
+        "file": "picosoc/simpleuart.v",
+        "line": 39,
+        "before": "reg [3:0] recv_state;",
+        "after": "reg [3:1] recv_state;"
+      },
+      {
+        "file": "picosoc/simpleuart.v",
+        "line": 114,
+        "before": "send_pattern <= ~0;",
+        "after": "send_pattern <= ~1;"
+      }
+    ]
+  },
+  "pristine_tree": "/home/tuncay/.cache/afterglow/work/picorv32-ef203c2b0a3f",
+  "rtl_file": "picosoc/simpleuart.v",
+  "spec_case_id": "mut-pair-01",
+  "spec_oracle_pass": "tohost: PASS",
+  "tohost_before": "FAIL 0xdead",
+  "checksum_before": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+  "cycles_before": 22023,
+  "red_baseline_tree_sha256": "2f960146fd572e0eadfe6907705502de94b623afa6e4e50c384ce06c8dd49cc4",
+  "prompt_hash": "d31e1ef6b74ddf52ee59e790ebff2f3defa9b03be82e699f45ef620cf8e27a6e",
+  "prompt_version": "v2",
+  "harvest": {
+    "status": "n/a"
+  },
+  "recall_past_fix": {
+    "status": "disabled",
+    "reason": "flag OFF (default)"
+  },
+  "trace_lines": 9,
+  "trace_tokens": 66,
+  "prompt_tokens": 847,
+  "context_tokens": 58,
+  "context_dropped": "none",
+  "localization_top1": "dhrystone/testbench.v",
+  "top1_is_true": false,
+  "trace_sha256": "6736f6647b7b5d6a14ce562f6053a8edfb239d72d35353515511056a95099110",
+  "attempts_consumed": 2,
+  "transport_retries": [
+    9.839061434206823
+  ],
+  "transport_failures": 0,
+  "stack": [
+    {
+      "attempt": 1,
+      "patch": "diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\n--- a/picosoc/simpleuart.v\n+++ b/picosoc/simpleuart.v\n@@ -39,4 +39,4 @@\n-\treg [3:1] recv_state;\n+\treg [3:0] recv_state;\n \treg [31:0] recv_divcnt;\n \treg [7:0] recv_pattern;\n \treg [7:0] recv_buf_data;\n",
+      "direction": "picosoc/simpleuart.v:39:replace",
+      "checksum_before": "e82517390f8726caabcc777759a3dbb48c59fd1d160e409515f1b95dfe3d420c",
+      "checksum_after": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+      "patch_lines": 2,
+      "trigger": "applied-clean"
+    },
+    {
+      "attempt": 2,
+      "patch": "diff --git a/picosoc/simpleuart.v b/picosoc/simpleuart.v\n--- a/picosoc/simpleuart.v\n+++ b/picosoc/simpleuart.v\n@@ -109,9 +109,9 @@\n \talways @(posedge clk) begin\n \t\tif (reg_div_we)\n \t\t\tsend_dummy <= 1;\n \t\tsend_divcnt <= send_divcnt + 1;\n \t\tif (!resetn) begin\n-\t\t\tsend_pattern <= ~1;\n+\t\t\tsend_pattern <= ~0;\n \t\t\tsend_bitcnt <= 0;\n \t\t\tsend_divcnt <= 0;\n \t\t\tsend_dummy <= 1;\n",
+      "direction": "picosoc/simpleuart.v:114:replace",
+      "checksum_before": "9e1b73c13d0a095f6b9512137fc937a720f9b8a80231ffc4b660d6d1459f6985",
+      "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+      "patch_lines": 2,
+      "trigger": "applied-clean"
+    }
+  ],
+  "stacked": true,
+  "stack_depth": 2,
+  "image_latency_ms": 25670,
+  "image_request_id": "e00561f9-0c70-4aab-a3f2-607956b2f0c2",
+  "image_bytes": 1233769,
+  "text_latency_ms": 51535,
+  "text_request_id": "chatcmpl-01a1928d-07c7-73f7-acb2-ce45f7e1814a",
+  "api_usage": {
+    "completion_tokens": 5534,
+    "prompt_tokens": 2324,
+    "total_tokens": 7858,
+    "completion_tokens_details": {
+      "reasoning_tokens": 5187
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "tohost_after": "PASS",
+  "checksum_after": "5c8f58d0f0818c97d014d2f851a6140882bd1efc96a2537047806252c0c2caf9",
+  "cycles_after": 2652,
+  "replay_verified": true,
+  "time_to_green_s": 242.7,
+  "est_usd": 0.07892,
+  "text_tokens": 7858,
+  "image_calls": 1
+}

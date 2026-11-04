@@ -12,15 +12,5 @@ runs/scratch/
 eval/mutant_pilot/logs/board100-*
 eval/mutant_pilot/logs/mut-100-*.log
 
-# node-tui deps (never commit)
-node-tui/node_modules/
-
 # rust build output (never commit; Cargo.lock stays for reproducible builds)
 tui-rs/target/
----
-# video build artifacts (renderer is committed, output is uploaded)
-video/frames/
-video/preview/
-video/remotion/node_modules/
-video/web/frames/
-video/web/*.mp4
