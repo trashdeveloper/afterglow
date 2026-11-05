@@ -26,8 +26,10 @@ import json
 import os
 import re
 import shutil
+import struct
 import sys
 import unittest
+import zlib
 from types import SimpleNamespace
 from unittest import mock
 
@@ -74,6 +76,23 @@ IMG_OK = {"latency_ms": 5, "request_id": "mock-img", "bytes": 100,
 # the wiring -- not pixels -- is under test).
 FAKE_EXPLAIN_PNG = b"\x89FAKE-EXPLAIN-PNG" * 64
 FAKE_WAVE_PNG = b"\x89FAKE-WAVEFORM-PNG" * 64
+
+
+def _real_png(w, h):
+    """Minimal valid RGB PNG (stdlib only) for tests that genuinely
+    decode pixels (lane slicing refuses undecodable bytes)."""
+    import zlib as _zlib
+    def _chunk(tag, data):
+        c = tag + data
+        return (struct.pack(">I", len(data)) + c +
+                struct.pack(">I", zlib.crc32(c) & 0xffffffff))
+    rows = b"".join(
+        b"\x00" + bytes(v for x in range(w) for v in (x * 31 % 256, 0, 0))
+        for _ in range(h))
+    return (b"\x89PNG\r\n\x1a\n"
+            + _chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0))
+            + _chunk(b"IDAT", _zlib.compress(rows))
+            + _chunk(b"IEND", b""))
 
 # Wall-clock tokens masked before checksum comparison in the replay test.
 CLOCK_RES = [
@@ -147,14 +166,14 @@ def _fake_capture_ok(**kwargs):
             "binary": "/nonexistent/Vtb_picosoc_uart"}
 
 
-def _make_render_fake(record):
+def _make_render_fake(record, png_bytes=None):
     def _fake(*, vcd_path, out_path, signals, fail_start=None,
               fail_end=None, title=None):
         record["render"] = {"vcd_path": vcd_path, "signals": list(signals),
                             "fail_window": [fail_start, fail_end],
                             "title": title}
         with open(out_path, "wb") as fh:
-            fh.write(FAKE_WAVE_PNG)
+            fh.write(FAKE_WAVE_PNG if png_bytes is None else png_bytes)
         return {"signals": list(signals), "out": out_path}
     return _fake
 
@@ -366,6 +385,10 @@ class TestWaveformLoopWiring(unittest.TestCase):
     def test_flag_on_attaches_png_bytes(self):
         # Flag ON, dump-capable TB: waveform.png rendered once from the
         # RED tree and its BYTES passed to the image call boundary.
+        # The render fake writes a REAL minimal PNG here (not the
+        # byte-string FAKE_WAVE_PNG used elsewhere) because lane
+        # slicing genuinely decodes the PNG -- a corrupt render must
+        # degrade loudly, never attach garbage.
         run_id = "test-waveform-attached"
         run_dir = os.path.join(ROOT, "runs", run_id)
         self.addCleanup(shutil.rmtree, run_dir, True)
@@ -374,7 +397,8 @@ class TestWaveformLoopWiring(unittest.TestCase):
             mock.patch.object(loop, "capture_waves_vcd",
                               side_effect=_fake_capture_ok),
             mock.patch.object(loop, "render_waveform_png",
-                              side_effect=_make_render_fake(record)),
+                              side_effect=_make_render_fake(
+                                  record, png_bytes=_real_png(8, 4))),
         ])
         self._start(patches)
         rc = loop.main(["--case", CASE, "--seed", "42",
@@ -384,30 +408,36 @@ class TestWaveformLoopWiring(unittest.TestCase):
         png_path = os.path.join(run_dir, "waveform.png")
         self.assertTrue(os.path.isfile(png_path))
         with open(png_path, "rb") as fh:
-            self.assertEqual(fh.read(), FAKE_WAVE_PNG)
+            self.assertEqual(fh.read(), _real_png(8, 4))
         atts = record.get("attachments")
         self.assertIsNotNone(atts)
-        self.assertEqual(len(atts), 1)
+        # Contract (eval/ablation-samlanes.md prereg, GRID arm): the full
+        # PNG travels first, followed by one fixed-grid lane crop per
+        # signal (2 signals for tb_picosoc_uart). Default slicer=fixed.
+        self.assertEqual(len(atts), 3)
         self.assertEqual(atts[0]["name"], "waveform.png")
-        self.assertEqual(atts[0]["png_bytes"], FAKE_WAVE_PNG)
+        self.assertEqual(atts[0]["png_bytes"], _real_png(8, 4))
+        self.assertEqual(atts[1]["name"], "wave-lane-00.png")
+        self.assertEqual(atts[2]["name"], "wave-lane-01.png")
         # Bundle provenance, not model output.
+        _real = _real_png(8, 4)
         meta = _read_json(os.path.join(run_dir, "meta.json"))
         self.assertEqual(meta["waveform"]["status"], "attached")
         self.assertEqual(meta["waveform"]["png_sha256"],
-                         hashlib.sha256(FAKE_WAVE_PNG).hexdigest())
+                         hashlib.sha256(_real).hexdigest())
         img_req = _read_json(os.path.join(run_dir, "api",
                                           "image_request.json"))
         self.assertEqual(img_req["waveform"]["status"], "attached")
         self.assertEqual(img_req["waveform"]["png_sha256"],
-                         hashlib.sha256(FAKE_WAVE_PNG).hexdigest())
+                         hashlib.sha256(_real).hexdigest())
         # No raw payload in JSON: byte count travels as an int, and the
         # record round-trips through json (bytes would raise TypeError).
         self.assertEqual(img_req["waveform"]["png_bytes"],
-                         len(FAKE_WAVE_PNG))
+                         len(_real))
         img_resp = _read_json(os.path.join(run_dir, "api",
                                            "image_response.json"))
         self.assertEqual(img_resp["attachments"][0]["sha256"],
-                         hashlib.sha256(FAKE_WAVE_PNG).hexdigest())
+                         hashlib.sha256(_real).hexdigest())
         # Render saw the fail window + the TB signal map.
         self.assertEqual(record["render"]["signals"],
                          list(loop.WAVEFORM_SIGNALS["tb_picosoc_uart"]))

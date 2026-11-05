@@ -37,6 +37,11 @@ PRICING: Dict[str, Dict[str, float]] = {
     "muse-image-1.0": {
         "usd_per_image": 0.03,
     },
+    # SAM segmentation is a flat per-call charge until contract rates
+    # land (same fallback convention as Wonder in loop.py).
+    "sam-3.1": {
+        "usd_per_call": 0.05,
+    },
 }
 
 TEXT_MODEL_DEFAULT = "muse-spark-1.3-contributor"
@@ -68,10 +73,12 @@ def compute_run_cost(run_dir: str) -> Dict[str, Any]:
     on absent or malformed data -- an incomplete bundle costs $0 here
     and stays honest instead of crashing the loop's finish() path.
 
-    Returns {text_tokens, image_calls, est_usd} plus an audit breakdown.
+    Returns {text_tokens, image_calls, sam_calls, est_usd} plus an audit
+    breakdown.
     """
     text_resp = _read_json(os.path.join(run_dir, "api", "text_response.json"))
     img_resp = _read_json(os.path.join(run_dir, "api", "image_response.json"))
+    sam_resp = _read_json(os.path.join(run_dir, "api", "sam_response.json"))
 
     usage = text_resp.get("usage")
     if not isinstance(usage, dict):
@@ -85,6 +92,12 @@ def compute_run_cost(run_dir: str) -> Dict[str, Any]:
     image_ok = bool(img_resp) and not img_resp.get("error")
     image_calls = 1 if image_ok else 0
 
+    sam_ok = bool(sam_resp) and sam_resp.get("ok") is True
+    sam_calls = 1 if sam_ok else 0
+    sam_model = str(sam_resp.get("model") or "sam-3.1")
+    sam_rate = PRICING.get(sam_model, PRICING["sam-3.1"]).get(
+        "usd_per_call", 0.0)
+
     text_model = str(text_resp.get("model") or TEXT_MODEL_DEFAULT)
     rates = PRICING.get(text_model, PRICING[TEXT_MODEL_DEFAULT])
     image_model = str(img_resp.get("model") or IMAGE_MODEL_DEFAULT)
@@ -95,16 +108,19 @@ def compute_run_cost(run_dir: str) -> Dict[str, Any]:
     est_usd = round(
         prompt_tokens / 1000 * float(rates.get("input_usd_per_1k", 0.0))
         + completion_tokens / 1000 * float(rates.get("output_usd_per_1k", 0.0))
-        + image_calls * float(img_rate), 6)
+        + image_calls * float(img_rate)
+        + sam_calls * float(sam_rate), 6)
 
     return {
         "text_tokens": total_tokens,
         "image_calls": image_calls,
+        "sam_calls": sam_calls,
         "est_usd": est_usd,
         "text_model": text_model,
         "text_input_tokens": prompt_tokens,
         "text_output_tokens": completion_tokens,
         "image_model": image_model if image_ok else "",
+        "sam_model": sam_model if sam_ok else "",
         "budget_usd": BUDGET_USD,
         "pricing_note": ESTIMATES_LABEL,
         "computed_utc": datetime.datetime.now(

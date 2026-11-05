@@ -238,6 +238,82 @@ def tb_supports_dump_waves(tb_name: str) -> bool:
             and "`ifdef" in src)
 
 
+def _write_sam_response(run_dir: str, *, ok: bool, model: str,
+                        lanes: int = 0, error: str = "") -> None:
+    """Record one SAM segmentation attempt for the cost ledger.
+
+    Success writes {model, ok: true, lanes} (metered as 1 SAM call);
+    failure writes {model, ok: false, error} (metered $0, loud).
+    Never raises: a ledger write must not break the diagnosis path.
+    """
+    rec = {"model": model, "ok": bool(ok), "lanes": int(lanes)}
+    if error:
+        rec["error"] = str(error)
+    try:
+        with open(os.path.join(run_dir, "api", "sam_response.json"),
+                   "w", encoding="utf-8") as fh:
+            fh.write(json.dumps(rec, indent=2) + "\n")
+    except OSError:
+        pass
+
+
+def slice_waveform(png_bytes: bytes, signals: list, slicer: str = "fixed",
+                   sam_caller=None, bearer: str | None = None,
+                   run_dir: str | None = None):
+    """Slice a rendered waveform PNG into per-lane crops (pure + 1 call).
+
+    slicer="fixed": N equal strips via samlanes.fixed_grid_lanes
+    (N = len(signals)), no model call. slicer="sam": sam_caller(bearer,
+    png) ONCE for lane boxes, then samlanes.crop_lanes; any exception
+    degrades LOUDLY to fixed grid (status degraded + reason, never
+    silent, never text-only here -- text-only degrade happens upstream
+    in waveform_plan). Returns (crops, info) where crops is a list of
+    {"name", "png_bytes"} and info carries slicer/status/reason.
+    samlanes is imported lazily (flag-ON path only, like vcdrender).
+    run_dir (optional): when given, the SAM attempt writes
+    api/sam_response.json (model, latency-free success flag, error on
+    failure) so the cost ledger meters it; fixed never writes.
+    """
+    from agent.waveform import samlanes
+    names = ["wave-lane-%02d.png" % (i,) for i in range(len(signals))]
+    if slicer == "sam":
+        try:
+            if sam_caller is None:
+                from agent.waveform.samlanes import call_sam as _call
+                sam_caller = _call
+            boxes = sam_caller(bearer, png_bytes)
+            parts = samlanes.crop_lanes(png_bytes, boxes)
+            crops = [{"name": n, "png_bytes": p}
+                     for n, p in zip(names, parts)]
+            if run_dir is not None:
+                _write_sam_response(run_dir, ok=True,
+                                    model="sam-3.1", lanes=len(crops))
+            return crops, {"slicer": "sam", "status": "attached",
+                           "reason": "SAM lane boxes",
+                           "lanes": len(crops)}
+        except Exception as exc:  # noqa: BLE001 -- loud GRID fallback
+            reason = "SAM slicing failed (%s): GRID fallback" % (exc,)
+            if run_dir is not None:
+                _write_sam_response(run_dir, ok=False,
+                                    model="sam-3.1",
+                                    error=str(exc)[:200])
+    else:
+        reason = "fixed grid slicing"
+    try:
+        boxes = samlanes.fixed_grid_lanes(png_bytes, max(1, len(signals)))
+        parts = samlanes.crop_lanes(png_bytes, boxes)
+    except Exception as exc:  # noqa: BLE001 -- corrupt render degrades
+        raise WaveformError(
+            "lane slicing failed (%s): refusing to attach crops from "
+            "an undecodable PNG" % (exc,))
+    crops = [{"name": n, "png_bytes": p} for n, p in zip(names, parts)]
+    info = {"slicer": slicer, "status": "attached",
+            "reason": reason, "lanes": len(crops)}
+    if slicer == "sam":
+        info["status"] = "degraded"
+    return crops, info
+
+
 def waveform_plan(args, case: dict) -> dict:
     """Waveform go/no-go (pure, no imports, no builds).
 
@@ -1810,6 +1886,15 @@ def parse_args(argv=None):
                          "DUMP_WAVES degrade loudly to text-only with a "
                          "meta note. Default OFF keeps the proven path "
                          "byte-identical.")
+    ap.add_argument("--waveform-slicer", choices=("fixed", "sam"),
+                    default="fixed",
+                    help="waveform lane slicing (only with --waveform): "
+                         "'fixed' slices the PNG into N equal strips "
+                         "(N = signal count, no model call); 'sam' calls "
+                         "sam-3.1 ONCE for lane boxes and crops to them, "
+                         "degrading LOUDLY to fixed grid on any SAM "
+                         "failure (meta.sam.status=degraded). Default "
+                         "fixed keeps the proven path byte-identical.")
     ap.add_argument("--wonder", action="store_true", default=False,
                     help="second-model diagnosis (opt-in): attempts 2+ "
                          "fetch the diagnosis from muse-wonder-1.0 "
@@ -3695,6 +3780,7 @@ def _main_inner(argv=None) -> int:
     # never fatally and never silently.
     wave_info: dict | None = None
     wave_png_bytes: bytes | None = None
+    wave_crops: list = []
     if bool(getattr(args, "waveform", False)):
         _wplan = waveform_plan(args, case)
         if _wplan["status"] != "ready":
@@ -3733,6 +3819,32 @@ def _main_inner(argv=None) -> int:
                                      "sha256": hashlib.sha256(wave_png_bytes).hexdigest(),
                                      "bytes": len(wave_png_bytes)}],
                 }
+                # Lane slicing (flag-ON only; default fixed == legacy
+                # single-PNG attach plus per-lane crops, so the legacy
+                # record is preserved AND GRID is directly comparable).
+                # slicer sam fires ONE SAM call; any SAM failure falls
+                # back LOUDLY to fixed grid (meta.sam.status=degraded).
+                _slicer = str(getattr(args, "waveform_slicer", "fixed"))
+                _crops, _sinfo = slice_waveform(
+                    wave_png_bytes, list(_rend["signals"]),
+                    slicer=_slicer,
+                    # Key resolved ONLY for the sam arm: fixed must run
+                    # keyless (unit tests, offline replay). api_key()
+                    # fails loud when sam is requested without a key.
+                    bearer=(api_key() if _slicer == "sam" else None),
+                    run_dir=run_dir)
+                for _c in _crops:
+                    wave_info["attachments"].append({
+                        "name": _c["name"],
+                        "sha256": hashlib.sha256(
+                            _c["png_bytes"]).hexdigest(),
+                        "bytes": len(_c["png_bytes"])})
+                wave_info["slicer"] = _sinfo
+                if str(getattr(args, "waveform_slicer",
+                               "fixed")) == "sam":
+                    meta["sam"] = {"status": _sinfo["status"],
+                                   "reason": _sinfo["reason"]}
+                wave_crops = _crops
                 emit_stage(args, "[WAVEFORM] attached %s (%d bytes, signals=%s)" % (
                     WAVEFORM_PNG_NAME, len(wave_png_bytes),
                     ",".join(_rend["signals"])), flush=True)
@@ -4345,6 +4457,9 @@ def _main_inner(argv=None) -> int:
             if wave_png_bytes is not None:
                 _wave_att = [{"name": WAVEFORM_PNG_NAME,
                               "png_bytes": wave_png_bytes}]
+                for _c in wave_crops:
+                    _wave_att.append({"name": _c["name"],
+                                      "png_bytes": _c["png_bytes"]})
         with open(api("image_request.json"), "w", encoding="utf-8") as fh:
             fh.write(json.dumps(_img_req, indent=2) + "\n")
         try:

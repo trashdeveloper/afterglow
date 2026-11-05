@@ -127,6 +127,9 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--waveform", action="store_true", default=False,
                      help="attach fail-window waveform PNG to diagnosis "
                           "(uart-TB cases only; others degrade loudly)")
+    run.add_argument("--waveform-slicer", choices=("fixed", "sam"),
+                     default="fixed",
+                     help="waveform lane slicing (only with --waveform)")
     run.add_argument("--wonder", action="store_true", default=False,
                      help="second-model diagnosis via muse-wonder-1.0 "
                           "from attempt 2 on (opt-in; same guardrails)")
@@ -462,6 +465,8 @@ def main(argv=None) -> int:
                 tui_argv += ["--goals", args.goals]
             if args.waveform:
                 tui_argv.append("--waveform")
+            if args.waveform_slicer != "fixed":
+                tui_argv += ["--waveform-slicer", args.waveform_slicer]
             if args.wonder:
                 tui_argv.append("--wonder")
             if args.debug:
@@ -490,6 +495,8 @@ def main(argv=None) -> int:
             loop_argv += ["--goals", args.goals]
         if args.waveform:
             loop_argv.append("--waveform")
+        if args.waveform_slicer != "fixed":
+            loop_argv += ["--waveform-slicer", args.waveform_slicer]
         if args.wonder:
             loop_argv.append("--wonder")
         if args.debug:

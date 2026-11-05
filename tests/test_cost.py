@@ -115,11 +115,38 @@ class TestCostLedger(unittest.TestCase):
             got = cost_ledger.compute_run_cost(tmp)
             self.assertEqual(got["text_tokens"], 300)
             self.assertEqual(got["image_calls"], 0)
+            self.assertEqual(got["sam_calls"], 0)
             rates = cost_ledger.PRICING["muse-spark-1.3-contributor"]
             expected = round(
                 100 / 1000 * rates["input_usd_per_1k"]
                 + 200 / 1000 * rates["output_usd_per_1k"], 6)
             self.assertAlmostEqual(got["est_usd"], expected, places=6)
+
+    def test_sam_success_counts_one_call(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _write(os.path.join(tmp, "api", "text_response.json"),
+                    {"usage": {"total_tokens": 0}})
+            _write(os.path.join(tmp, "api", "image_response.json"),
+                    {"error": "skipped"})
+            _write(os.path.join(tmp, "api", "sam_response.json"),
+                    {"model": "sam-3.1", "ok": True, "lanes": 4})
+            got = cost_ledger.compute_run_cost(tmp)
+            self.assertEqual(got["sam_calls"], 1)
+            self.assertEqual(got["image_calls"], 0)
+            expected = round(
+                cost_ledger.PRICING["sam-3.1"]["usd_per_call"], 6)
+            self.assertAlmostEqual(got["est_usd"], expected, places=6)
+
+    def test_sam_failure_counts_zero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            _write(os.path.join(tmp, "api", "text_response.json"),
+                    {"usage": {"total_tokens": 0}})
+            _write(os.path.join(tmp, "api", "sam_response.json"),
+                    {"model": "sam-3.1", "ok": False,
+                     "error": "transport down"})
+            got = cost_ledger.compute_run_cost(tmp)
+            self.assertEqual(got["sam_calls"], 0)
+            self.assertAlmostEqual(got["est_usd"], 0.0, places=6)
 
     def test_loop_writes_cost_json(self):
         with tempfile.TemporaryDirectory() as tmp:
