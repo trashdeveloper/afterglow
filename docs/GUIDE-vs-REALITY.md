@@ -24,7 +24,7 @@ RTL patch is applied, the sim re-runs, and a proof bundle lands in
   transport flakes fail loud (exit 2, patch withheld).
 - Keys: `.env`-based (`MODEL_API_KEY`), gitignored, never logged;
   history contains no key material.
-- suite: 2152 tests (`python3 -m unittest discover -s tests`),
+- suite: 2208 tests (`python3 -m unittest discover -s tests`),
   `bash scripts/ci.sh` gates ALL PASS.
 - Landmarks: c3a19d9 (Node TUI spike), a4e7153 (README screenshots),
   487fae1 (CLI polish) — all `git cat-file -t` verified.
